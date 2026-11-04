@@ -1,0 +1,28 @@
+# macOS / editors
+.DS_Store
+._*
+.idea/
+*.swp
+
+# Dependencies and generated output
+node_modules/
+dist/
+build/
+target/
+.bsp/
+.metals/
+.scala-build/
+coverage/
+*.log
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+Tencent_Cloud.json
+secrets/
+
+# Local database files
+*.db
+*.sqlite
+*.sqlite3
