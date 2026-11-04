@@ -26,11 +26,32 @@
 | 左下 | `left` | 朝左侧面 |
 | 右下 | `right` | 朝右侧面 |
 
-这些是**四方向站立图，共六张图集、二十四个方向帧**，不是完整行走动画。原始高分辨率图作为生成母版保留，实际画布尺寸、单元尺寸、各帧边界与脚底建议定位见 [manifest.json](manifest.json)。加载时按明确的矩形取帧，按统一的世界显示高度对齐脚底，使用最近邻采样；不要直接把高分辨率画布尺寸当作场景角色大小。
+以上是**四方向站立图，共六张图集、二十四个方向帧**。站立图的实际画布尺寸、单元尺寸、各帧边界与脚底建议定位见 [manifest.json](manifest.json)；新增动作与技能按下面的独立清单加载。原始高分辨率图作为生成母版保留，加载时按明确的矩形取帧，统一角色显示比例与脚底定位，使用最近邻采样，不把母版尺寸当作场景中的角色大小。
 
 简化像素形象保留辨识特征：大肥鱼的蓝发、围裙和鲸尾；Claude 的橙发与向日葵；GPT 的白发、龙角与龙翼；GLM 的黑发、狐耳尾与黑书；Qwen 的蓝紫发和折扇；Gemini 的猫耳尾、异色瞳和四芒星。
 
-主角后续需补四方向行走、摆尾和施法动作；GLM 补事件移动；支援角色补短动作与独立技能特效。完整范围见 [企划书](../AI娘冒险游戏_简版企划书.md)。
+## 大肥鱼动作与伙伴技能
+
+本批新增下列图集，布局与站立图的含义不同。可直接打开 [动画预览页](animation-preview.html) 查看播放、切换朝向、暂停与逐帧检查；页面无需构建或联网。实际像素分格、时间、播放顺序和判定触发帧见 [animation-manifest.json](animation-manifest.json)，完整提示词见 [动作生成记录](animation-generation-prompts.md)。
+
+| 角色 | 图集 | 网格与播放方式 |
+| --- | --- | --- |
+| 大肥鱼 | [walk.png](deepseek/sprites/walk.png) | 3 列×4 行；行依次下、上、左、右，列为站姿／迈步 A／迈步 B，每行按 0→1→0→2 循环 |
+| 大肥鱼 | [melee-tail.png](deepseek/sprites/melee-tail.png) | 3 列×4 行；同样四方向，每行预备→摆尾出手→收势，单次播放 |
+| 大肥鱼 | [cast-water.png](deepseek/sprites/cast-water.png) | 3 列×4 行；同样四方向，每行蓄力→释放→收势，单次播放 |
+| 大肥鱼 | [water.png](deepseek/effects/water.png) | 4 列×2 行；上行四帧水球向右飞行，下行四帧命中水花；弹体按实际瞄准向量旋转 |
+| GLM | [cast-forbidden-bind.png](glm/sprites/cast-forbidden-bind.png) | 2×2、四个时间阶段，正面召唤施法 |
+| GLM | [forbidden-bind.png](glm/effects/forbidden-bind.png) | 2×2、束缚符文出现→升起→成型→散去；成型阶段可保持 |
+| GPT | [cast-starfall.png](gpt/sprites/cast-starfall.png) | 2×2、四个时间阶段，正面召唤施法 |
+| GPT | [starfall.png](gpt/effects/starfall.png) | 2×2、星辉预兆→星落→命中→消散 |
+| Claude | [cast-sunflower-barrier.png](claude/sprites/cast-sunflower-barrier.png) | 2×2、四个时间阶段，正面召唤施法 |
+| Claude | [sunflower-barrier.png](claude/effects/sunflower-barrier.png) | 2×2、金色光环→结界升起→成型→花瓣散去；成型阶段可保持 |
+
+所有 2×2 动作与特效均按**左上→右上→左下→右下**播放，它们是时间阶段，不能按站立图的四方向来读取。伙伴施法者与目标特效是两张独立图片，可在不同场景位置播放。
+
+技能伤害、MP 消耗和 CD 启动由游戏逻辑结算一次；特效重播或保持成型画面不得重复触发。星落命中位置、束缚对象和结界保护范围取决于实际状态，不按图像的外边缘直接充当碰撞体。
+
+本批是带切帧定义的动作／特效母版，尚未接入游戏引擎；实际运行前需统一脚底、帧间比例、攻击时机和结界前后景分层。GLM 事件行走、GPT 试炼专用龙息／落击、主角受伤与倒下等仍在后续清单，见 [企划书](../AI娘冒险游戏_简版企划书.md)。
 
 ## 来源与生成记录
 

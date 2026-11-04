@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "generatedOn": "2026-11-04",
   "baseDirectory": "material/Character",
-  "status": "four-direction-idle-only",
+  "status": "idle-directions-with-separate-animation-manifest",
   "layout": {
     "columns": 2,
     "rows": 2,
@@ -584,9 +584,12 @@
     "grok/portraits/default.png"
   ],
   "pending": [
-    "walking and action frames",
-    "D pope design and sprites",
-    "ordinary enemy sprites",
+    "engine integration and frame-to-frame scale/anchor calibration",
+    "GLM event walking",
+    "GPT trial breath and ground-strike actions",
+    "DeepSeek hurt and defeat presentation",
+    "D pope and ordinary enemy assets",
     "portrait expression variants and GPT portrait background cutout"
-  ]
+  ],
+  "animationManifest": "animation-manifest.json"
 }
