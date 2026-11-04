@@ -1,0 +1,592 @@
+{
+  "schemaVersion": 1,
+  "generatedOn": "2026-11-04",
+  "baseDirectory": "material/Character",
+  "status": "four-direction-idle-only",
+  "layout": {
+    "columns": 2,
+    "rows": 2,
+    "order": [
+      "down",
+      "up",
+      "left",
+      "right"
+    ]
+  },
+  "coordinates": "Pixels in the saved PNG; rect is [x,y,width,height]. visibleBounds and suggestedFeetAnchor are local to each cell. Bounds use alpha >=16; anchors estimate the lower visible foot area and need runtime alignment review.",
+  "rendering": {
+    "sampling": "nearest",
+    "worldHeight": "Normalize visible character height across characters at integration; source canvas pixels are not world units.",
+    "pixelGrid": "Generated pixel-style masters; no claim of a validated 64x64 logical pixel grid."
+  },
+  "characters": [
+    {
+      "id": "deepseek",
+      "displayName": "大肥鱼",
+      "role": "player",
+      "portrait": "deepseek/portraits/default.png",
+      "sprite": "deepseek/sprites/idle-directions.png",
+      "imageSize": [
+        1254,
+        1254
+      ],
+      "cellSize": [
+        627,
+        627
+      ],
+      "frames": [
+        {
+          "direction": "down",
+          "rect": [
+            0,
+            0,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            131,
+            33,
+            419,
+            556
+          ],
+          "suggestedFeetAnchor": [
+            325,
+            589
+          ]
+        },
+        {
+          "direction": "up",
+          "rect": [
+            627,
+            0,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            78,
+            33,
+            419,
+            556
+          ],
+          "suggestedFeetAnchor": [
+            302,
+            589
+          ]
+        },
+        {
+          "direction": "left",
+          "rect": [
+            0,
+            627,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            185,
+            34,
+            353,
+            546
+          ],
+          "suggestedFeetAnchor": [
+            280,
+            580
+          ]
+        },
+        {
+          "direction": "right",
+          "rect": [
+            627,
+            627,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            90,
+            34,
+            353,
+            546
+          ],
+          "suggestedFeetAnchor": [
+            347,
+            580
+          ]
+        }
+      ]
+    },
+    {
+      "id": "claude",
+      "displayName": "Claude",
+      "role": "support",
+      "portrait": "claude/portraits/default.png",
+      "sprite": "claude/sprites/idle-directions.png",
+      "imageSize": [
+        1254,
+        1254
+      ],
+      "cellSize": [
+        627,
+        627
+      ],
+      "frames": [
+        {
+          "direction": "down",
+          "rect": [
+            0,
+            0,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            119,
+            62,
+            404,
+            525
+          ],
+          "suggestedFeetAnchor": [
+            317,
+            587
+          ]
+        },
+        {
+          "direction": "up",
+          "rect": [
+            627,
+            0,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            104,
+            63,
+            403,
+            524
+          ],
+          "suggestedFeetAnchor": [
+            309,
+            587
+          ]
+        },
+        {
+          "direction": "left",
+          "rect": [
+            0,
+            627,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            185,
+            64,
+            335,
+            523
+          ],
+          "suggestedFeetAnchor": [
+            290,
+            587
+          ]
+        },
+        {
+          "direction": "right",
+          "rect": [
+            627,
+            627,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            107,
+            64,
+            334,
+            523
+          ],
+          "suggestedFeetAnchor": [
+            336,
+            587
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gpt",
+      "displayName": "GPT",
+      "role": "support",
+      "portrait": "gpt/portraits/default.png",
+      "sprite": "gpt/sprites/idle-directions.png",
+      "imageSize": [
+        1254,
+        1254
+      ],
+      "cellSize": [
+        627,
+        627
+      ],
+      "frames": [
+        {
+          "direction": "down",
+          "rect": [
+            0,
+            0,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            122,
+            30,
+            409,
+            544
+          ],
+          "suggestedFeetAnchor": [
+            323,
+            574
+          ]
+        },
+        {
+          "direction": "up",
+          "rect": [
+            627,
+            0,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            96,
+            30,
+            408,
+            545
+          ],
+          "suggestedFeetAnchor": [
+            296,
+            575
+          ]
+        },
+        {
+          "direction": "left",
+          "rect": [
+            0,
+            627,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            173,
+            30,
+            329,
+            558
+          ],
+          "suggestedFeetAnchor": [
+            269,
+            588
+          ]
+        },
+        {
+          "direction": "right",
+          "rect": [
+            627,
+            627,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            125,
+            30,
+            329,
+            558
+          ],
+          "suggestedFeetAnchor": [
+            359,
+            588
+          ]
+        }
+      ]
+    },
+    {
+      "id": "glm",
+      "displayName": "GLM",
+      "role": "support",
+      "portrait": "glm/portraits/default.png",
+      "sprite": "glm/sprites/idle-directions.png",
+      "imageSize": [
+        1254,
+        1254
+      ],
+      "cellSize": [
+        627,
+        627
+      ],
+      "frames": [
+        {
+          "direction": "down",
+          "rect": [
+            0,
+            0,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            144,
+            46,
+            412,
+            535
+          ],
+          "suggestedFeetAnchor": [
+            332,
+            581
+          ]
+        },
+        {
+          "direction": "up",
+          "rect": [
+            627,
+            0,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            70,
+            46,
+            413,
+            535
+          ],
+          "suggestedFeetAnchor": [
+            304,
+            581
+          ]
+        },
+        {
+          "direction": "left",
+          "rect": [
+            0,
+            627,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            170,
+            39,
+            370,
+            544
+          ],
+          "suggestedFeetAnchor": [
+            294,
+            583
+          ]
+        },
+        {
+          "direction": "right",
+          "rect": [
+            627,
+            627,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            85,
+            39,
+            372,
+            544
+          ],
+          "suggestedFeetAnchor": [
+            333,
+            583
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qwen",
+      "displayName": "Qwen",
+      "role": "npc",
+      "portrait": "qwen/portraits/default.png",
+      "sprite": "qwen/sprites/idle-directions.png",
+      "imageSize": [
+        1254,
+        1254
+      ],
+      "cellSize": [
+        627,
+        627
+      ],
+      "frames": [
+        {
+          "direction": "down",
+          "rect": [
+            0,
+            0,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            152,
+            26,
+            365,
+            554
+          ],
+          "suggestedFeetAnchor": [
+            336,
+            580
+          ]
+        },
+        {
+          "direction": "up",
+          "rect": [
+            627,
+            0,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            100,
+            26,
+            367,
+            554
+          ],
+          "suggestedFeetAnchor": [
+            287,
+            580
+          ]
+        },
+        {
+          "direction": "left",
+          "rect": [
+            0,
+            627,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            190,
+            31,
+            314,
+            549
+          ],
+          "suggestedFeetAnchor": [
+            323,
+            580
+          ]
+        },
+        {
+          "direction": "right",
+          "rect": [
+            627,
+            627,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            112,
+            30,
+            310,
+            550
+          ],
+          "suggestedFeetAnchor": [
+            302,
+            580
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gemini",
+      "displayName": "Gemini",
+      "role": "npc",
+      "portrait": "gemini/portraits/default.png",
+      "sprite": "gemini/sprites/idle-directions.png",
+      "imageSize": [
+        1254,
+        1254
+      ],
+      "cellSize": [
+        627,
+        627
+      ],
+      "frames": [
+        {
+          "direction": "down",
+          "rect": [
+            0,
+            0,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            137,
+            24,
+            384,
+            560
+          ],
+          "suggestedFeetAnchor": [
+            320,
+            584
+          ]
+        },
+        {
+          "direction": "up",
+          "rect": [
+            627,
+            0,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            106,
+            24,
+            379,
+            559
+          ],
+          "suggestedFeetAnchor": [
+            306,
+            583
+          ]
+        },
+        {
+          "direction": "left",
+          "rect": [
+            0,
+            627,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            199,
+            24,
+            315,
+            559
+          ],
+          "suggestedFeetAnchor": [
+            289,
+            583
+          ]
+        },
+        {
+          "direction": "right",
+          "rect": [
+            627,
+            627,
+            627,
+            627
+          ],
+          "visibleBounds": [
+            113,
+            24,
+            316,
+            559
+          ],
+          "suggestedFeetAnchor": [
+            338,
+            583
+          ]
+        }
+      ]
+    }
+  ],
+  "reservedPortraits": [
+    "kimi/portraits/default.png",
+    "grok/portraits/default.png"
+  ],
+  "pending": [
+    "walking and action frames",
+    "D pope design and sprites",
+    "ordinary enemy sprites",
+    "portrait expression variants and GPT portrait background cutout"
+  ]
+}
