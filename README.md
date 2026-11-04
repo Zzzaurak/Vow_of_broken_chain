@@ -1,0 +1,23 @@
+# 断链之誓
+
+以 AI 娘为角色的中世纪奇幻冒险游戏，作为前后端课程项目制作。目前处于内容规划阶段，尚无可运行的游戏代码。
+
+## 内容导航
+
+- [简版企划书 v0.2](material/AI娘冒险游戏_简版企划书.md)：游戏定位、完整流程、战斗、首版范围与课程边界。
+- [作者剧情大纲](material/outline.md)：主线改编依据。
+- [角色设定](material/Character/setting.md)：本游戏的人物性格、剧情职责与技能；同目录保存外观参考。
+- [背景参考文字](material/background/background-text.md) 与 [原 PDF](material/background/background-origin.pdf)：仅作参考，游戏主线以作者大纲为准。
+- [课程技能](../course-skills/README.md)：相邻独立仓库中的开发规范；不包含在本仓库内，单独克隆本项目后需另行提供。
+
+## 后续实现
+
+拟采用 React＋TypeScript＋Tailwind 前端、Scala 3 后端与 PostgreSQL。拟定页面、服务和 API 对应关系见企划书第 6 节；开发后在本 README 补充实际目录、接口导航、配置和启动步骤。
+
+## Git 管理
+
+仓库根为 `hw/hw_m`，默认分支为 `main`，统一管理素材、文档和后续代码。初始提交保留整理前的材料，后续修改另行提交，便于查看差异和回退。
+
+在本目录使用 `git status` 查看工作区，使用 `git log --oneline` 查看历史。提交前检查文件范围与 `git diff --cached --check`，按一次明确的内容修改或功能变更创建提交。
+
+`.gitignore` 排除系统文件、依赖、构建产物、本地数据库和常见凭据文件；`.gitattributes` 将图片、PDF 作为二进制素材管理。新命名的真实凭据文件应补充忽略规则。当前仅建立本地仓库，尚未配置远程。
