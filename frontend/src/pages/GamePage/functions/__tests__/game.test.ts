@@ -8,6 +8,7 @@ import {
   interact,
   retryCheckpoint,
   configureSupport,
+  finishMap,
 } from '../progression';
 import { stepGame, hitPlayer } from '../combat';
 import { emptyInput, type GameState } from '../../objects/game';
@@ -43,6 +44,24 @@ function finishDialogue(game: GameState): GameState {
   return next;
 }
 describe('deterministic game rules', () => {
+  it('clearing the final battle preserves Claude and the chosen second support for safe saving', () => {
+    const state = createGame({
+      ...initial,
+      mapId: 'throne',
+      checkpoint: 'throne',
+      unlocked: ['glm', 'gpt', 'claude'],
+      supports: ['claude', 'gpt'],
+    });
+    expect(finishMap(state).snapshot.supports).toEqual(['claude', 'gpt']);
+    const reordered = createGame({
+      ...initial,
+      mapId: 'corridor',
+      checkpoint: 'corridor',
+      unlocked: ['glm', 'gpt'],
+      supports: ['gpt', 'glm'],
+    });
+    expect(finishMap(reordered).snapshot.supports).toEqual(['gpt', 'glm']);
+  });
   it('same input produces same result and does not mutate its snapshot', () => {
     const game = battle();
     const before = structuredClone(game);

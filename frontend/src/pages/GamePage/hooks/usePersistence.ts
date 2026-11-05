@@ -94,14 +94,34 @@ export function usePersistence() {
       setStatus({ kind: 'error', text: e instanceof Error ? e.message : '无法读取存档列表' });
     }
   }
-  function load(id: string) {
+  async function load(id: string) {
     const progress = getProgressSnap();
     if (!progress || busy.current) return;
     if (getGameSnap()?.dirty && !window.confirm('读取这条记录会放弃当前未保存进度。确定回档？'))
       return;
     if (pending.current && !window.confirm('上次保存尚未确认，读取后将放弃该次重试。确定读取？'))
       return;
-    const request = new LoadAdventureMessage({ value: id }, crypto.randomUUID(), progress.revision);
+    // An explicit load chooses the server branch. Fetch its current revision;
+    // retaining the stale local revision here makes conflict recovery impossible.
+    busy.current = true;
+    const epoch = generation.current;
+    setStatus({ kind: 'busy', text: '正在核对服务器进度…' });
+    let latest: SaveListResponse;
+    try {
+      latest = await new ListSavesMessage().send();
+      if (epoch !== generation.current) return;
+      setList(latest);
+    } catch (error) {
+      if (epoch === generation.current)
+        setStatus({
+          kind: 'error',
+          text: error instanceof Error ? error.message : '无法核对服务器进度，当前游戏仍保留。',
+        });
+      return;
+    } finally {
+      busy.current = false;
+    }
+    const request = new LoadAdventureMessage({ value: id }, crypto.randomUUID(), latest.revision);
     pending.current = {
       kind: 'load',
       send: () => request.send(),

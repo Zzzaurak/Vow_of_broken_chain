@@ -74,7 +74,9 @@ export function finishMap(state: GameState): GameState {
   const supports: Partner[] =
     partner === 'claude'
       ? ['claude', s.supports.includes('gpt') ? 'gpt' : 'glm']
-      : unlocked.slice(0, 2);
+      : partner && s.supports.length < 2 && !s.supports.includes(partner)
+        ? [...s.supports, partner]
+        : s.supports;
   const healed = ['steps', 'lair', 'garden'].includes(s.mapId);
   const snapshot: GameSnapshot = {
     ...s,
