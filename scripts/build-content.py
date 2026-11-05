@@ -71,6 +71,16 @@ def main():
                 other=(cell[0]+dx,cell[1]+dy)
                 if other not in seen and valid(other):seen.add(other);pending.append(other)
         assert goal in seen, f"Unreachable exit: {m['id']}"
+        if m['encounter']:
+            encounter=next(e for e in encounters if e['id']==m['encounter'])
+            for wave in encounter['waves']:
+                for i,_ in enumerate(wave):
+                    px=m['width']*32*.55+(i%3)*100
+                    py=m['height']*16+(i//3*2-1)*90
+                    assert 24<=px<=m['width']*32-24 and 24<=py<=m['height']*32-24
+                    assert not any(ox-12<=px<=ox+w+12 and oy-8<=py<=oy+h+8 for ox,oy,w,h in m['obstacles']), f"Blocked enemy spawn: {m['id']} #{i}"
+                    assert (int(px//32),int(py//32)) in seen, f"Unreachable enemy spawn: {m['id']} #{i}"
+
     assert sum(m['finalPreparation'] for m in maps)==1
     print(f'Validated {len(maps)} maps, {len(scenes)} scenes, {sum(len(s["lines"]) for s in scenes)} dialogue lines')
 

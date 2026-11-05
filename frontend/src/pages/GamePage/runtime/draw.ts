@@ -1,3 +1,4 @@
+import { drawScenery } from './scenery';
 import enemyAtlas from '../../../../../material/Enemies/manifest.json';
 import type { GameState, Vec } from '../objects/game';
 import { mapById, balance } from '../objects/content';
@@ -199,12 +200,7 @@ export function drawGame(
       h,
     );
   }
-  if (map.theme === 'temple' && map.id !== 'steps') {
-    ctx.fillStyle = '#793f43aa';
-    ctx.fillRect(map.width * 16 - 42, 32, 84, map.height * 32 - 64);
-    ctx.strokeStyle = '#b59f67';
-    ctx.strokeRect(map.width * 16 - 42, 32, 84, map.height * 32 - 64);
-  }
+  drawScenery(ctx, map);
   circle(ctx, { x: map.spawn[0], y: map.spawn[1] }, 30, '#e8d79928');
   ctx.fillStyle = '#e8d799';
   ctx.font = '12px sans-serif';
@@ -258,13 +254,13 @@ export function drawGame(
   const npc =
     state.snapshot.mapId === 'market'
       ? 'qwen'
-      : state.snapshot.mapId === 'coast'
+      : state.snapshot.mapId === 'crystal' && state.snapshot.stage === 'cleared'
         ? 'gemini'
         : state.snapshot.mapId === 'alley'
           ? 'claude'
           : null;
   if (npc)
-    drawActor(ctx, images, npc, { x: map.width * 16, y: map.height * 16 }, 'left', 'idle', 0);
+    drawActor(ctx, images, npc, { x: map.width * 16 + 72, y: map.height * 16 }, 'left', 'idle', 0);
   for (const enemy of [...state.enemies].sort((a, b) => a.position.y - b.position.y)) {
     if (enemy.hp <= 0) continue;
     const p = enemy.position;
@@ -308,7 +304,8 @@ export function drawGame(
       p.y - 82,
       52 *
         (enemy.shield > 0
-          ? enemy.shield / (enemy.kind === 'gpt' ? 160 : 140)
+          ? enemy.shield /
+            (enemy.kind === 'gpt' ? balance.enemies.gpt.shield : balance.enemies.claude.shield)
           : enemy.hp / enemy.maxHp),
       5,
     );

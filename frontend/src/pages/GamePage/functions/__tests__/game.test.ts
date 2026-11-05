@@ -1,3 +1,5 @@
+import manifest from '../../../../../../content/manifest.json';
+import { mapById } from '../../objects/content';
 import { describe, it, expect } from 'vitest';
 import {
   createGame,
@@ -12,7 +14,7 @@ import { emptyInput, type GameState } from '../../objects/game';
 import type { GameSnapshot } from '../../../../apis/AdventureService/types';
 const initial: GameSnapshot = {
   schemaVersion: 1,
-  contentVersion: '1.0.0',
+  contentVersion: manifest.contentVersion,
   difficulty: 'easy',
   mapId: 'steps',
   position: { x: 96, y: 384 },
@@ -242,11 +244,12 @@ describe('deterministic game rules', () => {
     expect(second.enemies[0].timer).toBeCloseTo(4.9);
   });
   it('water cannot cross a solid map obstacle', () => {
+    const [wallX, wallY] = mapById('forest').obstacles[0];
     const state = createGame({
       ...initial,
       mapId: 'forest',
       checkpoint: 'forest',
-      position: { x: 140, y: 150 },
+      position: { x: wallX - 20, y: wallY + 22 },
     });
     const next = stepGame(
       {
@@ -254,9 +257,9 @@ describe('deterministic game rules', () => {
         projectiles: [
           {
             id: 1,
-            position: { x: 146, y: 150 },
+            position: { x: wallX - 14, y: wallY + 22 },
             direction: { x: 1, y: 0 },
-            target: { x: 400, y: 150 },
+            target: { x: wallX + 240, y: wallY + 22 },
             speed: 380,
             distance: 250,
             damage: 32,

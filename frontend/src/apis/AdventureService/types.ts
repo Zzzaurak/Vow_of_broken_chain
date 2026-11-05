@@ -4,7 +4,7 @@ export type ProgressStage = 'arrival' | 'ready' | 'cleared' | 'ending' | 'finish
 export type Id = Readonly<{ value: string }>;
 export interface GameSnapshot {
   schemaVersion: 1;
-  contentVersion: '1.0.0';
+  contentVersion: string;
   difficulty: Difficulty;
   mapId: string;
   position: { x: number; y: number };
