@@ -45,4 +45,17 @@ test('pure keyboard opens settings, changes preset, starts, moves, aims and open
   await expect(page.getByLabel('控制方案')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: '继续游戏' })).toBeVisible();
+  await navigateTo(page, '继续游戏');
+  await page.keyboard.press('Enter');
+  await page.keyboard.down('KeyD');
+  await page.waitForTimeout(150);
+  // Headless Chromium keeps background pages focused; exercise the blur event boundary.
+  await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+  await expect.poll(async () => (await state()).mode.kind).toBe('paused');
+  const blurred = (await state()).snapshot;
+  await page.keyboard.up('KeyD');
+  await navigateTo(page, '继续游戏');
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(200);
+  expect((await state()).snapshot.position).toEqual(blurred.position);
 });

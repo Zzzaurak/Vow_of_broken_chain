@@ -9,6 +9,7 @@ if (!['easy', 'hard'].includes(difficulty))
 await mkdir('../.local/playthrough', { recursive: true });
 const browser = await chromium.launch();
 const resume = process.argv.includes('--resume');
+const outputName = `${runName}${resume ? '-resume' : ''}`;
 const page = await browser.newPage({
   viewport: { width: 1440, height: 900 },
   ...(resume ? { storageState: `../.local/playthrough/${runName}-storage.json` } : {}),
@@ -45,7 +46,8 @@ async function releaseAttack() {
 let last = '',
   failures = 0,
   tick = 0,
-  completed = false;
+  completed = false,
+  resumedAfterReload = false;
 try {
   await page.goto('http://127.0.0.1:5179');
   await page.getByRole('button', { name: /开启新的冒险/ }).waitFor();
@@ -265,19 +267,46 @@ try {
     await page.waitForTimeout(160);
   }
   if (!completed) throw new Error('Playthrough exhausted its action limit');
-  await page.getByText('进度已保存', { exact: true }).first().waitFor();
+  await page
+    .getByText(resume && tick === 0 ? '进度已载入' : '进度已保存', { exact: true })
+    .first()
+    .waitFor();
   await page.reload();
-  await page.getByRole('link', { name: '返回标题并继续旅途' }).click();
+  if (keyboard) {
+    await page.getByRole('link', { name: '返回标题并继续旅途' }).waitFor();
+    await page.keyboard.press('Tab');
+    if (
+      !(await page
+        .getByRole('link', { name: '返回标题并继续旅途' })
+        .evaluate((link) => link === document.activeElement))
+    )
+      throw new Error('Keyboard could not focus the return-to-title link');
+    await page.keyboard.press('Enter');
+  } else await page.getByRole('link', { name: '返回标题并继续旅途' }).click();
   await choose(/继续旅途/);
   await page.getByRole('heading', { name: '自由，从此开始' }).waitFor();
+  resumedAfterReload = true;
   if (errors.length) throw new Error(errors.join('\n'));
   console.log(`PASS ${difficulty}: credits reached through real input; ${failures} retries`);
+} catch (error) {
+  errors.push(String(error));
+  throw error;
 } finally {
-  await page.context().storageState({ path: `../.local/playthrough/${runName}-storage.json` });
+  await page.context().storageState({ path: `../.local/playthrough/${outputName}-storage.json` });
   await writeFile(
-    `../.local/playthrough/${runName}-result.json`,
+    `../.local/playthrough/${outputName}-result.json`,
     JSON.stringify(
-      { difficulty, keyboard, resume, completed, tick, failures, events, errors },
+      {
+        difficulty,
+        keyboard,
+        resume,
+        completed,
+        resumedAfterReload,
+        tick,
+        failures,
+        events,
+        errors,
+      },
       null,
       2,
     ),
