@@ -43,7 +43,7 @@ python3 scripts/serve.py --port 5180 --api-port 8093
 
 check 校验内容引用／可达性、前端格式／单元测试／生产构建、后端真实 PostgreSQL 集成测试及 diff 空白错误。后端测试默认只连接 oath_test；可单独设置 OATH_TEST_DATABASE_URL，不能指向需要保留业务数据的库。浏览器测试需要 Playwright Chromium：首次使用可在 frontend 目录运行 `npx playwright install chromium`。
 
-完整实战的探索性自动操作脚本：在 frontend 目录运行 `node playthrough/run.mjs easy` 或 `node playthrough/run.mjs hard`。已有该测试的本地身份时，可加 `--resume` 从服务器继续记录恢复，适用于定位后半段问题；这不算一次从头通关。脚本从新冒险开始，只读取游戏状态作观察，所有推进、移动、攻击与援助都使用浏览器键鼠；不清敌、不加血、不改写状态。它使用预设策略，失败需要区分玩法问题与操作策略问题，不能把脚本失败等同于人类无法通过。
+完整实战的探索性自动操作脚本（增加 `--keyboard` 使用纯键盘预设，以真实方向键操作菜单、J／K 攻击和 Tab 锁定；输出文件额外带 keyboard 后缀）：在 frontend 目录运行 `node playthrough/run.mjs easy` 或 `node playthrough/run.mjs hard`。已有该测试的本地身份时，可加 `--resume` 从服务器继续记录恢复，适用于定位后半段问题；这不算一次从头通关。脚本从新冒险开始，只读取游戏状态作观察，所有推进、移动、攻击与援助都使用浏览器键鼠；不清敌、不加血、不改写状态。它使用预设策略，失败需要区分玩法问题与操作策略问题，不能把脚本失败等同于人类无法通过。
 
 运行结果和阶段截图保存在 `.local/playthrough`；storage 文件含本地匿名令牌，仅用于本机调试，不提交、不分享。这套测试依赖开发服务器的模块观察接口，不对构建版使用。普通浏览器回归测试与完整实战测试分别记录，前者通过不表示完整通关。
 

@@ -2,6 +2,8 @@
 import { chromium } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 const difficulty = process.argv[2] ?? 'easy';
+const keyboard = process.argv.includes('--keyboard');
+const runName = `${difficulty}${keyboard ? '-keyboard' : ''}`;
 if (!['easy', 'hard'].includes(difficulty))
   throw new Error('Usage: node playthrough/run.mjs easy|hard');
 await mkdir('../.local/playthrough', { recursive: true });
@@ -9,7 +11,7 @@ const browser = await chromium.launch();
 const resume = process.argv.includes('--resume');
 const page = await browser.newPage({
   viewport: { width: 1440, height: 900 },
-  ...(resume ? { storageState: `../.local/playthrough/${difficulty}-storage.json` } : {}),
+  ...(resume ? { storageState: `../.local/playthrough/${runName}-storage.json` } : {}),
 });
 const errors = [];
 page.on('pageerror', (error) => errors.push(String(error)));
@@ -24,14 +26,39 @@ async function movement(next) {
       keys.add(key);
     }
 }
+async function choose(label) {
+  if (!keyboard) return page.getByRole('button', { name: label }).click();
+  for (let i = 0; i < 50; i++) {
+    const focused = await page.evaluate(() => document.activeElement?.textContent?.trim() ?? '');
+    if (typeof label === 'string' ? focused === label : label.test(focused)) {
+      await page.keyboard.press('Enter');
+      return;
+    }
+    await page.keyboard.press('ArrowDown');
+  }
+  throw new Error(`Keyboard menu could not reach ${label}`);
+}
+async function releaseAttack() {
+  if (keyboard) await page.keyboard.up('KeyJ');
+  else await page.mouse.up();
+}
 let last = '',
   failures = 0,
   tick = 0,
   completed = false;
 try {
   await page.goto('http://127.0.0.1:5179');
-  if (difficulty === 'hard') await page.getByRole('button', { name: '困难 · 迎接挑战' }).click();
-  await page.getByRole('button', { name: resume ? /继续旅途/ : /开启新的冒险/ }).click();
+  await page.getByRole('button', { name: /开启新的冒险/ }).waitFor();
+  if (keyboard) {
+    await choose('设置');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowRight');
+    if ((await page.getByLabel('控制方案').inputValue()) !== 'keyboard')
+      throw new Error('Keyboard preset was not selected');
+    await page.keyboard.press('Escape');
+  }
+  if (difficulty === 'hard') await choose('困难 · 迎接挑战');
+  await choose(resume ? /继续旅途/ : /开启新的冒险/);
   await page.locator('canvas').waitFor();
   await page.getByText('正在准备旅途画面…', { exact: true }).waitFor({ state: 'hidden' });
   for (; tick < 6000; tick++) {
@@ -78,6 +105,12 @@ try {
             let cost =
               Math.abs(distance(future, target.position) - (target.kind === 'pope' ? 290 : 58)) *
               0.3;
+            if (target.kind === 'pope') {
+              // Orbit consistently rather than oscillating across a marked spot.
+              const radial = normalize(subtract(p, target.position));
+              const clockwise = { x: -radial.y, y: radial.x };
+              cost += 28 * (1 - dir.x * clockwise.x - dir.y * clockwise.y);
+            }
             if (distance(future, p) < 15 && (dir.x || dir.y)) cost += 40;
             for (const enemy of alive) {
               const spec = balance.enemies[enemy.kind],
@@ -99,7 +132,7 @@ try {
               const d = distance(future, hazard.position);
               if (
                 d < hazard.radius + 28 &&
-                hazard.timer > 0.25 &&
+                hazard.timer >= 0 &&
                 !(hazard.kind === 'bind' && game.barrier > 0)
               )
                 cost += 350 + (hazard.radius + 28 - d) * 2;
@@ -164,7 +197,7 @@ try {
         game.mode.kind === 'failed'
       )
         await page.screenshot({
-          path: `../.local/playthrough/${difficulty}-${map.id}-${game.mode.kind}.png`,
+          path: `../.local/playthrough/${runName}-${map.id}-${game.mode.kind}.png`,
         });
     }
     if (game.mode.kind === 'credits') {
@@ -173,11 +206,11 @@ try {
     }
     if (game.mode.kind === 'failed') {
       await movement([]);
-      await page.mouse.up();
+      await releaseAttack();
       failures++;
       if (failures > 3)
         throw new Error(`Too many deaths at ${map.id}; investigate combat or input strategy`);
-      await page.getByRole('button', { name: /重试检查点/ }).click();
+      await choose(/重试检查点/);
       continue;
     }
     if (game.mode.kind === 'paused') {
@@ -186,7 +219,7 @@ try {
     }
     if (game.mode.kind === 'dialogue' || game.mode.kind === 'cinematic') {
       await movement([]);
-      await page.mouse.up();
+      await releaseAttack();
       await page.keyboard.press('Enter');
       await page.waitForTimeout(35);
       continue;
@@ -197,20 +230,26 @@ try {
     if (direction.y > 0.3) next.push('KeyS');
     if (direction.y < -0.3) next.push('KeyW');
     await movement(next);
-    if (target) {
+    if (target && keyboard) {
+      if (game.lockedEnemy !== target.id) await page.keyboard.press('Tab');
+    } else if (target) {
       const box = await page.locator('canvas').boundingBox();
       await page.mouse.move(
         box.x + ((target.position.x - camera.x) * box.width) / 960,
         box.y + ((target.position.y - camera.y) * box.height) / 540,
       );
     }
-    await page.mouse.up();
+    await releaseAttack();
     if (action === 'interact') await page.keyboard.press('KeyF');
-    if (action === 'water') {
+    if (action === 'water' && keyboard) await page.keyboard.press('KeyK');
+    else if (action === 'water') {
       await page.mouse.down({ button: 'right' });
       await page.mouse.up({ button: 'right' });
     }
-    if (action === 'melee') await page.mouse.down();
+    if (action === 'melee') {
+      if (keyboard) await page.keyboard.down('KeyJ');
+      else await page.mouse.down();
+    }
     if (game.mode.kind === 'battle' && map.id !== 'garden') {
       for (let slot = 0; slot < game.snapshot.supports.length; slot++) {
         const partner = game.snapshot.supports[slot];
@@ -229,15 +268,19 @@ try {
   await page.getByText('进度已保存', { exact: true }).first().waitFor();
   await page.reload();
   await page.getByRole('link', { name: '返回标题并继续旅途' }).click();
-  await page.getByRole('button', { name: /继续旅途/ }).click();
+  await choose(/继续旅途/);
   await page.getByRole('heading', { name: '自由，从此开始' }).waitFor();
   if (errors.length) throw new Error(errors.join('\n'));
   console.log(`PASS ${difficulty}: credits reached through real input; ${failures} retries`);
 } finally {
-  await page.context().storageState({ path: `../.local/playthrough/${difficulty}-storage.json` });
+  await page.context().storageState({ path: `../.local/playthrough/${runName}-storage.json` });
   await writeFile(
-    `../.local/playthrough/${difficulty}-result.json`,
-    JSON.stringify({ difficulty, completed, tick, failures, events, errors }, null, 2),
+    `../.local/playthrough/${runName}-result.json`,
+    JSON.stringify(
+      { difficulty, keyboard, resume, completed, tick, failures, events, errors },
+      null,
+      2,
+    ),
   );
   await browser.close();
 }

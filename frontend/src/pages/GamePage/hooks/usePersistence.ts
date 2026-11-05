@@ -22,12 +22,19 @@ export function usePersistence() {
   const counter = useGame((g) => g?.autosave ?? 0),
     lastAuto = useRef(0);
   const generation = useRef(0);
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    const beforeUnload = (event: BeforeUnloadEvent) => {
+      if (!getGameSnap()?.dirty && !pending.current) return;
+      event.preventDefault();
+      // Browsers supply their own wording and require a previous user gesture.
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', beforeUnload);
+    return () => {
       generation.current++;
-    },
-    [],
-  );
+      window.removeEventListener('beforeunload', beforeUnload);
+    };
+  }, []);
   async function execute() {
     if (busy.current || !pending.current) return;
     const request = pending.current,
