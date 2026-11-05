@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "tileSize": 32,
+  "viewport": [
+    960,
+    540
+  ]
+}

@@ -1,0 +1,37 @@
+[
+  {
+    "id": "deepseek",
+    "name": "大肥鱼",
+    "role": "player"
+  },
+  {
+    "id": "glm",
+    "name": "GLM",
+    "role": "support"
+  },
+  {
+    "id": "gpt",
+    "name": "GPT",
+    "role": "support"
+  },
+  {
+    "id": "claude",
+    "name": "Claude",
+    "role": "support"
+  },
+  {
+    "id": "qwen",
+    "name": "Qwen",
+    "role": "npc"
+  },
+  {
+    "id": "gemini",
+    "name": "Gemini",
+    "role": "npc"
+  },
+  {
+    "id": "pope",
+    "name": "D 教皇",
+    "role": "boss"
+  }
+]

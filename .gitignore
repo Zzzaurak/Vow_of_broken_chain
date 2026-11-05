@@ -28,3 +28,7 @@ secrets/
 *.sqlite3
 
 */outline.md
+# Runtime databases, test output and artifacts
+.local/
+playwright-report/
+test-results/

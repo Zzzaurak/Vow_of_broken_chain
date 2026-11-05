@@ -1,6 +1,6 @@
 # 断链之誓
 
-以 AI 娘为角色的中世纪奇幻冒险游戏，作为前后端课程项目制作。目前处于内容规划阶段，尚无可运行的游戏代码。
+以 AI 娘为角色的中世纪奇幻冒险游戏，作为前后端课程项目制作。当前正在实现：标题页与真实数据库存读档基础已可运行，完整游戏场景尚在开发。详见 [实施状态](docs/implementation-status.md)。
 
 ## 内容导航
 
@@ -13,9 +13,23 @@
 - [背景参考文字](material/background/background-text.md) 与 [原 PDF](material/background/background-origin.pdf)：仅作参考，游戏主线以完整版剧本为准。
 - [课程技能](../course-skills/README.md)：相邻独立仓库中的开发规范；不包含在本仓库内，单独克隆本项目后需另行提供。
 
-## 后续实现
+## 运行与实现
 
-拟采用 React＋TypeScript＋Tailwind 前端、Scala 3 后端与 PostgreSQL。拟定页面、服务和 API 对应关系见企划书第 6 节；开发后在本 README 补充实际目录、接口导航、配置和启动步骤。
+采用 React＋TypeScript＋Tailwind 前端、Scala 3 后端与 PostgreSQL。启动及测试命令见 [实施状态](docs/implementation-status.md)，当前目录与 API 审查导航见 [架构说明](docs/architecture.md)。
+
+实际页面：`frontend/src/pages/StartPage`（`/`）、`GamePage`（`/game`）。业务请求类位于 `frontend/src/apis/PlayerService` 与 `AdventureService`；公共传输放 `frontend/src/api`。
+
+后端位于 `backend/src/main/scala/services`：`system` 管理基础设施，`PlayerService` 管理匿名身份，`AdventureService` 管理冒险和存档。角色、地图、遭遇与剧情是 `content/` 中的版本化内容，不做无业务必要的独立网络服务。
+
+```bash
+./scripts/db.sh
+# 终端一
+cd backend && sbt run
+# 终端二（项目根开始）
+cd frontend && npm ci && npm run dev
+```
+
+打开 http://127.0.0.1:5179/ 。数据库位于项目 `.local/postgres`，默认端口 55439；后端 8093，仅本机访问。不要将本地匿名身份令牌、数据库或 `.local` 目录打包分享。
 
 ## Git 管理
 

@@ -1,0 +1,95 @@
+[
+  {
+    "id": "0-A",
+    "waves": [
+      [
+        "guard",
+        "guard",
+        "guard"
+      ]
+    ],
+    "rule": "defeat"
+  },
+  {
+    "id": "1-A",
+    "waves": [
+      [
+        "beast",
+        "beast",
+        "beast",
+        "mage",
+        "mage"
+      ]
+    ],
+    "rule": "defeat"
+  },
+  {
+    "id": "2-A",
+    "waves": [
+      [
+        "glm"
+      ]
+    ],
+    "rule": "surrender"
+  },
+  {
+    "id": "3-A",
+    "waves": [
+      [
+        "hound",
+        "hound",
+        "hound",
+        "hound"
+      ]
+    ],
+    "rule": "defeat"
+  },
+  {
+    "id": "4-A",
+    "waves": [
+      [
+        "gpt"
+      ]
+    ],
+    "rule": "trial"
+  },
+  {
+    "id": "5-A",
+    "waves": [
+      [
+        "knight",
+        "knight"
+      ],
+      [
+        "mage",
+        "mage",
+        "mage"
+      ],
+      [
+        "knight",
+        "knight",
+        "mage",
+        "mage"
+      ]
+    ],
+    "rule": "defeat"
+  },
+  {
+    "id": "5-B",
+    "waves": [
+      [
+        "claude"
+      ]
+    ],
+    "rule": "shield"
+  },
+  {
+    "id": "5-C",
+    "waves": [
+      [
+        "pope"
+      ]
+    ],
+    "rule": "defeat"
+  }
+]

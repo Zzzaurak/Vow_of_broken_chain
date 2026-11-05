@@ -1,0 +1,454 @@
+[
+  {
+    "id": "steps",
+    "name": "东方圣殿长阶",
+    "width": 40,
+    "height": 24,
+    "theme": "temple",
+    "spawn": [
+      96,
+      384
+    ],
+    "exit": [
+      1184,
+      384
+    ],
+    "next": "market",
+    "obstacles": [],
+    "before": "0-1",
+    "encounter": "0-A",
+    "after": "0-2",
+    "checkpoint": "steps"
+  },
+  {
+    "id": "market",
+    "name": "东方集市",
+    "width": 32,
+    "height": 20,
+    "theme": "town",
+    "spawn": [
+      96,
+      320
+    ],
+    "exit": [
+      928,
+      320
+    ],
+    "next": "forest",
+    "obstacles": [
+      [
+        160,
+        128,
+        96,
+        64
+      ],
+      [
+        736,
+        128,
+        96,
+        64
+      ],
+      [
+        160,
+        416,
+        96,
+        64
+      ],
+      [
+        736,
+        416,
+        96,
+        64
+      ]
+    ],
+    "before": "1-1",
+    "encounter": null,
+    "after": null,
+    "checkpoint": "market"
+  },
+  {
+    "id": "forest",
+    "name": "东方林道",
+    "width": 56,
+    "height": 28,
+    "theme": "forest",
+    "spawn": [
+      96,
+      448
+    ],
+    "exit": [
+      1696,
+      448
+    ],
+    "next": "harbor",
+    "obstacles": [
+      [
+        160,
+        128,
+        96,
+        64
+      ],
+      [
+        1504,
+        128,
+        96,
+        64
+      ],
+      [
+        160,
+        672,
+        96,
+        64
+      ],
+      [
+        1504,
+        672,
+        96,
+        64
+      ]
+    ],
+    "before": null,
+    "encounter": "1-A",
+    "after": null,
+    "checkpoint": "forest"
+  },
+  {
+    "id": "harbor",
+    "name": "迷雾港镇",
+    "width": 48,
+    "height": 28,
+    "theme": "town",
+    "spawn": [
+      96,
+      448
+    ],
+    "exit": [
+      1440,
+      448
+    ],
+    "next": "coast",
+    "obstacles": [
+      [
+        160,
+        128,
+        96,
+        64
+      ],
+      [
+        1248,
+        128,
+        96,
+        64
+      ],
+      [
+        160,
+        672,
+        96,
+        64
+      ],
+      [
+        1248,
+        672,
+        96,
+        64
+      ]
+    ],
+    "before": "2-1",
+    "encounter": "2-A",
+    "after": "2-2",
+    "checkpoint": "harbor"
+  },
+  {
+    "id": "coast",
+    "name": "暗礁海岸",
+    "width": 32,
+    "height": 20,
+    "theme": "coast",
+    "spawn": [
+      96,
+      320
+    ],
+    "exit": [
+      928,
+      320
+    ],
+    "next": "crystal",
+    "obstacles": [
+      [
+        160,
+        128,
+        96,
+        64
+      ],
+      [
+        736,
+        128,
+        96,
+        64
+      ],
+      [
+        160,
+        416,
+        96,
+        64
+      ],
+      [
+        736,
+        416,
+        96,
+        64
+      ]
+    ],
+    "before": "3-1",
+    "encounter": null,
+    "after": null,
+    "checkpoint": "coast"
+  },
+  {
+    "id": "crystal",
+    "name": "晶石林",
+    "width": 48,
+    "height": 28,
+    "theme": "forest",
+    "spawn": [
+      96,
+      448
+    ],
+    "exit": [
+      1440,
+      448
+    ],
+    "next": "pass",
+    "obstacles": [
+      [
+        160,
+        128,
+        96,
+        64
+      ],
+      [
+        1248,
+        128,
+        96,
+        64
+      ],
+      [
+        160,
+        672,
+        96,
+        64
+      ],
+      [
+        1248,
+        672,
+        96,
+        64
+      ]
+    ],
+    "before": null,
+    "encounter": "3-A",
+    "after": "3-2",
+    "checkpoint": "crystal"
+  },
+  {
+    "id": "pass",
+    "name": "北境山口",
+    "width": 32,
+    "height": 24,
+    "theme": "snow",
+    "spawn": [
+      96,
+      384
+    ],
+    "exit": [
+      928,
+      384
+    ],
+    "next": "lair",
+    "obstacles": [
+      [
+        160,
+        128,
+        96,
+        64
+      ],
+      [
+        736,
+        128,
+        96,
+        64
+      ],
+      [
+        160,
+        544,
+        96,
+        64
+      ],
+      [
+        736,
+        544,
+        96,
+        64
+      ]
+    ],
+    "before": null,
+    "encounter": null,
+    "after": null,
+    "checkpoint": "pass"
+  },
+  {
+    "id": "lair",
+    "name": "北境龙巢",
+    "width": 40,
+    "height": 28,
+    "theme": "snow",
+    "spawn": [
+      96,
+      448
+    ],
+    "exit": [
+      1184,
+      448
+    ],
+    "next": "corridor",
+    "obstacles": [],
+    "before": "4-1",
+    "encounter": "4-A",
+    "after": "4-2",
+    "checkpoint": "lair"
+  },
+  {
+    "id": "corridor",
+    "name": "教堂回廊",
+    "width": 48,
+    "height": 28,
+    "theme": "temple",
+    "spawn": [
+      96,
+      448
+    ],
+    "exit": [
+      1440,
+      448
+    ],
+    "next": "garden",
+    "obstacles": [
+      [
+        160,
+        128,
+        96,
+        64
+      ],
+      [
+        1248,
+        128,
+        96,
+        64
+      ],
+      [
+        160,
+        672,
+        96,
+        64
+      ],
+      [
+        1248,
+        672,
+        96,
+        64
+      ]
+    ],
+    "before": "5-1",
+    "encounter": "5-A",
+    "after": null,
+    "checkpoint": "corridor"
+  },
+  {
+    "id": "garden",
+    "name": "圣女内庭",
+    "width": 36,
+    "height": 24,
+    "theme": "temple",
+    "spawn": [
+      96,
+      384
+    ],
+    "exit": [
+      1056,
+      384
+    ],
+    "next": "throne",
+    "obstacles": [],
+    "before": "5-2",
+    "encounter": "5-B",
+    "after": "5-3",
+    "checkpoint": "garden"
+  },
+  {
+    "id": "throne",
+    "name": "教堂主殿",
+    "width": 40,
+    "height": 28,
+    "theme": "temple",
+    "spawn": [
+      96,
+      448
+    ],
+    "exit": [
+      1184,
+      448
+    ],
+    "next": "alley",
+    "obstacles": [],
+    "before": null,
+    "encounter": "5-C",
+    "after": "5-4",
+    "checkpoint": "throne"
+  },
+  {
+    "id": "alley",
+    "name": "没有地图的小巷",
+    "width": 30,
+    "height": 18,
+    "theme": "town",
+    "spawn": [
+      96,
+      288
+    ],
+    "exit": [
+      864,
+      288
+    ],
+    "next": null,
+    "obstacles": [
+      [
+        160,
+        128,
+        96,
+        64
+      ],
+      [
+        672,
+        128,
+        96,
+        64
+      ],
+      [
+        160,
+        352,
+        96,
+        64
+      ],
+      [
+        672,
+        352,
+        96,
+        64
+      ]
+    ],
+    "before": null,
+    "encounter": null,
+    "after": "6-3",
+    "checkpoint": "alley"
+  }
+]

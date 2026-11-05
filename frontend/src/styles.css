@@ -1,0 +1,3 @@
+@import "tailwindcss";
+@theme { --font-sans: "PingFang SC", "Microsoft YaHei", sans-serif; --font-serif: "Songti SC", "Noto Serif CJK SC", serif; }
+@layer base { body { @apply m-0 bg-[#0e1b21] text-[#e8e5d7] antialiased; } button { @apply cursor-pointer disabled:cursor-not-allowed disabled:opacity-40; } button:focus-visible, a:focus-visible, input:focus-visible { @apply outline-2 outline-offset-4 outline-amber-200; } }
