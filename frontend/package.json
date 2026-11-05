@@ -7,14 +7,18 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "predev": "python3 ../scripts/build-assets.py",
+    "prebuild": "python3 ../scripts/build-assets.py",
+    "format": "prettier --write src e2e *.ts *.json",
+    "format:check": "prettier --check src e2e *.ts *.json"
   },
   "dependencies": {
+    "lucide-react": "0.468.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "react-router-dom": "7.18.5",
-    "zustand": "5.0.16",
-    "lucide-react": "0.468.0"
+    "zustand": "5.0.16"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",
@@ -22,6 +26,7 @@
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "4.7.0",
+    "prettier": "3.9.10",
     "tailwindcss": "4.3.3",
     "typescript": "5.7.3",
     "vite": "6.4.5",

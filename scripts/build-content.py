@@ -20,12 +20,19 @@ def main():
             who = re.match(r'^\*\*([^*]+)\*\*：', line)
             if who:
                 speaker = who.group(1)
-            for quote in re.findall(r'“([^”]+)”', line):
-                if line.lstrip().startswith('“'):
-                    lines.append({'speaker': speaker, 'text': quote})
+            text = line.strip()
+            if text.startswith('“') and text.endswith('”'):
+                lines.append({'speaker': speaker, 'text': text[1:-1]})
         scenes.append({'id': scene_id, 'title': title, 'lines': lines})
     assert len(scenes) == 16, f'Unexpected authored scene count: {len(scenes)}'
     assert all(scene['lines'] for scene in scenes)
+    # Battle calls reuse authored lines, rather than inventing conflicting dialogue.
+    garden = next(scene for scene in scenes if scene['id'] == '5-2')
+    calls = [line for line in garden['lines'] if line['speaker'] == '大肥鱼']
+    scenes.extend([
+        {'id': '5-B-call-1', 'title': '向日葵下的真心', 'lines': [calls[2]]},
+        {'id': '5-B-call-2', 'title': '向日葵下的真心', 'lines': [calls[-1]]},
+    ])
     write(ROOT / 'content/story/dialogue.json', scenes)
     maps = json.loads((ROOT / 'content/world/maps.json').read_text())
     ids = {m['id'] for m in maps}

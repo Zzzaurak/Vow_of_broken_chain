@@ -1,0 +1,9 @@
+# 地块图集生成记录
+
+2026-11-05，使用内置 image_gen 工具，非透明背景，生成 `terrain-atlas.png`。原图 1254×1254，4×4 格；运行时按图片宽高四等分并四舍五入取边界，不假设单格为整数。未修改原图。
+
+索引按行从 0 开始：草地、鹅卵石、海岸沙地、雪地、教堂地砖、泥路、木栈道、冰面、树冠、晶石、箱子、雪岩、教堂柱基、屋顶、海水、石阶。地图障碍绘制与碰撞共用 world/maps.json 的矩形。所有五组场景已使用该图集，布局装饰和美术节奏仍待完整试玩优化。
+
+## 最终提示词
+
+Use case: stylized-concept. Asset type: pixel RPG terrain atlas, one square sheet, EXACT 4 columns x 4 rows of equal square cells, no padding or gaps. Every cell is a top-down orthographic game tile, no perspective horizon. Crisp intentional pixel art, limited muted palette, dark medieval fantasy matching cute JRPG characters. Tiles will be displayed 32x32 in a browser RPG, so keep strong simple forms, no fine noise. First row left to right: seamless mossy forest grass; seamless warm gray town cobblestones; seamless pale coastal sand with a few shells; seamless blue white snow. Second row: seamless dark teal cathedral flagstones with subtle gold inlaid crosses at corners; seamless ochre packed dirt path; seamless weathered wooden dock planks; seamless frosted ice with subtle cracks. Third row: top-down leafy dark green tree canopy; dark teal crystal rock cluster on forest ground; stacked wooden crates on town cobblestones; pale snow-covered boulder on snow. Fourth row: cathedral stone pillar base with a tiny gold accent on cathedral flagstones; medieval house terracotta roof seen directly from above; dark ocean water with small sea foam; cathedral broad stone steps viewed from above. Each of the 16 cells MUST be exactly aligned on the same 4x4 grid. Flat top-down, no isometric diamonds, no characters, no text, no border, no labels, no UI, no blank space. First two rows tiles should tile plausibly with themselves and be visually quieter than the objects. Cohesive game-ready environment art, dark blue-green shadows with warm ochre highlights.

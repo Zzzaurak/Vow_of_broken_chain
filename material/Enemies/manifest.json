@@ -1,0 +1,125 @@
+{
+  "image": "enemies-atlas.png",
+  "frames": [
+    {
+      "id": "beast",
+      "rect": [
+        0,
+        0,
+        512,
+        448
+      ],
+      "visibleBounds": [
+        127,
+        85,
+        300,
+        348
+      ],
+      "anchor": [
+        277.0,
+        433
+      ],
+      "worldHeight": 62
+    },
+    {
+      "id": "hound",
+      "rect": [
+        512,
+        0,
+        512,
+        448
+      ],
+      "visibleBounds": [
+        125,
+        109,
+        250,
+        324
+      ],
+      "anchor": [
+        250.0,
+        433
+      ],
+      "worldHeight": 62
+    },
+    {
+      "id": "knight",
+      "rect": [
+        1024,
+        0,
+        512,
+        448
+      ],
+      "visibleBounds": [
+        102,
+        51,
+        297,
+        382
+      ],
+      "anchor": [
+        250.5,
+        433
+      ],
+      "worldHeight": 80
+    },
+    {
+      "id": "mage",
+      "rect": [
+        0,
+        512,
+        512,
+        512
+      ],
+      "visibleBounds": [
+        97,
+        50,
+        309,
+        394
+      ],
+      "anchor": [
+        251.5,
+        444
+      ],
+      "worldHeight": 80
+    },
+    {
+      "id": "pope",
+      "rect": [
+        512,
+        448,
+        512,
+        576
+      ],
+      "visibleBounds": [
+        28,
+        22,
+        436,
+        490
+      ],
+      "anchor": [
+        246.0,
+        512
+      ],
+      "worldHeight": 110
+    },
+    {
+      "id": "guard",
+      "rect": [
+        1024,
+        512,
+        512,
+        512
+      ],
+      "visibleBounds": [
+        131,
+        61,
+        208,
+        380
+      ],
+      "anchor": [
+        235.0,
+        441
+      ],
+      "worldHeight": 80
+    }
+  ]
+}

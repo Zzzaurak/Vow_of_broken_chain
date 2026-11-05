@@ -1,0 +1,113 @@
+import { useGame, updateGame } from '../runtime/store';
+import { sceneById } from '../objects/content';
+import { advanceDialogue } from '../functions/progression';
+import { portrait } from '../runtime/assets';
+import { useSettings, actionLabel } from '../../../features/settings/store';
+const person = (speaker: string) =>
+  speaker === '大肥鱼'
+    ? 'deepseek'
+    : ['Claude', 'GLM', 'GPT', 'Qwen', 'Gemini'].includes(speaker)
+      ? speaker.toLowerCase()
+      : null;
+export function DialoguePanel() {
+  const mode = useGame((g) => g?.mode);
+  const settings = useSettings();
+  if (mode?.kind !== 'dialogue') return null;
+  const scene = sceneById(mode.scene),
+    line = scene.lines[mode.line],
+    id = person(line.speaker),
+    listener = scene.lines.map((l) => person(l.speaker)).find((p) => p && p !== 'deepseek'),
+    right = id && id !== 'deepseek' ? id : listener,
+    cg = mode.scene === '6-1' ? 'cg1' : mode.scene === '6-2' ? 'cg2' : null;
+  return (
+    <div className="absolute inset-0 flex flex-col justify-end bg-[#061219]/35">
+      {cg ? (
+        <div className="absolute inset-x-0 top-0 bottom-[28%] flex items-center justify-center bg-[#09151a]">
+          <img
+            src={`/assets/cg/${cg}.png`}
+            className="max-h-full w-full object-contain"
+            style={{ opacity: Math.min(1, mode.elapsed) }}
+            alt={cg === 'cg1' ? '晴空下，大肥鱼与 Claude 相拥' : '古龙 GPT 见证两人的重逢'}
+          />
+        </div>
+      ) : (
+        !mode.hidden && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-[24%] top-10 flex items-end justify-between px-12">
+            <img
+              src={portrait('deepseek')}
+              alt="大肥鱼"
+              className={`max-h-full w-[35%] object-contain object-bottom ${id === 'deepseek' ? '' : 'brightness-50'}`}
+            />
+            {right && (
+              <img
+                src={portrait(right)}
+                alt={right}
+                className={`max-h-full w-[35%] object-contain object-bottom ${id === right ? '' : 'brightness-50'}`}
+              />
+            )}
+          </div>
+        )
+      )}
+      {!mode.hidden && (!cg || mode.elapsed >= 1.5) && (
+        <div className="relative min-h-[28%] border-t border-[#c8b47a]/50 bg-[#0c1c24]/95 px-8 py-4">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="font-serif text-lg tracking-widest text-[#e7ce8b]">
+              {line.speaker}
+            </span>
+            <span className="text-[10px] tracking-widest text-[#75938f]">
+              {scene.title} · {mode.line + 1}/{scene.lines.length}
+            </span>
+          </div>
+          <button
+            className="min-h-16 w-full text-left font-serif leading-relaxed text-[#e5e6da]"
+            style={{ fontSize: settings.textSize }}
+            onClick={() => updateGame((g) => advanceDialogue(g))}
+          >
+            {line.text.slice(0, Math.floor(mode.revealed))}
+            <span className="ml-2 text-sm text-[#d6bf82]">
+              {mode.revealed >= line.text.length ? '▾' : '▏'}
+            </span>
+          </button>
+          <div className="mt-2 flex justify-between text-[11px] text-[#8aa39e]">
+            <span>{actionLabel('confirm')} / 空格 补全或继续</span>
+            <span>
+              {actionLabel('hide')} 隐藏画面 · {actionLabel('history')} 本段记录
+            </span>
+          </div>
+        </div>
+      )}
+      {mode.hidden && (
+        <button
+          className="absolute bottom-3 right-4 bg-black/50 px-3 py-2 text-xs"
+          onClick={() =>
+            updateGame((g) =>
+              g.mode.kind === 'dialogue' ? { ...g, mode: { ...g.mode, hidden: false } } : g,
+            )
+          }
+        >
+          恢复文字 [{actionLabel('hide')}]
+        </button>
+      )}
+      {mode.history && (
+        <div className="absolute inset-6 overflow-auto border border-[#bca875] bg-[#0d2028]/98 p-6">
+          <h2 className="mb-4 font-serif text-xl">本段对白</h2>
+          {scene.lines.slice(0, mode.line + 1).map((l, i) => (
+            <p key={i} className="mb-4 leading-relaxed">
+              <span className="text-[#d8bf80]">{l.speaker}：</span>
+              {l.text}
+            </p>
+          ))}
+          <button
+            onClick={() =>
+              updateGame((g) =>
+                g.mode.kind === 'dialogue' ? { ...g, mode: { ...g.mode, history: false } } : g,
+              )
+            }
+          >
+            返回 [{actionLabel('history')}]
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
