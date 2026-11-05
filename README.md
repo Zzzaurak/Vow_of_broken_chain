@@ -4,14 +4,13 @@
 
 ## 内容导航
 
-- [简版企划书 v0.4](material/AI娘冒险游戏_简版企划书.md)：游戏流程、战斗、手动／自动存读档、设置与可改键控制方案。
-- [作者剧情大纲](material/outline.md)：主线改编依据。
-- [完整剧情剧本](material/script.md)：细化全流程对话、演出与战斗关卡剧本。
+- [简版企划书 v0.5](material/AI娘冒险游戏_简版企划书.md)：按完整版剧本对齐流程、战斗与检查点，明确 HP／MP 100 和两种难度。
+- [完整剧情剧本](material/script.md)：当前剧情与对白依据，包含场景、演出和战斗节点；玩法数值按企划执行。
 - [角色设定](material/Character/setting.md)：本游戏的人物性格、剧情职责与技能；按角色目录区分立绘和像素素材。
 - [角色素材索引](material/Character/README.md)：四方向站立图、主角动作、伙伴技能、立绘路径与素材状态。
 - [动作素材预览](material/Character/animation-preview.html)：本地播放十张新增图集，支持朝向切换、暂停和逐帧查看。
-- [CG 使用说明](material/cg/README.md)：结尾主版、备选版与参考图的区别。
-- [背景参考文字](material/background/background-text.md) 与 [原 PDF](material/background/background-origin.pdf)：仅作参考，游戏主线以作者大纲为准。
+- [CG 使用说明](material/cg/README.md)：cg1、cg2 连续结尾演出与制作参考图的区别。
+- [背景参考文字](material/background/background-text.md) 与 [原 PDF](material/background/background-origin.pdf)：仅作参考，游戏主线以完整版剧本为准。
 - [课程技能](../course-skills/README.md)：相邻独立仓库中的开发规范；不包含在本仓库内，单独克隆本项目后需另行提供。
 
 ## 后续实现
