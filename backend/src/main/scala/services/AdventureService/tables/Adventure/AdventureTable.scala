@@ -1,8 +1,6 @@
 package services.AdventureService.tables.Adventure
 import cats.effect.IO
 import java.sql.Connection
-import io.circe.syntax.*
-import io.circe.parser.decode
 import services.system.database.Database
 import services.AdventureService.objects.*
 import services.PlayerService.objects.PlayerId

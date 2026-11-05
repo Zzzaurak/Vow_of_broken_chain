@@ -1,8 +1,7 @@
 package services.AdventureService.api
 import services.AdventureService.objects.apiTypes.ProgressResponse
 import cats.effect.IO
-import cats.syntax.all.*
-import io.circe.{Json,Encoder,Decoder}
+import io.circe.{Encoder,Decoder}
 import io.circe.generic.semiauto.*
 import io.circe.syntax.*
 import java.sql.Connection
@@ -18,7 +17,6 @@ import services.AdventureService.utils.{Operations,Content}
 final case class StartAdventureMessage(playerId: PlayerId, difficulty: Difficulty, operationId: String, expectedRevision: Long) extends APIMessage[ProgressResponse]:
   def plan(c: Connection): IO[ProgressResponse] = Operations.once(c,playerId,operationId,expectedRevision,this.asJson.noSpaces) {
     for
-      _ <- IO.unit
       adventure <- IO.delay(AdventureId(UUID.randomUUID().toString))
       save <- IO.delay(SaveId(UUID.randomUUID().toString))
       snapshot <- Content.initial(difficulty)

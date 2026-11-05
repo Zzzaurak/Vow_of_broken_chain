@@ -1,10 +1,8 @@
 package services.PlayerService.tables.Player
 import cats.effect.IO
 import java.sql.Connection
-import io.circe.syntax.*
-import io.circe.parser.decode
 import services.system.database.Database
-import services.PlayerService.objects.*
+import services.PlayerService.objects.PlayerRecord
 import services.PlayerService.objects.PlayerId
 object PlayerTable:
   private val insertSql = "INSERT INTO players(id) VALUES (?)"

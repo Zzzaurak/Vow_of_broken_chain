@@ -1,18 +1,15 @@
 package services.AdventureService.api
 import services.AdventureService.objects.apiTypes.ProgressResponse
 import cats.effect.IO
-import cats.syntax.all.*
-import io.circe.{Json,Encoder,Decoder}
+import io.circe.{Encoder,Decoder}
 import io.circe.generic.semiauto.*
 import io.circe.syntax.*
 import java.sql.Connection
-import java.util.UUID
 import services.system.api.APIMessage
 import services.system.objects.ApiError
 import services.PlayerService.objects.PlayerId
 import services.PlayerService.tables.Player.PlayerTable
 import services.AdventureService.objects.*
-import services.AdventureService.tables.Adventure.AdventureTable
 import services.AdventureService.tables.GameSave.GameSaveTable
 import services.AdventureService.utils.{Operations,Content}
 final case class LoadAdventureMessage(playerId: PlayerId, saveId: SaveId, operationId: String, expectedRevision: Long) extends APIMessage[ProgressResponse]:

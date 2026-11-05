@@ -1,10 +1,7 @@
 package services.AdventureService.tables.ProgressOperation
 import cats.effect.IO
 import java.sql.Connection
-import io.circe.syntax.*
-import io.circe.parser.decode
 import services.system.database.Database
-import services.AdventureService.objects.*
 import services.PlayerService.objects.PlayerId
 object ProgressOperationTable:
   private val findSql = "SELECT request,response FROM progress_operations WHERE player_id=? AND operation_id=?"

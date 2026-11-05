@@ -7,6 +7,9 @@ import java.sql.Connection
 import java.util.UUID
 import services.system.database.Database
 import services.system.objects.ApiError
+import services.system.routes.Endpoint
+import io.circe.Json
+import services.AdventureService.objects.apiTypes.SaveListResponse
 import services.PlayerService.api.{CreateAnonymousPlayerMessage,ResolvePlayerMessage}
 import services.PlayerService.objects.PlayerId
 import services.PlayerService.tables.Player.PlayerTableInitializer
@@ -50,9 +53,12 @@ class PersistenceSuite extends CatsEffectSuite:
       result <- start(p)
       id <- op
       denied <- tx(c => LoadAdventureMessage(other,result.save.id,id,0).plan(c)).attempt
+      overwriteId <- op
+      overwrite <- tx(c => SaveProgressMessage(other,result.save.adventureId,SaveKind.manual,1,result.save.snapshot,overwriteId,0).plan(c)).attempt
       listed <- tx(c => ListSavesMessage(other).plan(c))
     yield
       assertEquals(denied.swap.toOption.collect { case e: ApiError => e.code },Some("save_not_found"))
+      assertEquals(overwrite.swap.toOption.collect { case e: ApiError => e.code },Some("adventure_not_found"))
       assertEquals(listed.saves,Nil)
   }
 
@@ -183,4 +189,47 @@ class PersistenceSuite extends CatsEffectSuite:
     yield
       assert(invalid.isLeft)
       assertEquals(future.swap.toOption.collect { case e: ApiError => e.code },Some("incompatible_save"))
+  }
+
+  test("listing holds one consistent player branch until its transaction finishes") {
+    for
+      p <- player
+      first <- start(p)
+      id <- op
+      blocked <- tx { reader =>
+        for
+          listed <- ListSavesMessage(p).plan(reader)
+          concurrent <- tx { writer =>
+            Database.execute(writer, "SET LOCAL lock_timeout = '100ms'") *>
+              SaveProgressMessage(p, first.save.adventureId, SaveKind.manual, 1,
+                first.save.snapshot, id, first.revision).plan(writer)
+          }.attempt
+        yield (listed, concurrent)
+      }
+      saved <- tx(c => SaveProgressMessage(p, first.save.adventureId, SaveKind.manual, 1,
+        first.save.snapshot, id, first.revision).plan(c))
+      latest <- tx(c => ListSavesMessage(p).plan(c))
+    yield
+      assertEquals(blocked._1.revision, first.revision)
+      assertEquals(blocked._1.continueSave, Some(first.save.id.value))
+      assertEquals(blocked._2.swap.toOption.collect {
+        case error: java.sql.SQLException => error.getSQLState
+      }, Some("55P03"))
+      assertEquals(latest.revision, saved.revision)
+      assertEquals(latest.continueSave, Some(saved.save.id.value))
+      assert(latest.saves.exists(_.id == saved.save.id))
+  }
+
+  test("route identity overrides client playerId and invalid tokens remain unauthorized") {
+    for
+      p <- player
+      other <- player
+      first <- start(p)
+      endpoint = Endpoint.register[ListSavesMessage, SaveListResponse]("AdventureService")
+      response <- tx(c => endpoint.run(Json.obj("playerId" -> Json.obj("value" -> Json.fromString(other.value))), c, Some(p)))
+      list <- IO.fromEither(response.as[SaveListResponse])
+      denied <- tx(c => ResolvePlayerMessage("invalid-test-token").plan(c)).attempt
+    yield
+      assertEquals(list.saves.map(_.id), List(first.save.id))
+      assertEquals(denied.swap.toOption.collect { case error: ApiError => error.status }, Some(401))
   }

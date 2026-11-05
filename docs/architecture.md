@@ -33,6 +33,8 @@
 
 写入与载入先锁玩家行，再检查操作 ID，最后核对客户端预期 revision。相同 ID/相同请求返回已有结果，不重复写；相同 ID/不同请求报错。保存、手动槽替换、自动历史轮换、continue_save 与幂等结果在同一事务完成。
 
+列表读取也锁定同一玩家行，使 revision、continue_save、冒险和记录来自同一分支；锁保持到路由事务结束，避免多标签写入穿插在多次查询之间。
+
 Load 同样增加 revision，使之前启动的保存请求失效。游戏页 usePersistence 已实现请求代次隔离、串行保存、失败保留重试请求；仍需专项并发浏览器测试。
 
 ## 内容
@@ -46,3 +48,19 @@ content/world、encounters、characters、story、balance 分别负责地图、�
 GamePage 入口显示 WorldCanvas、GameHud、DialoguePanel、PausePanel 业务骨架。functions 下的 combat/progression/geometry 接收显式输入，不读取 hook、网络或时钟；runtime 封装 Canvas、输入事件、帧循环及图片加载。runtime/store 为页面私有状态边界，对外只提供订阅、快照及更新方法。settings 是跨页偏好，共享于 features。
 
 动作事件在纯模拟中按 fired 标记结算一次，绘制不修改游戏数据。暂停、对白和失败不推进战斗时间。现有图集按其 rect、visibleBounds、脚底 anchor 切帧。敌人和地块原稿位于 material，build-assets.py 仅复制白名单至忽略的 public/assets，build/dev 前自动运行。
+
+## 本轮课程规范审查范围
+
+2026-11-06：已阅读后端 45 个主源文件，按 Scala 技能清单核对服务 1–12、类型 13–19、消息 20–27、路由 28–33、表 34–38，以及跨端和整理规则 48–59。业务对象与响应具有独立文件和伴生编解码器；Endpoint（包含函数）、ApiError（内部异常）是基础设施类型，不作为业务 JSON DTO 派生编解码器。无输入消息与内部身份消息无需增加无用途的传输包装。
+
+本轮发现与处理：
+
+| 依据 | 位置 | 问题与处理 | 验证 |
+| --- | --- | --- | --- |
+| 同连接事务要求、规则 22／36 | ListSavesMessage | 原先普通查询允许列表读取过程中插入并发写入；改用已有 PlayerTable.lock，与保存／载入统一串行化玩家分支 | 独立 PostgreSQL 连接设置短锁超时，证明读取事务持锁、并发写入被阻挡；读事务结束后原写入成功且返回新版本／指针 |
+| 规则 28–29 | Endpoint、PersistenceSuite | 原测试仅覆盖越权读取，不能证明伪造身份和越权保存被拒绝；补足边界证据 | 客户端 playerId 被可信 ID 覆盖；无效令牌返回 401；外来玩家保存失败 |
+| 规则 54、工程可读性 | Adventure API 与 Table、前端同名请求类 | 清理编译器确认未用的导入及新建冒险中的空 IO 步骤 | Scala unused-import 编译检查、TypeScript noUnusedLocals／noUnusedParameters 均通过 |
+
+数据库测试现为 12 项，前端单元测试 32 项通过。JDBC 行读取发生在 IO.blocking 内，SQL 和行映射保持 Table 私有，资源与事务由 system 管理；扫描禁用词仅用作定位，最终结论结合逐文件阅读。
+
+前端本轮已审查 api／apis、两个页面入口、StartPage 请求流程、GamePage 存档协调、Zustand 封装及 Tailwind 基础样式；页面纯计算目录未发现读取全局快照或 hook。其余渲染、音频、输入与设置模块仍需完整人工审查，不把本轮静态检查或测试通过当作全项目规范验收完成。

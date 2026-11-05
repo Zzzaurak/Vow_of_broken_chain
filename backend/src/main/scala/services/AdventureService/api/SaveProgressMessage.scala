@@ -1,8 +1,7 @@
 package services.AdventureService.api
 import services.AdventureService.objects.apiTypes.ProgressResponse
 import cats.effect.IO
-import cats.syntax.all.*
-import io.circe.{Json,Encoder,Decoder}
+import io.circe.{Encoder,Decoder}
 import io.circe.generic.semiauto.*
 import io.circe.syntax.*
 import java.sql.Connection

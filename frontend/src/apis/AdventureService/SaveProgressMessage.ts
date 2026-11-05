@@ -1,5 +1,5 @@
 import { sendMessage } from '../../api/transport';
-import type { Difficulty, Id, GameSnapshot, ProgressResponse, SaveListResponse } from './types';
+import type { Id, GameSnapshot, ProgressResponse } from './types';
 export class SaveProgressMessage {
   constructor(
     readonly adventureId: Id,
