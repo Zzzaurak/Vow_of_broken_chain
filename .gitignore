@@ -26,3 +26,5 @@ secrets/
 *.db
 *.sqlite
 *.sqlite3
+
+*/outline.md
