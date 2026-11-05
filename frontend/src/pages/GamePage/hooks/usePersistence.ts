@@ -1,3 +1,4 @@
+import { ApiError } from '../../../api/transport';
 import { useEffect, useRef, useState } from 'react';
 import { SaveProgressMessage } from '../../../apis/AdventureService/SaveProgressMessage';
 import { LoadAdventureMessage } from '../../../apis/AdventureService/LoadAdventureMessage';
@@ -16,6 +17,7 @@ export function usePersistence() {
     pending = useRef<{
       send: () => Promise<ProgressResponse>;
       apply: (r: ProgressResponse) => void;
+      kind: 'save' | 'load';
     } | null>(null);
   const counter = useGame((g) => g?.autosave ?? 0),
     lastAuto = useRef(0);
@@ -31,19 +33,23 @@ export function usePersistence() {
     const request = pending.current,
       epoch = generation.current;
     busy.current = true;
-    setStatus({ kind: 'busy', text: '正在保存旅途…' });
+    setStatus({ kind: 'busy', text: request.kind === 'load' ? '正在读取记录…' : '正在保存旅途…' });
     try {
       const response = await request.send();
       if (epoch !== generation.current) return;
       request.apply(response);
       pending.current = null;
-      setStatus({ kind: 'idle', text: '进度已保存' });
+      setStatus({ kind: 'idle', text: request.kind === 'load' ? '进度已载入' : '进度已保存' });
+      void refreshList();
     } catch (error) {
-      if (epoch === generation.current)
+      if (epoch === generation.current) {
+        if (error instanceof ApiError && error.status >= 400 && error.status < 500)
+          pending.current = null;
         setStatus({
           kind: 'error',
-          text: error instanceof Error ? error.message : '保存失败，当前游戏仍保留。',
+          text: error instanceof Error ? error.message : '请求失败，当前游戏仍保留。',
         });
+      }
     } finally {
       busy.current = false;
     }
@@ -62,6 +68,7 @@ export function usePersistence() {
       progress.revision,
     );
     pending.current = {
+      kind: 'save',
       send: () => request.send(),
       apply: (r) => {
         setProgress(r);
@@ -96,6 +103,7 @@ export function usePersistence() {
       return;
     const request = new LoadAdventureMessage({ value: id }, crypto.randomUUID(), progress.revision);
     pending.current = {
+      kind: 'load',
       send: () => request.send(),
       apply: (r) => {
         setProgress(r);
@@ -106,9 +114,26 @@ export function usePersistence() {
     };
     void execute();
   }
-  function manual(slot: number) {
+  async function manual(slot: number) {
+    if (busy.current || pending.current) return;
+    busy.current = true;
+    setStatus({ kind: 'busy', text: '正在核对存档槽…' });
+    let latest: SaveListResponse;
+    try {
+      latest = await new ListSavesMessage().send();
+      setList(latest);
+    } catch (error) {
+      setStatus({
+        kind: 'error',
+        text: error instanceof Error ? error.message : '无法核对存档槽，未执行覆盖。',
+      });
+      busy.current = false;
+      return;
+    }
+    busy.current = false;
+    setStatus({ kind: 'idle', text: '存档槽已核对' });
     const progress = getProgressSnap();
-    const old = list?.saves.find(
+    const old = latest.saves.find(
       (s) =>
         s.adventureId.value === progress?.save.adventureId.value &&
         s.kind === 'manual' &&

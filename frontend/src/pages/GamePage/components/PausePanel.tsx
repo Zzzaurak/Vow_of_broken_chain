@@ -1,21 +1,34 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../../components/ui/Button';
-import { useSettings, setSettings } from '../../../features/settings/store';
+import { SettingsPanel } from '../../../features/settings/SettingsPanel';
+import { useMenuNavigation } from '../../../features/settings/useMenuNavigation';
 import { useGame, updateGame } from '../runtime/store';
 import { canSave, configureSupport, retryCheckpoint, togglePause } from '../functions/progression';
 import { mapById } from '../objects/content';
 import type { usePersistence } from '../hooks/usePersistence';
 export function PausePanel({ persistence }: { persistence: ReturnType<typeof usePersistence> }) {
-  const game = useGame((g) => g),
-    settings = useSettings(),
+  const game = useGame((g) =>
+      g && ['paused', 'failed', 'credits'].includes(g.mode.kind) ? g : null,
+    ),
     navigate = useNavigate();
   const [tab, setTab] = useState<'main' | 'saves' | 'settings'>('main');
+  const panel = useRef<HTMLElement>(null);
+  const open = !!game && ['paused', 'failed', 'credits'].includes(game.mode.kind);
+  const back = useCallback(() => {
+    if (tab !== 'main') setTab('main');
+    else if (game?.mode.kind === 'paused') updateGame(togglePause);
+  }, [tab, game?.mode.kind]);
+  useMenuNavigation(panel, back, open);
   if (!game || !['paused', 'failed', 'credits'].includes(game.mode.kind)) return null;
   const busy = persistence.status.kind === 'busy';
   return (
     <div className="absolute inset-0 grid place-items-center bg-[#061219]/85 p-6 backdrop-blur-sm">
-      <section className="max-h-full w-full max-w-xl overflow-y-auto border border-[#bfa970]/50 bg-[#102630] p-7">
+      <section
+        ref={panel}
+        data-game-menu
+        className="max-h-full w-full max-w-xl overflow-y-auto border border-[#bfa970]/50 bg-[#102630] p-7"
+      >
         <h2 className="mb-2 font-serif text-3xl text-[#e2cea0]">
           {game.mode.kind === 'failed'
             ? '旅途尚未结束'
@@ -158,55 +171,7 @@ export function PausePanel({ persistence }: { persistence: ReturnType<typeof use
             <Button onClick={() => void persistence.refreshList()}>刷新记录</Button>
           </div>
         )}
-        {tab === 'settings' && (
-          <div className="space-y-4 text-sm">
-            <label className="flex justify-between">
-              控制方案
-              <select
-                value={settings.preset}
-                onChange={(e) => setSettings({ preset: e.target.value as 'mouse' | 'keyboard' })}
-                className="bg-[#223d46]"
-              >
-                <option value="mouse">键鼠：WASD / 鼠标 / Q E</option>
-                <option value="keyboard">纯键盘：WASD / 方向 / J K</option>
-              </select>
-            </label>
-            <label className="flex justify-between">
-              阅读速度
-              <input
-                aria-label="阅读速度"
-                type="range"
-                min="0"
-                max="80"
-                value={settings.textSpeed}
-                onChange={(e) => setSettings({ textSpeed: Number(e.target.value) })}
-              />
-            </label>
-            <p className="text-xs text-[#8aa8a0]">速度设为 0 时即时显示全文。</p>
-            <label className="flex justify-between">
-              正文字号
-              <input
-                aria-label="正文字号"
-                type="range"
-                min="16"
-                max="26"
-                value={settings.textSize}
-                onChange={(e) => setSettings({ textSize: Number(e.target.value) })}
-              />
-            </label>
-            <label className="flex justify-between">
-              自动保存
-              <input
-                type="checkbox"
-                checked={settings.autosave}
-                onChange={(e) => setSettings({ autosave: e.target.checked })}
-              />
-            </label>
-            {!settings.autosave && (
-              <p className="text-xs text-amber-200">自动保存已关闭，请在安全区域手动保存。</p>
-            )}
-          </div>
-        )}
+        {tab === 'settings' && <SettingsPanel />}
         <p
           role="status"
           className={`mt-5 text-xs ${persistence.status.kind === 'error' ? 'text-rose-200' : 'text-[#8aa8a0]'}`}

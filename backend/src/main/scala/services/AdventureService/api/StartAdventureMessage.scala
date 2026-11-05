@@ -21,7 +21,7 @@ final case class StartAdventureMessage(playerId: PlayerId, difficulty: Difficult
       _ <- IO.unit
       adventure <- IO.delay(AdventureId(UUID.randomUUID().toString))
       save <- IO.delay(SaveId(UUID.randomUUID().toString))
-      snapshot = Content.initial(difficulty)
+      snapshot <- Content.initial(difficulty)
       _ <- Content.validate(snapshot)
       _ <- AdventureTable.insert(c,adventure,playerId,difficulty)
       _ <- GameSaveTable.insert(c,save,adventure,SaveKind.auto,0,snapshot)

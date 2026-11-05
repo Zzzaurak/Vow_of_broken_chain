@@ -1,3 +1,4 @@
+import { clearPath, pursuitDirection } from './navigation';
 import { balance, encounters, mapById } from '../objects/content';
 import type { EnemyKind } from '../objects/content';
 import type {
@@ -9,7 +10,16 @@ import type {
   Vec,
   VisualEffect,
 } from '../objects/game';
-import { add, distance, facing, length, movePosition, normalize, subtract } from './geometry';
+import {
+  add,
+  distance,
+  facing,
+  length,
+  movePosition,
+  normalize,
+  subtract,
+  validPosition,
+} from './geometry';
 import { notify, spawnWave, victory, dialogueMode } from './progression';
 const decay = (v: number, dt: number) => Math.max(0, v - dt);
 const isBoss = (kind: EnemyKind) => ['glm', 'gpt', 'claude', 'pope'].includes(kind);
@@ -254,10 +264,16 @@ function projectilesStep(state: GameState, dt: number): GameState {
         : p.direction;
       const position = add(p.position, direction, p.speed * dt),
         remaining = p.distance - p.speed * dt;
+      const blocked = !validPosition(position, mapById(next.snapshot.mapId));
+      if (p.enemy && blocked) return next;
       if (p.enemy) {
         if (distance(position, next.snapshot.position) < 22) return hitPlayer(next, p.damage);
         if (remaining <= 0) return next;
-      } else if (remaining <= 0 || next.enemies.some((e) => distance(position, e.position) < 26)) {
+      } else if (
+        blocked ||
+        remaining <= 0 ||
+        next.enemies.some((e) => distance(position, e.position) < 26)
+      ) {
         return flash(
           areaDamage(next, position, balance.player.waterRadius, p.damage),
           'water',
@@ -294,19 +310,28 @@ function enemyStep(state: GameState, dt: number): GameState {
       if (enemy.phase === 'chase') {
         const aim = normalize(subtract(next.snapshot.position, enemy.position));
         enemy = { ...enemy, aim };
-        if (distance(enemy.position, next.snapshot.position) < spec.range)
+        if (
+          distance(enemy.position, next.snapshot.position) < spec.range &&
+          clearPath(enemy.position, next.snapshot.position, map)
+        )
           enemy = { ...enemy, phase: 'windup', timer: spec.windup };
         else
           enemy = {
             ...enemy,
             position: movePosition(
               enemy.position,
-              add({ x: 0, y: 0 }, aim, spec.speed * dt * (enemy.slowed > 0 ? 0.4 : 1)),
+              add(
+                { x: 0, y: 0 },
+                pursuitDirection(enemy.position, next.snapshot.position, map),
+                spec.speed * dt * (enemy.slowed > 0 ? 0.4 : 1),
+              ),
               map,
             ),
           };
       } else if (enemy.phase === 'windup' && enemy.timer <= 0) {
-        const hit = distance(enemy.position, next.snapshot.position) < spec.range + 20;
+        const hit =
+          distance(enemy.position, next.snapshot.position) < spec.range + 20 &&
+          clearPath(enemy.position, next.snapshot.position, map);
         const aimed = normalize(subtract(next.snapshot.position, enemy.position));
         const inCone = aimed.x * enemy.aim.x + aimed.y * enemy.aim.y > 0.5;
         if (['guard', 'beast', 'hound', 'knight'].includes(enemy.kind)) {
@@ -385,7 +410,18 @@ function enemyStep(state: GameState, dt: number): GameState {
   );
 }
 function hazardsStep(state: GameState, dt: number): GameState {
-  return state.hazards.reduce<GameState>(
+  const cleansing = state.barrier > 0 && state.hazards.some((h) => h.kind === 'bind');
+  const active = cleansing
+    ? {
+        ...state,
+        bound: 0,
+        hazards: state.hazards.filter((h) => h.kind !== 'bind'),
+        enemies: state.enemies.map((e) =>
+          e.kind === 'pope' ? { ...e, phase: 'recover' as const, timer: 5 } : e,
+        ),
+      }
+    : state;
+  return active.hazards.reduce<GameState>(
     (next, h) => {
       const hazard = { ...h, timer: h.timer + dt };
       if (hazard.timer > 1.2 + hazard.duration) return next;
@@ -401,7 +437,7 @@ function hazardsStep(state: GameState, dt: number): GameState {
       }
       return { ...next, hazards: [...next.hazards, { ...hazard, fired: hazard.timer >= 1.2 }] };
     },
-    { ...state, hazards: [] },
+    { ...active, hazards: [] },
   );
 }
 function resolveBattle(state: GameState): GameState {

@@ -3,6 +3,9 @@ import encountersData from '../../../../../content/encounters/encounters.json';
 import dialogueData from '../../../../../content/story/dialogue.json';
 import combatData from '../../../../../content/balance/combat.json';
 export interface WorldMap {
+  unlock: string | null;
+  finalPreparation: boolean;
+  objective: string;
   id: string;
   name: string;
   width: number;

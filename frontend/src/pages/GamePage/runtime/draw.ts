@@ -113,7 +113,12 @@ function effect(
   const [x, y, w, h] = frame.rect;
   ctx.drawImage(image, x, y, w, h, p.x - size / 2, p.y - size / 2, size, size);
 }
-export function drawGame(ctx: CanvasRenderingContext2D, state: GameState, images: Images): void {
+export function drawGame(
+  ctx: CanvasRenderingContext2D,
+  state: GameState,
+  images: Images,
+  preferences = { shake: true, reduceFlash: false },
+): void {
   const map = mapById(state.snapshot.mapId),
     view = camera(state.snapshot.position, map),
     palette = palettes[map.theme] ?? palettes.temple;
@@ -121,7 +126,9 @@ export function drawGame(ctx: CanvasRenderingContext2D, state: GameState, images
   ctx.fillStyle = palette[0];
   ctx.fillRect(0, 0, 960, 540);
   ctx.save();
-  ctx.translate(-Math.round(view.x), -Math.round(view.y));
+  const shaking =
+    preferences.shake && state.invulnerable > 0.25 ? Math.sin(state.simulationTime * 95) * 3 : 0;
+  ctx.translate(-Math.round(view.x) + shaking, -Math.round(view.y));
   const terrain = images.get('/assets/world/terrain-atlas.png');
   function tile(index: number, x: number, y: number, w: number, h: number) {
     if (!terrain) return;
@@ -218,7 +225,13 @@ export function drawGame(ctx: CanvasRenderingContext2D, state: GameState, images
       ctx,
       h.position,
       h.radius,
-      h.timer < 1.2 ? '#e7a24b38' : h.kind === 'petal' ? '#e5c76266' : '#dc554d88',
+      h.timer < 1.2
+        ? '#e7a24b38'
+        : h.kind === 'petal'
+          ? '#e5c76266'
+          : preferences.reduceFlash
+            ? '#9d575755'
+            : '#dc554d88',
     );
     ctx.strokeStyle = h.kind === 'petal' ? '#e9cf7e' : '#f7a279';
     ctx.lineWidth = 2;
@@ -307,7 +320,11 @@ export function drawGame(ctx: CanvasRenderingContext2D, state: GameState, images
   const p = state.snapshot.position;
   circle(ctx, { x: p.x, y: p.y - 3 }, 20, '#07131870');
   ctx.globalAlpha =
-    state.invulnerable > 0 && Math.floor(state.simulationTime * 20) % 2 === 0 ? 0.5 : 1;
+    !preferences.reduceFlash &&
+    state.invulnerable > 0 &&
+    Math.floor(state.simulationTime * 20) % 2 === 0
+      ? 0.5
+      : 1;
   drawActor(
     ctx,
     images,

@@ -25,10 +25,18 @@ export function validPosition(p: Vec, map: WorldMap): boolean {
   );
 }
 export function movePosition(p: Vec, delta: Vec, map: WorldMap): Vec {
-  const x = { x: p.x + delta.x, y: p.y };
-  const a = validPosition(x, map) ? x : p;
-  const y = { x: a.x, y: p.y + delta.y };
-  return validPosition(y, map) ? y : a;
+  // Subdivide dashes and knockback as well as normal movement, so neither
+  // endpoint-only collision nor a delayed frame can jump across a wall.
+  const steps = Math.max(1, Math.ceil(length(delta) / 4));
+  const step = { x: delta.x / steps, y: delta.y / steps };
+  let position = p;
+  for (let i = 0; i < steps; i++) {
+    const x = { x: position.x + step.x, y: position.y };
+    const horizontal = validPosition(x, map) ? x : position;
+    const y = { x: horizontal.x, y: horizontal.y + step.y };
+    position = validPosition(y, map) ? y : horizontal;
+  }
+  return position;
 }
 export function camera(position: Vec, map: WorldMap): Vec {
   return {

@@ -139,8 +139,8 @@ class PersistenceSuite extends CatsEffectSuite:
   }
 
   test("content validation rejects premature companions and solid geometry") {
-    val initial = Content.initial(Difficulty.easy)
     for
+      initial <- Content.initial(Difficulty.easy)
       companion <- Content.validate(initial.copy(unlocked=List(Partner.gpt))).attempt
       outside <- Content.validate(initial.copy(position=Position(-1,200))).attempt
       incompatible <- Content.validate(initial.copy(contentVersion="future")).attempt
@@ -148,4 +148,39 @@ class PersistenceSuite extends CatsEffectSuite:
       assert(companion.isLeft)
       assert(outside.isLeft)
       assert(incompatible.isLeft)
+  }
+
+  test("every authored map accepts its safe arrival and cleared checkpoints in both difficulties") {
+    for
+      catalog <- Content.maps
+      initial <- Content.initial(Difficulty.easy)
+      _ <- List(Difficulty.easy,Difficulty.hard).traverse_ { difficulty =>
+        catalog.zipWithIndex.traverse_ { (map,index) =>
+          List(ProgressStage.arrival,ProgressStage.ready,ProgressStage.cleared).traverse_ { stage =>
+            val finished = catalog.take(index + (if stage == ProgressStage.cleared then 1 else 0))
+            val unlocked = finished.flatMap(_.unlock)
+            val supports = if map.finalPreparation then List(Partner.claude,Partner.gpt) else unlocked.take(2)
+            val point = Position(map.spawn.head,map.spawn(1))
+            Content.validate(initial.copy(difficulty=difficulty,mapId=map.id,checkpoint=map.checkpoint,
+              stage=stage,position=point,completed=finished.flatMap(_.encounter),unlocked=unlocked,supports=supports))
+          }
+        }
+      }
+    yield ()
+  }
+
+  test("final preparation requires Claude in the first slot and future content returns an explicit compatibility error") {
+    for
+      catalog <- Content.maps
+      initial <- Content.initial(Difficulty.easy)
+      throne = catalog.find(_.finalPreparation).get
+      prior = catalog.takeWhile(_.id != throne.id)
+      snapshot = initial.copy(mapId=throne.id,checkpoint=throne.checkpoint,
+        position=Position(throne.spawn.head,throne.spawn(1)),completed=prior.flatMap(_.encounter),
+        unlocked=prior.flatMap(_.unlock),supports=List(Partner.gpt,Partner.claude))
+      invalid <- Content.validate(snapshot).attempt
+      future <- Content.validate(initial.copy(contentVersion="future")).attempt
+    yield
+      assert(invalid.isLeft)
+      assertEquals(future.swap.toOption.collect { case e: ApiError => e.code },Some("incompatible_save"))
   }

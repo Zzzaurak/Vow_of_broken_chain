@@ -1,6 +1,7 @@
+import { useRef } from 'react';
 import { useGame, updateGame } from '../runtime/store';
 import { sceneById } from '../objects/content';
-import { advanceDialogue } from '../functions/progression';
+import { advanceDialogue, togglePause } from '../functions/progression';
 import { portrait } from '../runtime/assets';
 import { useSettings, actionLabel } from '../../../features/settings/store';
 const person = (speaker: string) =>
@@ -10,8 +11,9 @@ const person = (speaker: string) =>
       ? speaker.toLowerCase()
       : null;
 export function DialoguePanel() {
-  const mode = useGame((g) => g?.mode);
+  const mode = useGame((g) => (g?.mode.kind === 'dialogue' ? g.mode : null));
   const settings = useSettings();
+  const suppressClick = useRef(false);
   if (mode?.kind !== 'dialogue') return null;
   const scene = sceneById(mode.scene),
     line = scene.lines[mode.line],
@@ -20,7 +22,40 @@ export function DialoguePanel() {
     right = id && id !== 'deepseek' ? id : listener,
     cg = mode.scene === '6-1' ? 'cg1' : mode.scene === '6-2' ? 'cg2' : null;
   return (
-    <div className="absolute inset-0 flex flex-col justify-end bg-[#061219]/35">
+    <div
+      className="absolute inset-0 flex flex-col justify-end bg-[#061219]/35"
+      onContextMenu={(e) => e.preventDefault()}
+      onMouseDown={(e) => {
+        if (settings.preset !== 'mouse') return;
+        const code = `Mouse${e.button}`,
+          b = settings.bindings.mouse;
+        if (![b.confirm, b.hide, b.history, b.pause].includes(code)) return;
+        e.preventDefault();
+        suppressClick.current = true;
+        if (code === b.confirm) updateGame(advanceDialogue);
+        else if (code === b.pause) updateGame(togglePause);
+        else
+          updateGame((g) =>
+            g.mode.kind === 'dialogue'
+              ? {
+                  ...g,
+                  mode: {
+                    ...g.mode,
+                    hidden: code === b.hide ? !g.mode.hidden : g.mode.hidden,
+                    history: code === b.history ? !g.mode.history : g.mode.history,
+                  },
+                }
+              : g,
+          );
+      }}
+      onClickCapture={(e) => {
+        if (suppressClick.current) {
+          e.preventDefault();
+          e.stopPropagation();
+          suppressClick.current = false;
+        }
+      }}
+    >
       {cg ? (
         <div className="absolute inset-x-0 top-0 bottom-[28%] flex items-center justify-center bg-[#09151a]">
           <img

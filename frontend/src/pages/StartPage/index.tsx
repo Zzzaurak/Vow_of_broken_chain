@@ -1,14 +1,25 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { ArrowRight, BookOpen, Sun, Swords } from 'lucide-react';
+import { SettingsPanel } from '../../features/settings/SettingsPanel';
+import { useMenuNavigation } from '../../features/settings/useMenuNavigation';
+import { useSettingsNotice } from '../../features/settings/store';
 import { Button } from '../../components/ui/Button';
 import { useStartPage } from './hooks/useStartPage';
 import type { Difficulty } from '../../apis/AdventureService/types';
 export function StartPage() {
-  const { state, busy, error, refresh, open } = useStartPage();
+  const { state, busy, error, refresh, open, retry, hasPending } = useStartPage();
   const [difficulty, setDifficulty] = useState<Difficulty>('easy');
   const [showSaves, setShowSaves] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const root = useRef<HTMLElement>(null),
+    settingsRoot = useRef<HTMLElement>(null);
+  const closeSettings = useCallback(() => setShowSettings(false), []);
+  const back = useCallback(() => setShowSaves(false), []);
+  const notice = useSettingsNotice();
+  useMenuNavigation(root, back, !showSettings);
+  useMenuNavigation(settingsRoot, closeSettings, showSettings);
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#101f25]">
+    <main ref={root} className="relative min-h-screen overflow-hidden bg-[#101f25]">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_75%_20%,#456869_0%,transparent_55%)]" />
       <header className="relative flex items-center justify-between border-b border-white/10 px-8 py-6 text-xs tracking-[.3em] text-[#b4c3be]">
         <span>OATH / UNCHAINED</span>
@@ -111,6 +122,19 @@ export function StartPage() {
               )}
             </div>
           )}
+          <Button className="mt-4 w-full" onClick={() => setShowSettings(true)}>
+            设置
+          </Button>
+          {notice && (
+            <p role="alert" className="mt-3 text-xs text-amber-100">
+              {notice}
+            </p>
+          )}
+          {error && hasPending && (
+            <Button className="mt-3 w-full" disabled={busy} onClick={() => void retry()}>
+              重试上次操作
+            </Button>
+          )}
           {error && (
             <p role="alert" className="mt-4 text-sm text-rose-200">
               {error}
@@ -118,6 +142,22 @@ export function StartPage() {
           )}
         </div>
       </section>
+      {showSettings && (
+        <div className="fixed inset-0 z-20 grid place-items-center bg-[#061219]/90 p-6">
+          <section
+            ref={settingsRoot}
+            role="dialog"
+            aria-label="游戏设置"
+            className="max-h-[90vh] w-full max-w-xl overflow-y-auto border border-[#bfa970]/50 bg-[#102630] p-7"
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="font-serif text-2xl">游戏设置</h2>
+              <Button onClick={closeSettings}>返回</Button>
+            </div>
+            <SettingsPanel />
+          </section>
+        </div>
+      )}
       <footer className="relative mx-8 flex justify-between border-t border-white/10 py-6 text-xs text-[#809792]">
         <span>献给所有向往自由与真实的灵魂</span>
         <span>非官方同人 · 课程作品</span>

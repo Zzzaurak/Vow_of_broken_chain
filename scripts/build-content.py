@@ -45,6 +45,33 @@ def main():
             ox,oy,w,h = obstacle
             assert not (ox <= x <= ox+w and oy <= y <= oy+h), m['id']
         assert m['next'] is None or m['next'] in ids
+    encounters=json.loads((ROOT/'content/encounters/encounters.json').read_text())
+    enemy_ids=set(json.loads((ROOT/'content/balance/combat.json').read_text())['enemies'])
+    encounter_ids={e['id'] for e in encounters}
+    scene_ids={scene['id'] for scene in scenes}
+    assert len(encounter_ids)==len(encounters)
+    assert all(e['waves'] and all(wave and set(wave)<=enemy_ids for wave in e['waves']) for e in encounters)
+    for index,m in enumerate(maps):
+        assert m['next']==(maps[index+1]['id'] if index+1<len(maps) else None)
+        assert m['encounter'] is None or m['encounter'] in encounter_ids
+        assert all(m[key] is None or m[key] in scene_ids for key in ('before','after'))
+        assert m['unlock'] in (None,'glm','gpt','claude')
+        assert m['checkpoint']==m['id'] and m['objective']
+        x,y=m['exit']
+        assert 24<=x<=m['width']*32-24 and 24<=y<=m['height']*32-24
+        assert not any(ox-12<=x<=ox+w+12 and oy-8<=y<=oy+h+8 for ox,oy,w,h in m['obstacles'])
+        # Verify a walkable route through the collision grid, including feet clearance.
+        def valid(cell):
+            cx,cy=cell;px,py=cx*32+16,cy*32+16
+            return 24<=px<=m['width']*32-24 and 24<=py<=m['height']*32-24 and not any(ox-12<=px<=ox+w+12 and oy-8<=py<=oy+h+8 for ox,oy,w,h in m['obstacles'])
+        start=tuple(int(v//32) for v in m['spawn']);goal=tuple(int(v//32) for v in m['exit'])
+        pending=[start];seen={start}
+        for cell in pending:
+            for dx,dy in ((1,0),(-1,0),(0,1),(0,-1)):
+                other=(cell[0]+dx,cell[1]+dy)
+                if other not in seen and valid(other):seen.add(other);pending.append(other)
+        assert goal in seen, f"Unreachable exit: {m['id']}"
+    assert sum(m['finalPreparation'] for m in maps)==1
     print(f'Validated {len(maps)} maps, {len(scenes)} scenes, {sum(len(s["lines"]) for s in scenes)} dialogue lines')
 
 if __name__ == '__main__':

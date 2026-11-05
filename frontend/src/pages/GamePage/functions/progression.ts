@@ -69,14 +69,7 @@ export function notify(state: GameState, toast: string): GameState {
 export function finishMap(state: GameState): GameState {
   const s = state.snapshot;
   const map = mapById(s.mapId);
-  const partner: Partner | null =
-    s.mapId === 'harbor'
-      ? 'glm'
-      : s.mapId === 'lair'
-        ? 'gpt'
-        : s.mapId === 'garden'
-          ? 'claude'
-          : null;
+  const partner = map.unlock as Partner | null;
   const unlocked = partner ? [...new Set([...s.unlocked, partner])] : s.unlocked;
   const supports: Partner[] =
     partner === 'claude'

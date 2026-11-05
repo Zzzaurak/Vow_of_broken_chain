@@ -1,3 +1,5 @@
+import { playSound, setSoundtrack } from '../../../features/audio/engine';
+import { scoreFor } from '../../../features/audio/composition';
 import { useEffect, useRef, useState } from 'react';
 import { getGameSnap, setGame, updateGame } from '../runtime/store';
 import { loadImages } from '../runtime/assets';
@@ -5,7 +7,7 @@ import { drawGame } from '../runtime/draw';
 import { stepGame } from '../functions/combat';
 import { advanceDialogue, advanceReading, interact, togglePause } from '../functions/progression';
 import { camera, distance, subtract } from '../functions/geometry';
-import { mapById, sceneById } from '../objects/content';
+import { mapById } from '../objects/content';
 import { emptyInput, type FrameInput } from '../objects/game';
 import { getSettingsSnap } from '../../../features/settings/store';
 export function useGameRuntime() {
@@ -28,9 +30,18 @@ export function useGameRuntime() {
       pressed.clear();
       pointer = null;
     };
-    const keydown = (event: KeyboardEvent) => {
+    const keydown = (
+      event: Pick<KeyboardEvent, 'code' | 'repeat' | 'defaultPrevented' | 'preventDefault'>,
+    ) => {
       const game = getGameSnap();
-      if (!game) return;
+      if (!game || event.defaultPrevented) return;
+      if (event.repeat && !held.has(event.code)) return;
+      if (document.querySelector('[data-rebinding="true"]')) return;
+      if (
+        ['paused', 'failed', 'credits'].includes(game.mode.kind) &&
+        document.querySelector('[data-game-menu]')
+      )
+        return;
       const settings = getSettingsSnap(),
         bindings = settings.bindings[settings.preset];
       if (event.code === 'Escape' || event.code === bindings.pause) {
@@ -72,6 +83,7 @@ export function useGameRuntime() {
         clear();
       }
       if (!event.repeat && event.code === bindings.lock) {
+        pointer = null;
         updateGame((g) => {
           const candidates = g.enemies.filter(
             (e) => e.hp > 0 && distance(e.position, g.snapshot.position) <= 440,
@@ -92,10 +104,16 @@ export function useGameRuntime() {
     };
     const mousedown = (e: MouseEvent) => {
       if (getSettingsSnap().preset !== 'mouse') return;
+      const game = getGameSnap();
+      if (!game || !['explore', 'battle'].includes(game.mode.kind)) return;
       const code = `Mouse${e.button}`;
-      held.add(code);
-      pressed.add(code);
       element.focus();
+      keydown({
+        code,
+        repeat: false,
+        defaultPrevented: e.defaultPrevented,
+        preventDefault: () => e.preventDefault(),
+      });
     };
     const mouseup = (e: MouseEvent) => held.delete(`Mouse${e.button}`);
     const contextmenu = (e: MouseEvent) => e.preventDefault();
@@ -104,6 +122,7 @@ export function useGameRuntime() {
       const g = getGameSnap();
       if (g && g.mode.kind !== 'paused' && g.mode.kind !== 'failed') setGame(togglePause(g));
     };
+    window.addEventListener('oath:clear-input', clear);
     window.addEventListener('keydown', keydown);
     window.addEventListener('keyup', keyup);
     window.addEventListener('mouseup', mouseup);
@@ -140,8 +159,12 @@ export function useGameRuntime() {
                   y: Number(held.has(b.down)) - Number(held.has(b.up)),
                 };
                 const keyAim = {
-                  x: Number(held.has(b.aimRight)) - Number(held.has(b.aimLeft)),
-                  y: Number(held.has(b.aimDown)) - Number(held.has(b.aimUp)),
+                  x:
+                    Number(held.has(b.aimRight) || pressed.has(b.aimRight)) -
+                    Number(held.has(b.aimLeft) || pressed.has(b.aimLeft)),
+                  y:
+                    Number(held.has(b.aimDown) || pressed.has(b.aimDown)) -
+                    Number(held.has(b.aimUp) || pressed.has(b.aimUp)),
                 };
                 const view = camera(current.snapshot.position, mapById(current.snapshot.mapId));
                 const target =
@@ -157,11 +180,25 @@ export function useGameRuntime() {
                       ? keyAim
                       : null,
                   target,
-                  melee: held.has(b.melee),
+                  melee: held.has(b.melee) || pressed.has(b.melee),
                   water: pressed.has(b.water),
                   support: pressed.has(b.support1) ? 0 : pressed.has(b.support2) ? 1 : null,
                 };
-                setGame(stepGame(current, input, 1 / 60));
+                const next = stepGame(current, input, 1 / 60);
+                for (const effect of next.effects)
+                  if (!current.effects.some((e) => e.id === effect.id)) playSound(effect.kind);
+                if (next.snapshot.hp < current.snapshot.hp) playSound('hurt');
+                if (next.toast !== current.toast && next.toastTime > 0) playSound('error');
+                if (
+                  Object.keys(next.snapshot.cooldowns).some(
+                    (key) =>
+                      current.snapshot.cooldowns[key as keyof typeof current.snapshot.cooldowns] >
+                        0 &&
+                      next.snapshot.cooldowns[key as keyof typeof next.snapshot.cooldowns] === 0,
+                  )
+                )
+                  playSound('ready');
+                setGame(next);
                 pressed.clear();
                 accumulator -= 1 / 60;
               }
@@ -170,7 +207,17 @@ export function useGameRuntime() {
               accumulator = 0;
             }
             const latest = getGameSnap();
-            if (latest) drawGame(context!, latest, images);
+            if (latest) {
+              setSoundtrack(
+                scoreFor(latest.snapshot.mapId, latest.mode.kind === 'battle'),
+                latest.mode.kind === 'paused' || latest.mode.kind === 'failed',
+              );
+              const settings = getSettingsSnap();
+              drawGame(context!, latest, images, {
+                shake: settings.shake,
+                reduceFlash: settings.reduceFlash,
+              });
+            }
           }
           handle = requestAnimationFrame(frame);
         }
@@ -183,6 +230,7 @@ export function useGameRuntime() {
       cancelled = true;
       cancelAnimationFrame(handle);
       clear();
+      window.removeEventListener('oath:clear-input', clear);
       window.removeEventListener('keydown', keydown);
       window.removeEventListener('keyup', keyup);
       window.removeEventListener('mouseup', mouseup);

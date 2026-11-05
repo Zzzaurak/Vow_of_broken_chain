@@ -191,7 +191,7 @@ Claude 在优渥但封闭的圣女内庭中受教规束缚，因责任与恐惧�
 
 ## 6. 前后端课程边界（简要规划）
 
-按 [React 前端课程规范](../../course-skills/react-course-frontend/SKILL.md) 与 [Scala 后端课程规范](../../course-skills/scala-course-homework/SKILL.md) 实施：前端采用 **React＋TypeScript＋Tailwind**；后端采用 **Scala 3 与课程 API／IO／Table 组织方式**；数据库默认 **PostgreSQL**。具体游戏绘制方案、接口字段、数据库 schema 和运行配置留到实现阶段确定。
+按 [React 前端课程规范](../../course-skills/react-course-frontend/SKILL.md) 与 [Scala 后端课程规范](../../course-skills/scala-course-homework/SKILL.md) 实施：前端采用 **React＋TypeScript＋Tailwind**；后端采用 **Scala 3 与课程 API／IO／Table 组织方式**；数据库默认 **PostgreSQL**。游戏绘制采用 Canvas 2D；服务边界、关卡设计与实施阶段见 [开发 Plan](../docs/development-plan.md)，接口字段和数据库 schema 按该计划细化。
 
 **前端负责**输入与改键、绘制、即时战斗、对话、设置及存读档界面；**后端负责**冒险与存档记录查询、快照校验和持久化。战斗逐帧计算留在浏览器，手动／自动保存的安全快照提交后端，不把每次移动和攻击变成网络请求。
 
@@ -199,10 +199,12 @@ Claude 在优渥但封闭的圣女内庭中受教规束缚，因责任与恐惧�
 
 | 页面目录／URL | 用途与主要区域 | 依赖服务 |
 | --- | --- | --- |
-| `frontend/src/pages/StartPage/` ／ `/` | 标题、开始新游戏与难度选择、继续游戏、读取存档与设置入口 | `AdventureService` |
+| `frontend/src/pages/StartPage/` ／ `/` | 标题、开始新游戏与难度选择、继续游戏、读取存档与设置入口 | `PlayerService`、`AdventureService` |
 | `frontend/src/pages/GamePage/` ／ `/game` | 游戏场景、HP/MP 与援助栏、对话、暂停、手动保存／读取、失败重试、设置；结局在本页呈现 | `AdventureService` |
 
-首版仍设一个后端业务服务：`backend/src/main/scala/services/AdventureService/`，负责匿名玩家的多次冒险和存档历史，所属表为 `AdventureTable`、`GameSaveTable`。提供 `StartAdventureMessage`（新建冒险与初始记录）、`ListSavesMessage`（列出可读记录）、`LoadAdventureMessage`（读取指定快照）、`SaveProgressMessage`（写手动槽或轮换自动记录）四类面向前端的消息；校验访问归属、冒险难度、HP／MP 的 0～100 边界、安全位置及章节／任务／伙伴的一致性，并防止旧请求在回档后写入错误进度。数据库中的旧记录在新写入成功前保留，读入快照后不直接覆盖来源记录。
+首版设两个逻辑业务服务：`PlayerService` 负责匿名玩家、访问令牌与可信身份，拥有 `PlayerTable`、`PlayerSessionTable`，公开 `CreateAnonymousPlayerMessage`，内部提供 `ResolvePlayerMessage`；`AdventureService` 负责多次冒险、存档与请求去重，拥有 `AdventureTable`、`GameSaveTable`、`ProgressOperationTable`，公开 `StartAdventureMessage`、`ListSavesMessage`、`LoadAdventureMessage`、`SaveProgressMessage`。玩家进度版本与继续指针由玩家表维护，冒险消息通过公开 Table 方法在同一事务中更新。`services/system/` 单独承担数据库连接、事务与路由基础设施，不计为第三个业务服务。
+
+角色、地图、关卡、敌人分别建立明确的数据模型和版本化内容模块，不按实体名各拆微服务；即时战斗留在浏览器。课程项目按逻辑边界组织，同进程部署即可。后端校验访问归属、难度、HP／MP 边界、安全位置与剧情／伙伴一致性，拒绝回档后的旧请求；新写入成功前保留原记录，读入后不立即覆盖来源记录。
 
 调用关系为：**开始页／游戏页的存读档区域 → `src/apis/AdventureService/` 下同名请求类 → 后端消息的 `plan` → 快照校验／公开 Table 方法 → PostgreSQL**。公共传输放 `src/api/`；游戏页专用组件、状态与纯函数就近组织，Zustand 封装需要共享的核心状态，展示数据由纯函数推导。开始页和游戏页共用的设置、存档列表按实际复用需要组织，不新建无必要的业务服务。
 

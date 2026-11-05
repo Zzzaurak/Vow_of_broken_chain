@@ -4,6 +4,7 @@ import { getProgressSnap } from '../../features/saves/session';
 import { useGame, setGame, updateGame } from './runtime/store';
 import { createGame, togglePause } from './functions/progression';
 import { WorldCanvas } from './components/WorldCanvas';
+import { BossStatus } from './components/BossStatus';
 import { GameHud } from './components/GameHud';
 import { DialoguePanel } from './components/DialoguePanel';
 import { PausePanel } from './components/PausePanel';
@@ -50,6 +51,7 @@ export function GamePage() {
       <section className="relative mx-auto max-w-[1280px] overflow-hidden border border-[#86988a]/30 bg-[#24383d] shadow-2xl">
         <WorldCanvas />
         {mode !== 'dialogue' && <GameHud />}
+        <BossStatus />
         <DialoguePanel />
         <PausePanel persistence={persistence} />
         {toast && mode !== 'paused' && (
@@ -65,12 +67,14 @@ export function GamePage() {
       </section>
       <footer className="mx-auto mt-4 flex max-w-[1280px] flex-wrap justify-between gap-2 text-xs text-[#829e98]">
         <span>
-          W A S D 移动 · {keyLabel(b.interact)} 交互 · {keyLabel(b.melee)} 摆尾 ·{' '}
-          {keyLabel(b.water)} 深海之力 · {keyLabel(b.lock)} 锁定
+          {[b.up, b.left, b.down, b.right].map(keyLabel).join(' ')} 移动 · {keyLabel(b.interact)}{' '}
+          交互 · {keyLabel(b.melee)} 摆尾 · {keyLabel(b.water)} 深海之力 · {keyLabel(b.lock)} 锁定
         </span>
         <span>
-          {settings.preset === 'keyboard' ? '方向键瞄准 · Q / E 援助' : '鼠标瞄准 · Q / E 援助'} ·
-          Esc 暂停
+          {settings.preset === 'keyboard'
+            ? `${[b.aimUp, b.aimDown, b.aimLeft, b.aimRight].map(keyLabel).join(' ')} 瞄准 · ${keyLabel(b.support1)} / ${keyLabel(b.support2)} 援助`
+            : `鼠标瞄准 · ${keyLabel(b.support1)} / ${keyLabel(b.support2)} 援助`}{' '}
+          · Esc 暂停
         </span>
       </footer>
     </main>

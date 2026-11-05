@@ -1,122 +1,38 @@
 import { create } from 'zustand';
-export type Action =
-  | 'up'
-  | 'down'
-  | 'left'
-  | 'right'
-  | 'aimUp'
-  | 'aimDown'
-  | 'aimLeft'
-  | 'aimRight'
-  | 'melee'
-  | 'water'
-  | 'support1'
-  | 'support2'
-  | 'interact'
-  | 'lock'
-  | 'pause'
-  | 'confirm'
-  | 'hide'
-  | 'history';
-export type Preset = 'mouse' | 'keyboard';
-export type Bindings = Record<Action, string>;
-export const defaults: Record<Preset, Bindings> = {
-  mouse: {
-    up: 'KeyW',
-    down: 'KeyS',
-    left: 'KeyA',
-    right: 'KeyD',
-    aimUp: 'ArrowUp',
-    aimDown: 'ArrowDown',
-    aimLeft: 'ArrowLeft',
-    aimRight: 'ArrowRight',
-    melee: 'Mouse0',
-    water: 'Mouse2',
-    support1: 'KeyQ',
-    support2: 'KeyE',
-    interact: 'KeyF',
-    lock: 'Tab',
-    pause: 'Escape',
-    confirm: 'Enter',
-    hide: 'KeyH',
-    history: 'KeyR',
-  },
-  keyboard: {
-    up: 'KeyW',
-    down: 'KeyS',
-    left: 'KeyA',
-    right: 'KeyD',
-    aimUp: 'ArrowUp',
-    aimDown: 'ArrowDown',
-    aimLeft: 'ArrowLeft',
-    aimRight: 'ArrowRight',
-    melee: 'KeyJ',
-    water: 'KeyK',
-    support1: 'KeyQ',
-    support2: 'KeyE',
-    interact: 'KeyF',
-    lock: 'Tab',
-    pause: 'Escape',
-    confirm: 'Enter',
-    hide: 'KeyH',
-    history: 'KeyR',
-  },
-};
-export interface Settings {
-  preset: Preset;
-  bindings: Record<Preset, Bindings>;
-  master: number;
-  music: number;
-  effects: number;
-  muted: boolean;
-  textSpeed: number;
-  textSize: number;
-  shake: boolean;
-  reduceFlash: boolean;
-  autosave: boolean;
-}
-export const defaultSettings: Settings = {
-  preset: 'mouse',
-  bindings: defaults,
-  master: 0.6,
-  music: 0.35,
-  effects: 0.6,
-  muted: false,
-  textSpeed: 36,
-  textSize: 20,
-  shake: true,
-  reduceFlash: false,
-  autosave: true,
-};
+import { parseSettings, keyLabel, type Action, type Settings } from './model';
+export { defaults, defaultSettings, keyLabel } from './model';
+export type { Action, Preset, Bindings, Settings } from './model';
 const key = 'oath.settings.v1';
-function read(): Settings {
+function read() {
   try {
-    const raw = JSON.parse(localStorage.getItem(key) ?? 'null');
-    return raw &&
-      ['mouse', 'keyboard'].includes(raw.preset) &&
-      typeof raw.textSpeed === 'number' &&
-      raw.bindings?.mouse &&
-      raw.bindings?.keyboard
-      ? { ...defaultSettings, ...raw }
-      : structuredClone(defaultSettings);
+    return parseSettings(JSON.parse(localStorage.getItem(key) ?? 'null'));
   } catch {
-    return structuredClone(defaultSettings);
+    return { ...parseSettings(null), recovered: true };
   }
 }
-const store = create<Settings>(() => read());
+const initial = read();
+const store = create<Settings>(() => initial.settings);
+const noticeStore = create<{ notice: string }>(() => ({
+  notice: initial.recovered ? '设置损坏或不兼容，已恢复默认设置。' : '',
+}));
 export const useSettings = () => store();
+export const useSettingsNotice = () => noticeStore((s) => s.notice);
 export const getSettingsSnap = () => store.getState();
+export const subscribeSettings = (callback: () => void) => store.subscribe(callback);
+export const dismissSettingsNotice = () => noticeStore.setState({ notice: '' });
 export function setSettings(patch: Partial<Settings>) {
-  store.setState(patch);
-  localStorage.setItem(key, JSON.stringify(store.getState()));
+  const result = parseSettings({ ...getSettingsSnap(), ...patch });
+  if (result.recovered) {
+    noticeStore.setState({ notice: '设置未通过校验，未应用此项更改。' });
+    return;
+  }
+  store.setState(result.settings);
+  window.dispatchEvent(new Event('oath:clear-input'));
+  try {
+    localStorage.setItem(key, JSON.stringify(result.settings));
+  } catch {
+    noticeStore.setState({ notice: '浏览器无法保存设置，本次更改仅在当前页面生效。' });
+  }
 }
-export const keyLabel = (code: string) =>
-  code
-    .replace('Key', '')
-    .replace('Digit', '')
-    .replace('Arrow', '')
-    .replace('Mouse0', '鼠标左键')
-    .replace('Mouse2', '鼠标右键')
-    .replace('Escape', 'Esc');
 export const actionLabel = (action: Action) =>
   keyLabel(getSettingsSnap().bindings[getSettingsSnap().preset][action]);

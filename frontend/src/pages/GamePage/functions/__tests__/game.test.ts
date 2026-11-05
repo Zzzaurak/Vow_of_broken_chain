@@ -215,6 +215,62 @@ describe('deterministic game rules', () => {
     expect(next.snapshot.mapId).toBe('steps');
     expect(next.mode.kind).toBe('battle');
   });
+  it('an existing Claude barrier clears a later binding field once, without extending the window every tick', () => {
+    let state = battle('throne');
+    state = {
+      ...state,
+      barrier: 4,
+      enemies: [{ ...state.enemies[0], phase: 'recover', timer: 2 }],
+      hazards: [
+        {
+          id: 100,
+          position: { ...state.snapshot.position },
+          radius: 145,
+          timer: 1.2,
+          duration: 3,
+          damage: 16,
+          kind: 'bind',
+          fired: false,
+        },
+      ],
+    };
+    const first = stepGame(state, emptyInput, 0.01);
+    expect(first.hazards).toHaveLength(0);
+    expect(first.enemies[0].timer).toBe(5);
+    expect(first.snapshot.hp).toBe(100);
+    const second = stepGame(first, emptyInput, 0.1);
+    expect(second.enemies[0].timer).toBeCloseTo(4.9);
+  });
+  it('water cannot cross a solid map obstacle', () => {
+    const state = createGame({
+      ...initial,
+      mapId: 'forest',
+      checkpoint: 'forest',
+      position: { x: 140, y: 150 },
+    });
+    const next = stepGame(
+      {
+        ...state,
+        projectiles: [
+          {
+            id: 1,
+            position: { x: 146, y: 150 },
+            direction: { x: 1, y: 0 },
+            target: { x: 400, y: 150 },
+            speed: 380,
+            distance: 250,
+            damage: 32,
+            enemy: false,
+            homing: false,
+          },
+        ],
+      },
+      emptyInput,
+      0.02,
+    );
+    expect(next.projectiles).toHaveLength(0);
+    expect(next.effects.some((e) => e.kind === 'water')).toBe(true);
+  });
   it('the complete linear story reaches both CGs and credits', () => {
     let state = createGame({ ...initial, stage: 'arrival' });
     const visited: string[] = [];

@@ -5,11 +5,15 @@ import io.circe.{Json, Decoder, Encoder}
 import io.circe.syntax.*
 import scala.compiletime.constValue
 import scala.deriving.Mirror
-import services.system.api.APIMessage
+import services.system.api.{APIMessage, NoRequestMessage}
 import services.PlayerService.objects.PlayerId
 import services.system.objects.ApiError
 final case class Endpoint(service: String, action: String, authenticated: Boolean, run: (Json,Connection,Option[PlayerId]) => IO[Json])
 object Endpoint:
+  inline def noRequest[M <: NoRequestMessage[A], A: Encoder](service: String, create: () => M)(using mirror: Mirror.Of[M]): Endpoint =
+    val action = constValue[mirror.MirroredLabel].asInstanceOf[String].stripSuffix("Message").toLowerCase
+    Endpoint(service, action, false, (_, connection, _) => create().plan(connection).map(_.asJson))
+
   inline def register[M <: APIMessage[A], A: Encoder](service: String)(using decoder: Decoder[M], mirror: Mirror.Of[M]): Endpoint =
     val action = constValue[mirror.MirroredLabel].asInstanceOf[String].stripSuffix("Message").toLowerCase
     Endpoint(service,action,true,(json,c,player) => for

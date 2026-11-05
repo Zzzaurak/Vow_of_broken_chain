@@ -47,10 +47,10 @@ export function GameHud() {
         <p className="font-serif text-lg text-[#e4d5ae]">{mapById(mapId).name}</p>
         <p className="mt-1 text-[#b7c9c4]">
           {mode === 'battle'
-            ? '观察预警 · 完成遭遇'
+            ? mapById(mapId).objective
             : stage === 'cleared'
               ? '沿道路前往下一站'
-              : '向前探索 · 寻找线索'}
+              : mapById(mapId).objective}
         </p>
         <p className="mt-2 text-[#91aaa5]">
           {actionLabel('pause')} 暂停 · {actionLabel('interact')} 交互

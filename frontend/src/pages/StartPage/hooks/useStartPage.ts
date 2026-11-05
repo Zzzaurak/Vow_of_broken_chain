@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPlayerToken, setPlayerToken } from '../../../api/token';
 import { CreateAnonymousPlayerMessage } from '../../../apis/PlayerService/CreateAnonymousPlayerMessage';
@@ -6,6 +6,8 @@ import { ListSavesMessage } from '../../../apis/AdventureService/ListSavesMessag
 import { StartAdventureMessage } from '../../../apis/AdventureService/StartAdventureMessage';
 import { LoadAdventureMessage } from '../../../apis/AdventureService/LoadAdventureMessage';
 import type { Difficulty, SaveListResponse } from '../../../apis/AdventureService/types';
+import { ApiError } from '../../../api/transport';
+import type { ProgressResponse } from '../../../apis/AdventureService/types';
 import { setProgress } from '../../../features/saves/session';
 type State =
   | { status: 'loading' }
@@ -31,6 +33,8 @@ export function useStartPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const pending = useRef<{ key: string; send: () => Promise<ProgressResponse> } | null>(null);
+  const running = useRef(false);
   async function refresh() {
     setState({ status: 'loading' });
     try {
@@ -43,22 +47,42 @@ export function useStartPage() {
   useEffect(() => {
     void refresh();
   }, []);
-  async function open(difficulty?: Difficulty, saveId?: string) {
-    if (state.status !== 'ready' || busy) return;
+  async function retry() {
+    if (running.current || !pending.current) return;
+    running.current = true;
     setBusy(true);
     setError('');
     try {
-      const op = crypto.randomUUID();
-      const result = difficulty
-        ? await new StartAdventureMessage(difficulty, op, state.data.revision).send()
-        : await new LoadAdventureMessage({ value: saveId! }, op, state.data.revision).send();
+      const result = await pending.current.send();
+      pending.current = null;
       setProgress(result);
       navigate('/game');
     } catch (e) {
       setError(e instanceof Error ? e.message : '操作失败');
+      if (e instanceof ApiError && e.status >= 400 && e.status < 500) {
+        pending.current = null;
+        void refresh();
+      }
     } finally {
+      running.current = false;
       setBusy(false);
     }
   }
-  return { state, busy, error, refresh, open };
+  async function open(difficulty?: Difficulty, saveId?: string) {
+    if (state.status !== 'ready' || running.current) return;
+    const key = JSON.stringify([difficulty, saveId]);
+    if (pending.current && pending.current.key !== key) {
+      setError('上次请求的结果尚未确认，请先重试上次操作，避免重复创建冒险。');
+      return;
+    }
+    if (!pending.current) {
+      const op = crypto.randomUUID();
+      const request = difficulty
+        ? new StartAdventureMessage(difficulty, op, state.data.revision)
+        : new LoadAdventureMessage({ value: saveId! }, op, state.data.revision);
+      pending.current = { key, send: () => request.send() };
+    }
+    await retry();
+  }
+  return { state, busy, error, refresh, open, retry, hasPending: pending.current !== null };
 }
