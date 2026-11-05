@@ -46,7 +46,8 @@
     "checkpoint": "steps",
     "unlock": null,
     "finalPreparation": false,
-    "objective": "击退三名近卫，接近 Claude"
+    "objective": "击退三名近卫，接近 Claude",
+    "chapter": "序章 · 长阶之别"
   },
   {
     "id": "market",
@@ -107,7 +108,8 @@
     "checkpoint": "market",
     "unlock": null,
     "finalPreparation": false,
-    "objective": "向 Qwen 打听去往西方的线索"
+    "objective": "向 Qwen 打听去往西方的线索",
+    "chapter": "第一章 · 大洋彼岸的飞鸟"
   },
   {
     "id": "forest",
@@ -174,7 +176,8 @@
     "checkpoint": "forest",
     "unlock": null,
     "finalPreparation": false,
-    "objective": "清理林道，抵达迷雾港镇"
+    "objective": "清理林道，抵达迷雾港镇",
+    "chapter": "第一章 · 大洋彼岸的飞鸟"
   },
   {
     "id": "harbor",
@@ -235,7 +238,8 @@
     "checkpoint": "harbor",
     "unlock": "glm",
     "finalPreparation": false,
-    "objective": "追回行囊，让 GLM 认输"
+    "objective": "追回行囊，让 GLM 认输",
+    "chapter": "第二章 · 港镇薄雾"
   },
   {
     "id": "coast",
@@ -284,7 +288,8 @@
     "checkpoint": "coast",
     "unlock": null,
     "finalPreparation": false,
-    "objective": "调查圣都结界，寻找新的道路"
+    "objective": "调查圣都结界，寻找新的道路",
+    "chapter": "第三章 · 星绘之引"
   },
   {
     "id": "crystal",
@@ -345,7 +350,8 @@
     "checkpoint": "crystal",
     "unlock": null,
     "finalPreparation": false,
-    "objective": "击退机械猎犬，解救 Gemini"
+    "objective": "击退机械猎犬，解救 Gemini",
+    "chapter": "第三章 · 星绘之引"
   },
   {
     "id": "pass",
@@ -400,7 +406,8 @@
     "checkpoint": "pass",
     "unlock": null,
     "finalPreparation": false,
-    "objective": "按照星图抵达古龙居所"
+    "objective": "按照星图抵达古龙居所",
+    "chapter": "第四章 · 北境霜雪"
   },
   {
     "id": "lair",
@@ -449,7 +456,8 @@
     "checkpoint": "lair",
     "unlock": "gpt",
     "finalPreparation": false,
-    "objective": "击破龙鳞护盾，再伤及 GPT 本体"
+    "objective": "击破龙鳞护盾，再伤及 GPT 本体",
+    "chapter": "第四章 · 北境霜雪"
   },
   {
     "id": "corridor",
@@ -522,7 +530,8 @@
     "checkpoint": "corridor",
     "unlock": null,
     "finalPreparation": false,
-    "objective": "清理三波守卫，打开内庭大门"
+    "objective": "清理三波守卫，打开内庭大门",
+    "chapter": "终章 · 并肩之誓"
   },
   {
     "id": "garden",
@@ -571,7 +580,8 @@
     "checkpoint": "garden",
     "unlock": "claude",
     "finalPreparation": false,
-    "objective": "击破向日葵结界，唤醒 Claude 的真心"
+    "objective": "击破向日葵结界，唤醒 Claude 的真心",
+    "chapter": "终章 · 并肩之誓"
   },
   {
     "id": "throne",
@@ -620,7 +630,8 @@
     "checkpoint": "throne",
     "unlock": null,
     "finalPreparation": true,
-    "objective": "与 Claude 并肩击败 D 教皇"
+    "objective": "与 Claude 并肩击败 D 教皇",
+    "chapter": "终章 · 并肩之誓"
   },
   {
     "id": "alley",
@@ -669,6 +680,7 @@
     "checkpoint": "alley",
     "unlock": null,
     "finalPreparation": false,
-    "objective": "去一条没有地图的小巷，共享白米饭"
+    "objective": "去一条没有地图的小巷，共享白米饭",
+    "chapter": "尾声 · 没有地图的小巷"
   }
 ]

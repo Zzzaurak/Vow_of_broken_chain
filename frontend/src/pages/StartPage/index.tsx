@@ -1,3 +1,4 @@
+import { SaveRecordButton } from '../../features/saves/SaveRecordButton';
 import { useState, useRef, useCallback } from 'react';
 import { ArrowRight, BookOpen, Sun, Swords } from 'lucide-react';
 import { SettingsPanel } from '../../features/settings/SettingsPanel';
@@ -101,21 +102,12 @@ export function StartPage() {
                     <p className="py-4 text-sm">还没有旅途记录。</p>
                   ) : (
                     state.data.saves.map((save) => (
-                      <button
-                        disabled={busy}
+                      <SaveRecordButton
                         key={save.id.value}
-                        className="w-full border border-white/10 p-3 text-left text-xs hover:bg-white/5"
-                        onClick={() => void open(undefined, save.id.value)}
-                      >
-                        <span>
-                          {save.kind === 'auto' ? '自动' : `手动 ${save.slot}`} ·{' '}
-                          {save.snapshot.mapId} ·{' '}
-                          {save.snapshot.difficulty === 'easy' ? '简单' : '困难'}
-                        </span>
-                        <span className="mt-1 block text-[#8ea7a3]">
-                          {new Date(save.savedAt).toLocaleString()}
-                        </span>
-                      </button>
+                        save={save}
+                        disabled={busy}
+                        onLoad={(id) => void open(undefined, id)}
+                      />
                     ))
                   )}
                 </div>

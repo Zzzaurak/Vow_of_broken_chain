@@ -1,3 +1,4 @@
+import { summarizeSave } from '../../../features/saves/summary';
 import { ApiError } from '../../../api/transport';
 import { useEffect, useRef, useState } from 'react';
 import { SaveProgressMessage } from '../../../apis/AdventureService/SaveProgressMessage';
@@ -169,7 +170,7 @@ export function usePersistence() {
     if (
       old &&
       !window.confirm(
-        `覆盖手动槽 ${slot}？原记录：${old.snapshot.mapId} · ${new Date(old.savedAt).toLocaleString()}`,
+        `覆盖手动槽 ${slot}？原记录：${summarizeSave(old).title} · ${summarizeSave(old).savedAt}`,
       )
     )
       return;

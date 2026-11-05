@@ -45,7 +45,7 @@ content/world、encounters、characters、story、balance 分别负责地图、�
 
 ## 游戏运行与渲染
 
-GamePage 入口显示 WorldCanvas、GameHud、DialoguePanel、PausePanel 业务骨架。functions 下的 combat/progression/geometry 接收显式输入，不读取 hook、网络或时钟；runtime 封装 Canvas、输入事件、帧循环及图片加载。runtime/store 为页面私有状态边界，对外只提供订阅、快照及更新方法。settings 是跨页偏好，共享于 features。
+GamePage 入口显示 WorldCanvas、GameHud、DialoguePanel、PausePanel 业务骨架。functions 下的 combat/progression/geometry 接收显式输入，不读取 hook、网络或时钟；runtime 封装 Canvas、输入事件、帧循环及图片加载。runtime/store 为页面私有状态边界，对外只提供订阅、快照及更新方法。settings 是跨页偏好，共享于 features。存档记录卡与摘要纯函数位于 features/saves，两个页面直接复用；摘要读取同一地图元数据，不跨页面引用 GamePage 内部模块，也不把可推导的展示重复存入 Zustand。
 
 动作事件在纯模拟中按 fired 标记结算一次，绘制不修改游戏数据。暂停、对白和失败不推进战斗时间。现有图集按其 rect、visibleBounds、脚底 anchor 切帧。敌人和地块原稿位于 material，build-assets.py 仅复制白名单至忽略的 public/assets，build/dev 前自动运行。
 

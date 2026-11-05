@@ -1,3 +1,4 @@
+import { SaveRecordButton } from '../../../features/saves/SaveRecordButton';
 import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../../components/ui/Button';
@@ -147,24 +148,17 @@ export function PausePanel({ persistence }: { persistence: ReturnType<typeof use
               <div key={a.id.value} className="border-t border-white/10 pt-3">
                 <h3 className="mb-2 text-xs text-[#cfbd8a]">
                   {a.difficulty === 'easy' ? '简单' : '困难'} ·{' '}
-                  {new Date(a.createdAt).toLocaleString()}
+                  {new Date(a.createdAt).toLocaleString('zh-CN', { hour12: false })}
                 </h3>
                 {persistence.list?.saves
                   .filter((s) => s.adventureId.value === a.id.value)
                   .map((s) => (
-                    <button
+                    <SaveRecordButton
                       key={s.id.value}
+                      save={s}
                       disabled={busy}
-                      className="mb-2 w-full border border-white/10 px-3 py-2 text-left text-xs hover:bg-white/5"
-                      onClick={() => persistence.load(s.id.value)}
-                    >
-                      {s.kind === 'auto' ? '自动' : `手动 ${s.slot}`} ·{' '}
-                      {mapById(s.snapshot.mapId).name}
-                      <span className="mt-1 block text-[#8aa8a0]">
-                        {new Date(s.savedAt).toLocaleString()} · HP {Math.ceil(s.snapshot.hp)} / MP{' '}
-                        {Math.floor(s.snapshot.mp)}
-                      </span>
-                    </button>
+                      onLoad={(id) => void persistence.load(id)}
+                    />
                   ))}
               </div>
             ))}

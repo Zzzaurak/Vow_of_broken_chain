@@ -38,6 +38,7 @@ def main():
     ids = {m['id'] for m in maps}
     assert len(ids) == len(maps) == 12
     for m in maps:
+        assert isinstance(m.get('chapter'), str) and m['chapter'].strip(), f"Missing chapter: {m['id']}"
         assert m['width'] > 0 and m['height'] > 0
         x,y = m['spawn']
         assert 0 < x < m['width'] * 32 and 0 < y < m['height'] * 32
