@@ -10,7 +10,12 @@ export async function loadImages(): Promise<Images> {
       ...animations.map((a) => a.path),
     ]),
   ].map((p) => `/assets/characters/${p}`);
-  urls.push('/assets/enemies/enemies-atlas.png', '/assets/world/terrain-atlas.png');
+  urls.push(
+    '/assets/enemies/enemies-atlas.png',
+    '/assets/world/terrain-atlas.png',
+    '/assets/cg/cg1.png',
+    '/assets/cg/cg2.png',
+  );
   return new Map(
     await Promise.all(
       urls.map(

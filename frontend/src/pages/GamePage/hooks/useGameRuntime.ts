@@ -5,7 +5,13 @@ import { getGameSnap, setGame, updateGame } from '../runtime/store';
 import { loadImages } from '../runtime/assets';
 import { drawGame } from '../runtime/draw';
 import { stepGame } from '../functions/combat';
-import { advanceDialogue, advanceReading, interact, togglePause } from '../functions/progression';
+import {
+  advanceDialogue,
+  advanceReading,
+  advanceCinematic,
+  interact,
+  togglePause,
+} from '../functions/progression';
 import { camera, distance, subtract } from '../functions/geometry';
 import { mapById } from '../objects/content';
 import { emptyInput, type FrameInput } from '../objects/game';
@@ -13,11 +19,16 @@ import { getSettingsSnap } from '../../../features/settings/store';
 export function useGameRuntime() {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [error, setError] = useState('');
+  const [ready, setReady] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     const element = canvas.current;
     if (!element) return;
     const context = element.getContext('2d');
     if (!context) return;
+    setError('');
+    setReady(false);
+    let assetsReady = false;
     let cancelled = false,
       handle = 0,
       last = 0,
@@ -34,7 +45,7 @@ export function useGameRuntime() {
       event: Pick<KeyboardEvent, 'code' | 'repeat' | 'defaultPrevented' | 'preventDefault'>,
     ) => {
       const game = getGameSnap();
-      if (!game || event.defaultPrevented) return;
+      if (!game || event.defaultPrevented || !assetsReady) return;
       if (event.repeat && !held.has(event.code)) return;
       if (document.querySelector('[data-rebinding="true"]')) return;
       if (
@@ -56,6 +67,13 @@ export function useGameRuntime() {
         game.mode.kind === 'credits'
       )
         return;
+      if (game.mode.kind === 'cinematic') {
+        event.preventDefault();
+        if (!event.repeat && (event.code === bindings.confirm || event.code === 'Space'))
+          updateGame((g) => advanceCinematic(g, 0, true));
+        clear();
+        return;
+      }
       if (game.mode.kind === 'dialogue') {
         if ([bindings.confirm, 'Space', bindings.hide, bindings.history].includes(event.code))
           event.preventDefault();
@@ -137,13 +155,19 @@ export function useGameRuntime() {
     loadImages()
       .then((images) => {
         if (cancelled) return;
+        assetsReady = true;
+        setReady(true);
         function frame(now: number) {
           if (cancelled) return;
           const delta = last ? Math.min((now - last) / 1000, 0.083) : 0;
           last = now;
           const game = getGameSnap();
           if (game) {
-            if (game.mode.kind === 'dialogue') {
+            if (game.mode.kind === 'cinematic') {
+              setGame(advanceCinematic(game, delta));
+              clear();
+              accumulator = 0;
+            } else if (game.mode.kind === 'dialogue') {
               setGame(advanceReading(game, delta, getSettingsSnap().textSpeed));
               clear();
               accumulator = 0;
@@ -240,6 +264,6 @@ export function useGameRuntime() {
       element.removeEventListener('mousedown', mousedown);
       element.removeEventListener('contextmenu', contextmenu);
     };
-  }, []);
-  return { canvas, error };
+  }, [attempt]);
+  return { canvas, error, ready, retry: () => setAttempt((value) => value + 1) };
 }

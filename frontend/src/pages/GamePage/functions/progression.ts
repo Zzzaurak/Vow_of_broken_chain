@@ -1,3 +1,4 @@
+import { cinematics, type CinematicId, type CinematicContinuation } from '../objects/cinematics';
 import type { GameSnapshot, Partner } from '../../../apis/AdventureService/types';
 import { balance, encounters, mapById, sceneById } from '../objects/content';
 import type { Enemy, GameState, WorldMode } from '../objects/game';
@@ -101,6 +102,58 @@ export function finishMap(state: GameState): GameState {
     lockedEnemy: null,
   });
 }
+export function startCinematic(
+  state: GameState,
+  scene: CinematicId,
+  after: CinematicContinuation,
+): GameState {
+  return {
+    ...state,
+    mode: { kind: 'cinematic', scene, elapsed: 0, after },
+    enemies: [],
+    projectiles: [],
+    hazards: [],
+    action: null,
+    casts: [],
+    effects: [],
+    moving: false,
+  };
+}
+function readyAfterDialogue(state: GameState): GameState {
+  return checkpoint({
+    ...state,
+    snapshot: { ...state.snapshot, stage: 'ready' },
+    mode: { kind: 'explore' },
+  });
+}
+function enterMap(state: GameState, destination: string): GameState {
+  const next = mapById(destination);
+  const snapshot: GameSnapshot = {
+    ...state.snapshot,
+    mapId: next.id,
+    checkpoint: next.id,
+    position: { x: next.spawn[0], y: next.spawn[1] },
+    stage: next.id === 'alley' ? 'ending' : 'arrival',
+  };
+  return { ...createGame(snapshot), autosave: state.autosave + 1, dirty: true };
+}
+export function advanceCinematic(state: GameState, dt: number, skip = false): GameState {
+  if (state.mode.kind !== 'cinematic') return state;
+  const mode = state.mode;
+  const elapsed = mode.elapsed + dt;
+  if (elapsed < cinematics[mode.scene].duration && !(skip && mode.elapsed >= 1.5))
+    return { ...state, mode: { ...mode, elapsed } };
+  switch (mode.after.kind) {
+    case 'victoryDialogue':
+      return { ...state, mode: dialogueMode(mode.after.scene, 'clear') };
+    case 'clear':
+      return finishMap(state);
+    case 'ready':
+      return readyAfterDialogue(state);
+    case 'travel':
+      return enterMap(mode.scene === 'escape' ? finishMap(state) : state, mode.after.destination);
+  }
+}
 export function advanceDialogue(state: GameState, instant = false): GameState {
   if (state.mode.kind !== 'dialogue') return state;
   const mode = state.mode,
@@ -115,13 +168,15 @@ export function advanceDialogue(state: GameState, instant = false): GameState {
     return { ...state, mode: { ...mode, line: mode.line + 1, revealed: 0 } };
   switch (mode.after) {
     case 'ready':
-      return checkpoint({
-        ...state,
-        snapshot: { ...state.snapshot, stage: 'ready' },
-        mode: { kind: 'explore' },
-      });
+      return mode.scene === '5-1'
+        ? startCinematic(state, 'breach', { kind: 'ready' })
+        : readyAfterDialogue(state);
     case 'clear':
-      return finishMap(state);
+      return mode.scene === '4-2'
+        ? startCinematic(state, 'healing', { kind: 'clear' })
+        : mode.scene === '5-4'
+          ? startCinematic(state, 'escape', { kind: 'travel', destination: 'alley' })
+          : finishMap(state);
     case 'fight':
       return { ...state, mode: { kind: 'battle' } };
     case 'cg2':
@@ -190,6 +245,16 @@ export function victory(state: GameState): GameState {
     slow: 0,
     lockedEnemy: null,
   };
+  const scene =
+    map.id === 'steps'
+      ? 'separation'
+      : map.id === 'lair'
+        ? 'trialFall'
+        : map.id === 'garden'
+          ? 'reunion'
+          : null;
+  if (scene && map.after)
+    return startCinematic(clean, scene, { kind: 'victoryDialogue', scene: map.after });
   return map.after ? { ...clean, mode: dialogueMode(map.after, 'clear') } : finishMap(clean);
 }
 export function interact(state: GameState): GameState {
@@ -207,16 +272,9 @@ export function interact(state: GameState): GameState {
     if (map.encounter && state.snapshot.stage !== 'cleared')
       return notify(state, '先完成当前遭遇。');
     if (!map.next) return state;
-    const next = mapById(map.next);
-    const snapshot: GameSnapshot = {
-      ...state.snapshot,
-      mapId: next.id,
-      checkpoint: next.id,
-      position: { x: next.spawn[0], y: next.spawn[1] },
-      stage: next.id === 'alley' ? 'ending' : 'arrival',
-    };
-    const entered = createGame(snapshot);
-    return { ...entered, autosave: state.autosave + 1, dirty: true };
+    return map.id === 'harbor'
+      ? startCinematic(state, 'voyage', { kind: 'travel', destination: map.next })
+      : enterMap(state, map.next);
   }
   return notify(
     state,

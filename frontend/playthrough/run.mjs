@@ -33,6 +33,7 @@ try {
   if (difficulty === 'hard') await page.getByRole('button', { name: '困难 · 迎接挑战' }).click();
   await page.getByRole('button', { name: resume ? /继续旅途/ : /开启新的冒险/ }).click();
   await page.locator('canvas').waitFor();
+  await page.getByText('正在准备旅途画面…', { exact: true }).waitFor({ state: 'hidden' });
   for (; tick < 6000; tick++) {
     const observation = await page.evaluate(async () => {
       const { getGameSnap } = await import('/src/pages/GamePage/runtime/store.ts');
@@ -74,7 +75,9 @@ try {
           const score = (dir) => {
             const future = movePosition(p, { x: dir.x * 65, y: dir.y * 65 }, map);
             // Keep the tail's reach rather than standing inside a projectile emitter.
-            let cost = Math.abs(distance(future, target.position) - 58) * 0.3;
+            let cost =
+              Math.abs(distance(future, target.position) - (target.kind === 'pope' ? 290 : 58)) *
+              0.3;
             if (distance(future, p) < 15 && (dir.x || dir.y)) cost += 40;
             for (const enemy of alive) {
               const spec = balance.enemies[enemy.kind],
@@ -181,7 +184,7 @@ try {
       await page.keyboard.press('Escape');
       continue;
     }
-    if (game.mode.kind === 'dialogue') {
+    if (game.mode.kind === 'dialogue' || game.mode.kind === 'cinematic') {
       await movement([]);
       await page.mouse.up();
       await page.keyboard.press('Enter');

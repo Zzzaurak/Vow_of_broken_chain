@@ -1,3 +1,4 @@
+import type { CinematicId, CinematicContinuation } from './cinematics';
 import type { GameSnapshot, Partner } from '../../../apis/AdventureService/types';
 import type { EnemyKind } from './content';
 export interface Vec {
@@ -9,6 +10,7 @@ export type DialogueAfter = 'ready' | 'clear' | 'cg2' | 'epilogue' | 'finished' 
 export type WorldMode =
   | { kind: 'explore' }
   | { kind: 'battle' }
+  | { kind: 'cinematic'; scene: CinematicId; elapsed: number; after: CinematicContinuation }
   | {
       kind: 'dialogue';
       scene: string;

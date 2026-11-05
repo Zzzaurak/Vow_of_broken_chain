@@ -11,6 +11,7 @@ test('tutorial plays through real input and preserves its checkpoint through sav
   await page.goto('/');
   await page.getByRole('button', { name: /开启新的冒险/ }).click();
   await expect(page.getByText('东方圣殿长阶·骤雨欲来', { exact: false })).toBeVisible();
+  await expect(page.getByText('正在准备旅途画面…', { exact: true })).toHaveCount(0);
   for (let i = 0; i < 20 && (await state(page))?.mode.kind === 'dialogue'; i++)
     await page.keyboard.press('Enter');
   await page.keyboard.down('KeyD');
@@ -51,7 +52,20 @@ test('tutorial plays through real input and preserves its checkpoint through sav
     await page.waitForTimeout(140);
   }
   await page.mouse.up();
-  expect((await state(page)).mode.kind).toBe('dialogue');
+  await expect.poll(async () => (await state(page))?.mode.kind).toBe('cinematic');
+  await page.keyboard.press('Escape');
+  const frozen = (await state(page)).mode.previous.elapsed;
+  await page.waitForTimeout(300);
+  expect((await state(page)).mode.previous.elapsed).toBe(frozen);
+  await page.getByRole('button', { name: '存读档', exact: true }).click();
+  await expect(page.getByRole('button', { name: '存 1', exact: true })).toBeDisabled();
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('Escape');
+  const skip = page.getByRole('button', { name: /跳过演出/ });
+  await expect(skip).toBeEnabled();
+  await page.screenshot({ path: '../.local/separation-cinematic.png' });
+  await page.keyboard.press('Enter');
+  await expect.poll(async () => (await state(page))?.mode.kind).toBe('dialogue');
   for (let i = 0; i < 80 && (await state(page))?.mode.kind === 'dialogue'; i++)
     await page.keyboard.press('Enter');
   expect((await state(page)).snapshot.stage).toBe('cleared');

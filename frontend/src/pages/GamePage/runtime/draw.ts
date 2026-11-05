@@ -114,12 +114,150 @@ function effect(
   const [x, y, w, h] = frame.rect;
   ctx.drawImage(image, x, y, w, h, p.x - size / 2, p.y - size / 2, size, size);
 }
+function drawCinematic(
+  ctx: CanvasRenderingContext2D,
+  state: GameState,
+  images: Images,
+  reduceFlash: boolean,
+) {
+  if (state.mode.kind !== 'cinematic') return;
+  const { scene, elapsed: t } = state.mode;
+  ctx.imageSmoothingEnabled = false;
+  const snow = scene === 'trialFall' || scene === 'healing';
+  ctx.fillStyle = scene === 'voyage' ? '#183d50' : snow ? '#63808a' : '#24353f';
+  ctx.fillRect(0, 0, 960, 540);
+  const terrain = images.get('/assets/world/terrain-atlas.png');
+  const index = scene === 'voyage' ? 14 : snow ? 3 : 4;
+  if (terrain) {
+    const sx = Math.round(((index % 4) * terrain.width) / 4),
+      sy = Math.round((Math.floor(index / 4) * terrain.height) / 4);
+    const sw = Math.round((((index % 4) + 1) * terrain.width) / 4) - sx,
+      sh = Math.round(((Math.floor(index / 4) + 1) * terrain.height) / 4) - sy;
+    for (let y = 64; y < 448; y += 64)
+      for (let x = 0; x < 960; x += 64) ctx.drawImage(terrain, sx, sy, sw, sh, x, y, 64, 64);
+  }
+  const actor = (id: string, x: number, y: number, action = 'idle', height = 100) =>
+    drawActor(ctx, images, id, { x, y }, 'right', action, t, height);
+  const particles = (color: string, falling: boolean) => {
+    ctx.fillStyle = color;
+    for (let i = 0; i < 28; i++) {
+      const x = (i * 137 + t * (falling ? 12 : 28)) % 960,
+        y = 80 + ((i * 71 + t * (falling ? 70 : -18) + 800) % 320);
+      ctx.fillRect(Math.floor(x), Math.floor(y), falling ? 8 : 4, falling ? 12 : 4);
+    }
+  };
+  if (scene === 'separation') {
+    actor('deepseek', 390 - Math.min(t, 2) * 42, 330, t < 2 ? 'walk' : 'idle');
+    actor('claude', 570 + Math.min(t, 4) * 28, 330);
+    ctx.fillStyle = '#d8bc7977';
+    ctx.fillRect(478, 90, 12, 320);
+    ctx.fillStyle = '#f1d794';
+    for (let y = 100; y < 410; y += 32) ctx.fillRect(472, y, 24, 4);
+    particles('#d8c37a', false);
+  } else if (scene === 'voyage') {
+    const x = 280 + Math.min(t, 7) * 45,
+      y = 300 + Math.sin(t * 2) * 5;
+    ctx.fillStyle = '#513e33';
+    ctx.fillRect(x - 80, y, 160, 32);
+    ctx.fillRect(x - 60, y + 32, 120, 12);
+    ctx.fillStyle = '#ba9663';
+    ctx.fillRect(x - 72, y + 4, 144, 6);
+    ctx.fillRect(x + 12, y - 128, 5, 128);
+    ctx.fillStyle = '#d7caaa';
+    ctx.beginPath();
+    ctx.moveTo(x + 17, y - 124);
+    ctx.lineTo(x + 80, y - 32);
+    ctx.lineTo(x + 17, y - 32);
+    ctx.fill();
+    actor('deepseek', x - 35, y + 8, 'idle', 74);
+    actor('glm', x + 35, y + 8, 'idle', 74);
+    ctx.fillStyle = '#a0c9ca77';
+    for (let i = 0; i < 8; i++) ctx.fillRect((i * 137 - t * 35 + 960) % 960, 130 + i * 33, 48, 3);
+    ctx.fillStyle = '#637d66';
+    ctx.fillRect(910 - Math.max(0, t - 4) * 28, 90, 180, 330);
+  } else if (scene === 'trialFall') {
+    actor('gpt', 610, 320, 'idle', 135);
+    ctx.save();
+    ctx.translate(360, 332);
+    ctx.rotate((-Math.min(1, t) * Math.PI) / 2);
+    drawActor(ctx, images, 'deepseek', { x: 0, y: 0 }, 'down', 'idle', 0, 100);
+    ctx.restore();
+    particles('#c6e2e0', true);
+    ctx.fillStyle = '#e1ceba';
+    ctx.font = '16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('试炼通过 · 剧情重伤', 480, 398);
+  } else if (scene === 'healing') {
+    actor('deepseek', 390, 330, t > 4 ? 'walk' : 'idle');
+    actor('gpt', 560 - Math.min(t, 2) * 35, 330, 'starfall-cast', 125);
+    circle(ctx, { x: 405, y: 280 }, 75, '#d6dba02b');
+    particles('#ece1a4', false);
+    if (t > 3 && t < 5) {
+      ctx.fillStyle = `rgba(8,20,34,${Math.sin(((t - 3) / 2) * Math.PI) * 0.8})`;
+      ctx.fillRect(0, 64, 960, 384);
+    }
+  } else if (scene === 'breach') {
+    actor('deepseek', 300, 365);
+    actor('glm', 385, 375);
+    actor('gpt', 510, 360, 'starfall-cast', 135);
+    ctx.strokeStyle = '#e2c67d';
+    ctx.lineWidth = 5;
+    for (let i = 0; i < 12; i++) {
+      const angle = Math.PI + (i * Math.PI) / 12,
+        drift = Math.max(0, t - 2) * 20;
+      ctx.beginPath();
+      ctx.arc(
+        670 + Math.cos(angle) * drift,
+        320 + Math.sin(angle) * drift,
+        160,
+        angle,
+        angle + Math.PI / 14,
+      );
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#c4e1e0bb';
+    ctx.fillRect(650, 80, reduceFlash ? 8 : 16, Math.min(250, t * 130));
+    if (t > 2) particles('#d6c28c', true);
+  } else if (scene === 'reunion') {
+    actor('deepseek', 300 + Math.min(t, 3) * 43, 335, t < 3 ? 'walk' : 'idle');
+    actor('claude', 530 - Math.min(t, 3) * 22, 335);
+    ctx.strokeStyle = `rgba(220,195,117,${Math.max(0, 1 - t / 3)})`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(530, 290, 100, 0, Math.PI * 2);
+    ctx.stroke();
+    particles('#d6b963', false);
+  } else if (scene === 'escape') {
+    const flight = Math.max(0, t - 3),
+      x = 290 + flight * 75,
+      y = 340 - flight * 24;
+    actor('gpt', x + 90, y, 'idle', 155);
+    actor('deepseek', x + 45, y - 10, 'idle', 75);
+    actor('claude', x + 95, y - 15, 'idle', 75);
+    actor('glm', x + 145, y - 10, 'idle', 75);
+    particles('#75878a', true);
+    ctx.fillStyle = '#adc6c222';
+    ctx.fillRect(720, 64, 240, 384);
+    if (t > 6) {
+      ctx.fillStyle = `rgba(190,211,203,${Math.min(0.6, (t - 6) * 0.3)})`;
+      ctx.fillRect(0, 64, 960, 384);
+    }
+  }
+}
 export function drawGame(
   ctx: CanvasRenderingContext2D,
   state: GameState,
   images: Images,
   preferences = { shake: true, reduceFlash: false },
 ): void {
+  if (state.mode.kind === 'paused' && state.mode.previous.kind === 'cinematic') {
+    drawCinematic(ctx, { ...state, mode: state.mode.previous }, images, preferences.reduceFlash);
+    return;
+  }
+  if (state.mode.kind === 'cinematic') {
+    drawCinematic(ctx, state, images, preferences.reduceFlash);
+    return;
+  }
   const map = mapById(state.snapshot.mapId),
     view = camera(state.snapshot.position, map),
     palette = palettes[map.theme] ?? palettes.temple;

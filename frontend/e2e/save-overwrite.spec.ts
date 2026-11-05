@@ -10,6 +10,7 @@ test('a second save to a newly occupied slot requires confirmation even without 
       return m.getGameSnap()?.mode.kind;
     });
   await expect.poll(mode).toBe('dialogue');
+  await expect(page.getByText('正在准备旅途画面…', { exact: true })).toHaveCount(0);
   for (let n = 0; n < 20 && (await mode()) === 'dialogue'; n++) await page.keyboard.press('Enter');
   await expect.poll(mode).toBe('explore');
   await page.keyboard.press('Escape');

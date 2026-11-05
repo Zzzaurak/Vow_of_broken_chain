@@ -9,6 +9,10 @@ import {
   retryCheckpoint,
   configureSupport,
   finishMap,
+  startCinematic,
+  advanceCinematic,
+  canSave,
+  togglePause,
 } from '../progression';
 import { stepGame, hitPlayer } from '../combat';
 import { emptyInput, type GameState } from '../../objects/game';
@@ -36,14 +40,54 @@ function battle(mapId = 'steps', difficulty: 'easy' | 'hard' = 'easy'): GameStat
 }
 function finishDialogue(game: GameState): GameState {
   let next = game;
-  for (let n = 0; n < 200 && next.mode.kind === 'dialogue'; n++)
-    next = advanceDialogue(
-      { ...next, mode: next.mode.kind === 'dialogue' ? { ...next.mode, elapsed: 2 } : next.mode },
-      true,
-    );
+  for (
+    let n = 0;
+    n < 200 && (next.mode.kind === 'dialogue' || next.mode.kind === 'cinematic');
+    n++
+  ) {
+    if (next.mode.kind === 'cinematic') next = advanceCinematic(next, 20);
+    else next = advanceDialogue({ ...next, mode: { ...next.mode, elapsed: 2 } }, true);
+  }
   return next;
 }
 describe('deterministic game rules', () => {
+  it('cinematics freeze combat and snapshots, disallow saving and respect pause and minimum skip time', () => {
+    const state = startCinematic(battle('lair'), 'trialFall', {
+      kind: 'victoryDialogue',
+      scene: '4-2',
+    });
+    expect(canSave(state)).toBe(false);
+    expect(state.enemies).toHaveLength(0);
+    expect(stepGame(state, { ...emptyInput, melee: true }, 1)).toEqual(state);
+    const early = advanceCinematic(state, 0, true);
+    expect(early.mode.kind).toBe('cinematic');
+    const elapsed = advanceCinematic(state, 2);
+    expect(elapsed.snapshot).toEqual(state.snapshot);
+    const paused = togglePause(elapsed);
+    expect(advanceCinematic(paused, 20)).toEqual(paused);
+    const resumed = togglePause(paused);
+    const end = advanceCinematic(resumed, 0, true);
+    expect(end.mode.kind).toBe('dialogue');
+    expect(canSave(end)).toBe(false);
+    expect(advanceCinematic(end, 20)).toEqual(end);
+  });
+  it('escape finishes the encounter once and enters CG1 without a playable rubble room', () => {
+    const state = createGame({
+      ...initial,
+      mapId: 'throne',
+      checkpoint: 'throne',
+      unlocked: ['glm', 'gpt', 'claude'],
+      supports: ['claude', 'gpt'],
+    });
+    const escape = startCinematic(state, 'escape', { kind: 'travel', destination: 'alley' });
+    const end = advanceCinematic(escape, 8);
+    expect(end.snapshot.mapId).toBe('alley');
+    expect(end.snapshot.completed).toEqual(['5-C']);
+    expect(end.snapshot.supports).toEqual(['claude', 'gpt']);
+    expect(end.mode).toMatchObject({ kind: 'dialogue', scene: '6-1' });
+    expect(canSave(end)).toBe(false);
+    expect(advanceCinematic(end, 8)).toEqual(end);
+  });
   it('clearing the final battle preserves Claude and the chosen second support for safe saving', () => {
     const state = createGame({
       ...initial,
@@ -177,7 +221,7 @@ describe('deterministic game rules', () => {
       },
     };
     const result = stepGame(state, emptyInput, 0.02);
-    expect(result.mode.kind).toBe('dialogue');
+    expect(result.mode.kind).toBe('cinematic');
     expect(result.snapshot.hp).toBe(1);
     const healed = finishDialogue(result);
     expect(healed.snapshot.hp).toBe(100);
@@ -199,7 +243,7 @@ describe('deterministic game rules', () => {
       },
     };
     const result = stepGame(state, { ...emptyInput, support: 0 }, 0.02);
-    expect(result.mode.kind).toBe('dialogue');
+    expect(result.mode.kind).toBe('cinematic');
     expect(result.snapshot.cooldowns.gpt).toBe(0);
     expect(finishDialogue(result).snapshot.supports[0]).toBe('claude');
   });
@@ -324,7 +368,10 @@ describe('deterministic game rules', () => {
         }
         state = finishDialogue(state);
       }
-      if (state.snapshot.mapId === 'alley') break;
+      if (state.snapshot.mapId === 'alley') {
+        if (!visited.includes('alley')) visited.push('alley');
+        break;
+      }
       // Maps are imported rather than guessing world coordinates.
       const map = maps.find((m) => m.id === state.snapshot.mapId)!;
       state = {

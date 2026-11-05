@@ -28,6 +28,7 @@ test('pure keyboard opens settings, changes preset, starts, moves, aims and open
       const m = await import('/src/pages/GamePage/runtime/store.ts');
       return m.getGameSnap();
     });
+  await expect(page.getByText('正在准备旅途画面…', { exact: true })).toHaveCount(0);
   for (let n = 0; n < 20 && (await state()).mode.kind === 'dialogue'; n++)
     await page.keyboard.press('Enter');
   const before = (await state()).snapshot.position.x;

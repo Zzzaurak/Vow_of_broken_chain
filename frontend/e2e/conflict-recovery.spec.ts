@@ -11,6 +11,7 @@ test('a stale tab can recover by explicitly loading the current server record', 
       return getGameSnap()?.mode.kind;
     });
   await expect.poll(mode).toBe('dialogue');
+  await expect(page.getByText('正在准备旅途画面…', { exact: true })).toHaveCount(0);
   for (let i = 0; i < 30 && (await mode()) === 'dialogue'; i++) await page.keyboard.press('Enter');
   await expect(page.getByText('进度已保存', { exact: true }).first()).toBeVisible();
   await page.keyboard.press('Escape');

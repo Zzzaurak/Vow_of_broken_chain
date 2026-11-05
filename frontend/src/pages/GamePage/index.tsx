@@ -1,3 +1,4 @@
+import { CinematicPanel } from './components/CinematicPanel';
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getProgressSnap } from '../../features/saves/session';
@@ -50,11 +51,12 @@ export function GamePage() {
       </header>
       <section className="relative mx-auto max-w-[1280px] overflow-hidden border border-[#86988a]/30 bg-[#24383d] shadow-2xl">
         <WorldCanvas />
-        {mode !== 'dialogue' && <GameHud />}
+        {mode !== 'dialogue' && mode !== 'cinematic' && <GameHud />}
         <BossStatus />
         <DialoguePanel />
+        <CinematicPanel />
         <PausePanel persistence={persistence} />
-        {toast && mode !== 'paused' && (
+        {toast && mode !== 'paused' && mode !== 'cinematic' && (
           <div
             role="status"
             className="pointer-events-none absolute inset-x-0 bottom-5 text-center"
