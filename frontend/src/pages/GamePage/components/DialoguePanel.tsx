@@ -2,14 +2,9 @@ import { useRef } from 'react';
 import { useGame, updateGame } from '../runtime/store';
 import { sceneById } from '../objects/content';
 import { advanceDialogue, togglePause } from '../functions/progression';
-import { portrait } from '../runtime/assets';
+import { DialogueFigure } from './DialogueFigure';
+import { dialogueCast } from '../functions/dialogueCast';
 import { useSettings, actionLabel } from '../../../features/settings/store';
-const person = (speaker: string) =>
-  speaker === '大肥鱼'
-    ? 'deepseek'
-    : ['Claude', 'GLM', 'GPT', 'Qwen', 'Gemini'].includes(speaker)
-      ? speaker.toLowerCase()
-      : null;
 export function DialoguePanel() {
   const mode = useGame((g) => (g?.mode.kind === 'dialogue' ? g.mode : null));
   const settings = useSettings();
@@ -17,9 +12,7 @@ export function DialoguePanel() {
   if (mode?.kind !== 'dialogue') return null;
   const scene = sceneById(mode.scene),
     line = scene.lines[mode.line],
-    id = person(line.speaker),
-    listener = scene.lines.map((l) => person(l.speaker)).find((p) => p && p !== 'deepseek'),
-    right = id && id !== 'deepseek' ? id : listener,
+    { active: id, right } = dialogueCast(scene.lines, mode.line),
     cg = mode.scene === '6-1' ? 'cg1' : mode.scene === '6-2' ? 'cg2' : null;
   return (
     <div
@@ -68,18 +61,8 @@ export function DialoguePanel() {
       ) : (
         !mode.hidden && (
           <div className="pointer-events-none absolute inset-x-0 bottom-[24%] top-10 flex items-end justify-between px-12">
-            <img
-              src={portrait('deepseek')}
-              alt="大肥鱼"
-              className={`max-h-full w-[35%] object-contain object-bottom ${id === 'deepseek' ? '' : 'brightness-50'}`}
-            />
-            {right && (
-              <img
-                src={portrait(right)}
-                alt={right}
-                className={`max-h-full w-[35%] object-contain object-bottom ${id === right ? '' : 'brightness-50'}`}
-              />
-            )}
+            <DialogueFigure figure="deepseek" active={id === 'deepseek'} />
+            {right && <DialogueFigure figure={right} active={id === right} />}
           </div>
         )
       )}
