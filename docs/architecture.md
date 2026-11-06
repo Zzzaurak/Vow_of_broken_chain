@@ -64,3 +64,5 @@ GamePage 入口显示 WorldCanvas、GameHud、DialoguePanel、PausePanel 业务�
 数据库测试现为 12 项，前端单元测试 32 项通过。JDBC 行读取发生在 IO.blocking 内，SQL 和行映射保持 Table 私有，资源与事务由 system 管理；扫描禁用词仅用作定位，最终结论结合逐文件阅读。
 
 前端本轮已审查 api／apis、两个页面入口、StartPage 请求流程、GamePage 存档协调、Zustand 封装及 Tailwind 基础样式；页面纯计算目录未发现读取全局快照或 hook。其余渲染、音频、输入与设置模块仍需完整人工审查，不把本轮静态检查或测试通过当作全项目规范验收完成。
+
+音频边界审查补充：AudioLifecycle 负责用户手势、窗口焦点和可见性监听；engine 保持私有 AudioContext／节点／计时器，外部只调用明确操作。音乐暂停与窗口失焦分别建模，避免每帧 setSoundtrack 覆盖失焦状态。焦点／静音经 master 增益淡出，暂停经 music 增益淡出，音效通道仍支持菜单试听；资源销毁清理计时器和 AudioContext。真实 WebAudio 幅度检查与模拟时钟测试证明门控路径，实际听音仍为单独验收项。

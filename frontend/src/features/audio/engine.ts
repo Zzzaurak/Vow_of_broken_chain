@@ -7,7 +7,8 @@ let master: GainNode | null = null,
 let timer: ReturnType<typeof setTimeout> | null = null;
 let score: Score = 'journey',
   beat = 0,
-  paused = false;
+  paused = false,
+  focused = true;
 function tone(
   midi: number,
   duration: number,
@@ -15,7 +16,7 @@ function tone(
   channel: 'music' | 'effects',
   type: OscillatorType = 'triangle',
 ) {
-  if (!context || context.state !== 'running' || !midi) return;
+  if (!context || context.state !== 'running' || !midi || !focused) return;
   const bus = channel === 'music' ? music : effects;
   if (!bus) return;
   const oscillator = context.createOscillator(),
@@ -39,7 +40,7 @@ function tick() {
   if (!context) return;
   const composition = compositions[score],
     duration = 60 / composition.tempo / 2;
-  if (!paused && context.state === 'running') {
+  if (!paused && focused && context.state === 'running') {
     const melody = composition.melody[beat % composition.melody.length];
     tone(melody, duration * 0.85, 0.09, 'music');
     if (beat % 4 === 0) {
@@ -55,8 +56,8 @@ export function refreshAudioVolume() {
   if (!context) return;
   const settings = getSettingsSnap(),
     now = context.currentTime;
-  master?.gain.setTargetAtTime(settings.muted ? 0 : settings.master, now, 0.035);
-  music?.gain.setTargetAtTime(settings.music, now, 0.035);
+  master?.gain.setTargetAtTime(settings.muted || !focused ? 0 : settings.master, now, 0.035);
+  music?.gain.setTargetAtTime(paused ? 0 : settings.music, now, 0.035);
   effects?.gain.setTargetAtTime(settings.effects, now, 0.035);
 }
 export async function enableAudio() {
@@ -82,7 +83,15 @@ export function setSoundtrack(next: Score, isPaused = false) {
     score = next;
     beat = 0;
   }
-  paused = isPaused;
+  if (paused !== isPaused) {
+    paused = isPaused;
+    refreshAudioVolume();
+  }
+}
+export function setAudioFocused(value: boolean) {
+  if (focused === value) return;
+  focused = value;
+  refreshAudioVolume();
 }
 export function playSound(
   kind: 'melee' | 'water' | 'glm' | 'gpt' | 'claude' | 'hurt' | 'ready' | 'error' | 'confirm',
