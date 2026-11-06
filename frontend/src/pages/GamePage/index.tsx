@@ -10,12 +10,11 @@ import { GameHud } from './components/GameHud';
 import { DialoguePanel } from './components/DialoguePanel';
 import { PausePanel } from './components/PausePanel';
 import { usePersistence } from './hooks/usePersistence';
-import { useSettings, keyLabel } from '../../features/settings/store';
+
 export function GamePage() {
   const ready = useGame((g) => g !== null),
     mode = useGame((g) => g?.mode.kind),
-    toast = useGame((g) => (g && g.toastTime > 0 ? g.toast : '')),
-    settings = useSettings();
+    toast = useGame((g) => (g && g.toastTime > 0 ? g.toast : ''));
   const persistence = usePersistence();
   useEffect(() => {
     const progress = getProgressSnap();
@@ -30,26 +29,9 @@ export function GamePage() {
         </Link>
       </main>
     );
-  const b = settings.bindings[settings.preset];
   return (
-    <main className="min-h-screen bg-[#0b181f] px-4 py-5 md:px-10">
-      <header className="mx-auto mb-4 flex max-w-[1280px] items-center justify-between border-b border-white/10 pb-4">
-        <Link
-          to="/"
-          onClick={(e) => {
-            e.preventDefault();
-            updateGame(togglePause);
-          }}
-          className="font-serif text-xl tracking-[.2em] text-[#d8c48f]"
-        >
-          断链之誓
-        </Link>
-        <div className="flex items-center gap-5 text-xs text-[#91aaa5]">
-          <span>{persistence.status.text}</span>
-          <button onClick={() => updateGame(togglePause)}>暂停 / 菜单</button>
-        </div>
-      </header>
-      <section className="relative mx-auto max-w-[1280px] overflow-hidden border border-[#86988a]/30 bg-[#24383d] shadow-2xl">
+    <main className="fixed inset-0 grid place-items-center overflow-hidden bg-[#071318]">
+      <section className="relative w-[min(100vw,177.7778dvh)] overflow-hidden bg-[#24383d]">
         <WorldCanvas />
         {mode !== 'dialogue' && mode !== 'cinematic' && <GameHud />}
         <BossStatus />
@@ -66,19 +48,20 @@ export function GamePage() {
             </span>
           </div>
         )}
+        {mode !== 'paused' && mode !== 'failed' && mode !== 'credits' && (
+          <div className="absolute right-3 top-1/2 flex flex-col items-end gap-1 text-xs">
+            <button
+              className="bg-[#0a1c24]/85 px-3 py-2 text-[#d8c690]"
+              onClick={() => updateGame(togglePause)}
+            >
+              Esc · 菜单
+            </button>
+            <span className="rounded bg-[#0a1c24]/75 px-2 py-1 text-[#b4c3be]">
+              {persistence.status.text}
+            </span>
+          </div>
+        )}
       </section>
-      <footer className="mx-auto mt-4 flex max-w-[1280px] flex-wrap justify-between gap-2 text-xs text-[#829e98]">
-        <span>
-          {[b.up, b.left, b.down, b.right].map(keyLabel).join(' ')} 移动 · {keyLabel(b.interact)}{' '}
-          交互 · {keyLabel(b.melee)} 摆尾 · {keyLabel(b.water)} 深海之力 · {keyLabel(b.lock)} 锁定
-        </span>
-        <span>
-          {settings.preset === 'keyboard'
-            ? `${[b.aimUp, b.aimDown, b.aimLeft, b.aimRight].map(keyLabel).join(' ')} 瞄准 · ${keyLabel(b.support1)} / ${keyLabel(b.support2)} 援助`
-            : `鼠标瞄准 · ${keyLabel(b.support1)} / ${keyLabel(b.support2)} 援助`}{' '}
-          · Esc 暂停
-        </span>
-      </footer>
     </main>
   );
 }

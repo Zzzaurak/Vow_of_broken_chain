@@ -587,7 +587,7 @@ export function drawGame(
       images,
       'deepseek',
       p,
-      state.direction,
+      state.action ? facing(state.action.aim) : state.direction,
       state.action?.kind === 'melee'
         ? 'melee'
         : state.action?.kind === 'cast'

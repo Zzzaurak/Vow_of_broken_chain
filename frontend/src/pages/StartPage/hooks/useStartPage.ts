@@ -45,6 +45,7 @@ export function useStartPage() {
     }
   }
   useEffect(() => {
+    if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
     void refresh();
   }, []);
   async function retry() {
@@ -52,12 +53,19 @@ export function useStartPage() {
     running.current = true;
     setBusy(true);
     setError('');
+    // Request during the button gesture; some browsers expire activation during a network request.
+    const fullscreen =
+      document.fullscreenEnabled && !document.fullscreenElement
+        ? document.documentElement.requestFullscreen().catch(() => {})
+        : Promise.resolve();
     try {
       const result = await pending.current.send();
       pending.current = null;
       setProgress(result);
       navigate('/game');
     } catch (e) {
+      await fullscreen;
+      if (document.fullscreenElement) await document.exitFullscreen().catch(() => {});
       setError(e instanceof Error ? e.message : '操作失败');
       if (e instanceof ApiError && e.status >= 400 && e.status < 500) {
         pending.current = null;

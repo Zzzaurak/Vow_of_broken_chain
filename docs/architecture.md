@@ -3,6 +3,7 @@
 ## 页面
 
 - `frontend/src/pages/StartPage`，URL `/`：标题、新建、难度选择、继续和存档入口；通过 PlayerService 建立匿名身份，再访问 AdventureService。
+- `frontend/src/pages/AccountPage`，URL `/account`，访问 PlayerService 注册当前游客、登录已有账号或退出当前会话。账号以原玩家 ID 关联存档。
 - `frontend/src/pages/GamePage`，URL `/game`：Canvas、HUD、立绘对白、战斗、暂停/失败/结局、援助配置与存读档；剩余验收见 implementation-status.md。
 
 公共传输位于 `src/api/`，业务请求类位于 `src/apis/<同名后端服务>/`。构造无副作用，send 显式序列化业务字段，稳定消息标识统一去除 Message 后缀并转小写，不依赖 constructor.name。
@@ -17,11 +18,14 @@
 
 ## API 对照
 
-所有路由为 `POST /api/{service}/{action}`，错误响应提供 code/message。除创建身份外，Authorization: Bearer 令牌由路由解析为 PlayerId，覆盖任何客户端提交的 playerId。前后端信任边界的字段差异是有意设计。
+所有路由为 `POST /api/{service}/{action}`，错误响应提供 code/message。除创建身份与登录外，Authorization: Bearer 令牌由路由解析为 PlayerId，覆盖任何客户端提交的 playerId。前后端信任边界的字段差异是有意设计。
 
 | 服务 | 消息／前端请求类 | action | 返回 |
 | --- | --- | --- | --- |
 | PlayerService | CreateAnonymousPlayerMessage | createanonymousplayer | AnonymousPlayerResponse |
+| PlayerService | RegisterAccountMessage | registeraccount | 用户名 |
+| PlayerService | LoginMessage | login | 新令牌 |
+| PlayerService | LogoutMessage | logout | 会话撤销结果 |
 | AdventureService | StartAdventureMessage | startadventure | ProgressResponse |
 | AdventureService | ListSavesMessage | listsaves | SaveListResponse |
 | AdventureService | LoadAdventureMessage | loadadventure | ProgressResponse |
@@ -68,7 +72,7 @@ JDBC 行读取发生在 IO.blocking 内，SQL 和行映射保持 Table 私有，
 | 课程规则 | 对应实现与检查 |
 | --- | --- |
 | 19、60 | 游戏模式与暂停前的模式使用判别联合。存档以阶段值区分剧情与可恢复检查点，设置界面临时选项就近维护。 |
-| 28–33、48–53 | 公共传输添加令牌，请求类显式发送字段。messages.test.ts 检查稳定消息名、无输入及错误路径。五个公开消息及页面对应关系见根 README。 |
+| 28–33、48–53 | 公共传输添加令牌，请求类显式发送字段。messages.test.ts 检查稳定消息名、无输入及错误路径。八个公开消息及页面对应关系见根 README。 |
 | 39–47 | 页面入口组合具体业务区域。Canvas 绘制和即时输入归 GamePage，跨页共享的设置、音频和存档摘要归 features。场景计算接收显式参数，React 组件按选择器订阅。 |
 | 54–59 | 页面和菜单使用 Tailwind，公共 CSS 仅定义主题与基础样式。战斗动画与像素绘制由 Canvas 承担；进度条等运行时尺寸由实际数据计算。类型检查、格式与生产构建包含在检查脚本中。 |
 

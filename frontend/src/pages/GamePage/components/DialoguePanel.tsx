@@ -103,7 +103,7 @@ export function DialoguePanel() {
             </span>
           </button>
           <div className="mt-2 flex justify-between text-[11px] text-[#8aa39e]">
-            <span>{actionLabel('confirm')} / 空格 补全或继续</span>
+            <span>{actionLabel('confirm')} / 空格 补全或继续 · 按住 Ctrl 快进</span>
             <span>
               {actionLabel('hide')} 隐藏画面 · {actionLabel('history')} 本段记录
             </span>

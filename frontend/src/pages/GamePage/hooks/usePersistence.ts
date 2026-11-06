@@ -126,17 +126,32 @@ export function usePersistence() {
   async function load(id: string) {
     const progress = getProgressSnap();
     if (!progress || busy.current) return;
-    if (getGameSnap()?.dirty && !window.confirm('读取这条记录会放弃当前未保存进度。确定回档？'))
-      return;
-    if (pending.current && !window.confirm('上次保存尚未确认，读取后将放弃该次重试。确定读取？'))
-      return;
-    // An explicit load chooses the server branch. Fetch its current revision;
-    // retaining the stale local revision here makes conflict recovery impossible.
     busy.current = true;
     const epoch = generation.current;
-    setStatus({ kind: 'busy', text: '正在核对服务器进度…' });
     let latest: SaveListResponse;
     try {
+      // Native confirmation may exit fullscreen asynchronously. Finish that transition
+      // while the menu is still open so its event cannot pause the restored game.
+      if (document.fullscreenElement && (getGameSnap()?.dirty || pending.current)) {
+        const events = new AbortController();
+        try {
+          const changed = new Promise<void>((resolve) =>
+            document.addEventListener('fullscreenchange', () => resolve(), {
+              once: true,
+              signal: events.signal,
+            }),
+          );
+          await Promise.all([changed, document.exitFullscreen()]);
+        } finally {
+          events.abort();
+        }
+        if (epoch !== generation.current) return;
+      }
+      if (getGameSnap()?.dirty && !window.confirm('读取这条记录会放弃当前未保存进度。确定回档？'))
+        return;
+      if (pending.current && !window.confirm('上次保存尚未确认，读取后将放弃该次重试。确定读取？'))
+        return;
+      setStatus({ kind: 'busy', text: '正在核对服务器进度…' });
       latest = await readList(++listRequest.current);
       if (epoch !== generation.current) return;
     } catch (error) {

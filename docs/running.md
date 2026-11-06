@@ -6,7 +6,7 @@
 
 从项目根运行 `python3 scripts/run.py`。脚本检查 5179／8093 端口，初始化本项目独立数据库（仅在未指定 DATABASE_URL 时），按需 npm ci，校验内容并启动前后端。打开 http://127.0.0.1:5179 。Ctrl-C 仅结束本次脚本启动的进程组，不查找或杀掉其他项目服务；数据库保留运行及数据。后端日志写入 `.local/api.log`。
 
-已有手动启动的实例时，脚本明确拒绝重复启动。可继续使用原来的三个终端命令：
+当前启动器支持 `status`、`stop`、`restart`。从另一个终端在项目根运行 `python3 scripts/run.py stop` 即可结束本实例，或用 `python3 scripts/run.py restart` 重新启动；直接再次运行只显示访问地址。手动启动的旧实例可在原终端按 Ctrl-C。原终端已经关闭时，先用 `lsof -nP -iTCP:5179 -iTCP:8093 -sTCP:LISTEN` 查看 PID，再用 `lsof -a -p PID -d cwd` 核对项目路径，确认归属后用 `kill -TERM PID` 结束对应服务。可继续使用原来的三个终端命令：
 
 ```bash
 ./scripts/db.sh

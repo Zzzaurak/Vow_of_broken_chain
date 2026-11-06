@@ -39,6 +39,6 @@ object Main extends IOApp.Simple:
       }
   }
   def run: IO[Unit] = for
-    _ <- Database.connection.use(c => Database.transaction(c)(List(PlayerTableInitializer.initialize(c),PlayerSessionTableInitializer.initialize(c),AdventureTableInitializer.initialize(c),GameSaveTableInitializer.initialize(c),ProgressOperationTableInitializer.initialize(c)).sequence_))
+    _ <- Database.connection.use(c => Database.transaction(c)(List(PlayerTableInitializer.initialize(c),PlayerSessionTableInitializer.initialize(c),services.PlayerService.tables.Account.AccountTableInitializer.initialize(c),AdventureTableInitializer.initialize(c),GameSaveTableInitializer.initialize(c),ProgressOperationTableInitializer.initialize(c)).sequence_))
     _ <- EmberServerBuilder.default[IO].withHost(host"127.0.0.1").withPort(Port.fromString(sys.env.getOrElse("PORT","8093")).getOrElse(port"8093")).withHttpApp(routes.orNotFound).build.use(_ => IO.println("Oath API listening on 127.0.0.1:8093") *> IO.never)
   yield ()

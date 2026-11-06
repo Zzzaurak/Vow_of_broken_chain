@@ -21,3 +21,10 @@ object Endpoint:
       message <- IO.fromEither(decoder.decodeJson(json.deepMerge(Json.obj("playerId" -> id.asJson))).left.map(_ => ApiError("invalid_request","请求字段不合法")))
       result <- message.plan(c)
     yield result.asJson)
+
+  inline def publicMessage[M <: APIMessage[A], A: Encoder](service: String)(using decoder: Decoder[M], mirror: Mirror.Of[M]): Endpoint =
+    val action = constValue[mirror.MirroredLabel].asInstanceOf[String].stripSuffix("Message").toLowerCase
+    Endpoint(service, action, false, (json,c,_) => for
+      message <- IO.fromEither(decoder.decodeJson(json).left.map(_ => ApiError("invalid_request","请求字段不合法")))
+      result <- message.plan(c)
+    yield result.asJson)

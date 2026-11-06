@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { SaveRecordButton } from '../../features/saves/SaveRecordButton';
 import { useState, useRef, useCallback } from 'react';
 import { ArrowRight, BookOpen, Sun, Swords } from 'lucide-react';
@@ -24,7 +25,13 @@ export function StartPage() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_75%_20%,#456869_0%,transparent_55%)]" />
       <header className="relative flex items-center justify-between border-b border-white/10 px-8 py-6 text-xs tracking-[.3em] text-[#b4c3be]">
         <span>OATH / UNCHAINED</span>
-        <span>一场关于自由与约定的冒险</span>
+        {state.status !== 'loading' && !busy && !hasPending && (
+          <Link to="/account" className="text-[#e2cea0] underline underline-offset-4">
+            {state.status === 'ready' && state.data.username
+              ? `账号 · ${state.data.username}`
+              : '游客 · 注册 / 登录'}
+          </Link>
+        )}
       </header>
       <section className="relative mx-auto grid max-w-6xl gap-12 px-8 py-20 md:grid-cols-[1.3fr_1fr]">
         <div>

@@ -27,6 +27,7 @@ export function CinematicPanel() {
         >
           跳过演出 [{keyLabel(settings.bindings[settings.preset].confirm)} / 空格]
         </button>
+        <span className="ml-3 text-xs text-[#b4c3be]">按住 Ctrl 快进</span>
       </div>
     </div>
   );

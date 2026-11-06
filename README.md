@@ -8,7 +8,23 @@
 python3 scripts/run.py
 ```
 
+启动终端按 **Ctrl-C** 可关闭游戏前后端，数据库保留存档。也可以从项目根目录另开终端执行：
+
+```bash
+python3 scripts/run.py status
+python3 scripts/run.py stop
+python3 scripts/run.py restart
+```
+
+重复启动会提示当前实例的地址。restart 在当前终端重新运行；演示构建版用 `python3 scripts/run.py restart --built`。旧版脚本或手动启动的服务需先在各自原终端按 Ctrl-C。
+
 打开 [本地游戏](http://127.0.0.1:5179/)。运行环境与构建版启动方式见[运行与交付](docs/running.md)。
+
+## 账号与游戏操作
+
+标题页右上角提供**注册 / 登录**。可先用游客身份试玩，再注册保留当前进度。在连接同一游戏服务器的其他浏览器登录该账号，即可继续或选择手动存档。
+
+开始或继续冒险时会请求浏览器全屏；浏览器限制全屏时，游戏铺满窗口并保持画面比例。按 **Esc → 帮助** 查看当前预设的全部键位、修改键位或切换浏览器原生全屏。WASD 朝四个方向行走；摆尾与水球跟随瞄准，未指定目标时可以沿移动方向攻击。按住 **Ctrl**（Mac 键盘上的 **Control**）连续快进对白和过场，松开恢复。
 
 ## 内容导航
 
@@ -33,6 +49,7 @@ python3 scripts/run.py
 ```text
 frontend/src/
 ├── pages/StartPage/      /      标题、选择难度、继续与选档
+├── pages/AccountPage/    /account  注册、登录和退出
 ├── pages/GamePage/       /game  地图、战斗、对白、菜单与结局
 ├── features/                    两页共用的设置、音频与存档摘要
 ├── api/                         公共传输、令牌、路由名
@@ -49,6 +66,9 @@ backend/src/main/scala/services/
 | 页面操作 | 服务 | 前后端同名消息 | 结果 |
 | --- | --- | --- | --- |
 | 首次访问标题页 | PlayerService | CreateAnonymousPlayerMessage | 匿名身份 |
+| 注册当前玩家 | PlayerService | RegisterAccountMessage | 注册的用户名 |
+| 登录账号 | PlayerService | LoginMessage | 新会话令牌 |
+| 退出账号 | PlayerService | LogoutMessage | 撤销当前会话 |
 | 新冒险 | AdventureService | StartAdventureMessage | 局内初始快照及版本 |
 | 标题或游戏内选档 | AdventureService | ListSavesMessage | 该玩家各冒险、存档列表与继续指针 |
 | 继续或读取旧档 | AdventureService | LoadAdventureMessage | 恢复的快照与新版本 |

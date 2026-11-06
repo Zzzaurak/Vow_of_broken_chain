@@ -36,6 +36,7 @@ export interface ProgressResponse {
   save: SaveRecord;
 }
 export interface SaveListResponse {
+  username: string | null;
   revision: number;
   continueSave: string | null;
   adventures: AdventureRecord[];

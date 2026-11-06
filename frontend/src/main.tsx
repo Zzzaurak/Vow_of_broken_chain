@@ -1,3 +1,4 @@
+import { AccountPage } from './pages/AccountPage';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
@@ -15,6 +16,7 @@ const router = createBrowserRouter([
     ),
     children: [
       { path: '/', element: <StartPage /> },
+      { path: '/account', element: <AccountPage /> },
       { path: '/game', element: <GamePage /> },
     ],
   },

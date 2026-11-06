@@ -37,7 +37,11 @@ export function useGameRuntime() {
     const held = new Set<string>();
     const pressed = new Set<string>();
     let pointer: { x: number; y: number } | null = null;
+    const storyControls = new Set<string>();
+    let advanceTime = 0;
     const clear = () => {
+      storyControls.clear();
+      advanceTime = 0;
       held.clear();
       pressed.clear();
       pointer = null;
@@ -68,6 +72,13 @@ export function useGameRuntime() {
         game.mode.kind === 'credits'
       )
         return;
+      if (
+        (event.code === 'ControlLeft' || event.code === 'ControlRight') &&
+        (game.mode.kind === 'cinematic' || game.mode.kind === 'dialogue')
+      ) {
+        if (!event.repeat) storyControls.add(event.code);
+        return;
+      }
       if (game.mode.kind === 'cinematic') {
         event.preventDefault();
         if (!event.repeat && (event.code === bindings.confirm || event.code === 'Space'))
@@ -112,7 +123,10 @@ export function useGameRuntime() {
         });
       }
     };
-    const keyup = (e: KeyboardEvent) => held.delete(e.code);
+    const keyup = (e: KeyboardEvent) => {
+      held.delete(e.code);
+      storyControls.delete(e.code);
+    };
     const mousemove = (e: MouseEvent) => {
       if (getSettingsSnap().preset !== 'mouse') return;
       const rect = element.getBoundingClientRect();
@@ -141,6 +155,13 @@ export function useGameRuntime() {
       const g = getGameSnap();
       if (g && g.mode.kind !== 'paused' && g.mode.kind !== 'failed') setGame(togglePause(g));
     };
+    const fullscreenChanged = () => {
+      if (!document.fullscreenElement) {
+        const mode = getGameSnap()?.mode.kind;
+        if (mode !== 'credits' && mode !== 'failed' && mode !== 'paused') blur();
+      }
+    };
+    document.addEventListener('fullscreenchange', fullscreenChanged);
     window.addEventListener('oath:clear-input', clear);
     window.addEventListener('keydown', keydown);
     window.addEventListener('keyup', keyup);
@@ -169,14 +190,30 @@ export function useGameRuntime() {
               clear();
               accumulator = 0;
             } else if (game.mode.kind === 'cinematic') {
-              setGame(advanceCinematic(game, delta));
-              clear();
+              setGame(advanceCinematic(game, delta * (storyControls.size ? 8 : 1)));
+              held.clear();
+              pressed.clear();
+              pointer = null;
               accumulator = 0;
             } else if (game.mode.kind === 'dialogue') {
-              setGame(advanceReading(game, delta, getSettingsSnap().textSpeed));
-              clear();
+              const fast = storyControls.size > 0 && !game.mode.hidden && !game.mode.history;
+              const reading = advanceReading(
+                game,
+                delta * (fast ? 8 : 1),
+                fast ? 0 : getSettingsSnap().textSpeed,
+              );
+              advanceTime = fast ? advanceTime + delta : 0;
+              if (advanceTime >= 0.14) {
+                setGame(advanceDialogue(reading, true));
+                advanceTime = 0;
+              } else setGame(reading);
+              held.clear();
+              pressed.clear();
+              pointer = null;
               accumulator = 0;
             } else if (game.mode.kind === 'explore' || game.mode.kind === 'battle') {
+              storyControls.clear();
+              advanceTime = 0;
               accumulator += delta;
               while (accumulator >= 1 / 60) {
                 const current = getGameSnap();
@@ -259,6 +296,7 @@ export function useGameRuntime() {
       cancelled = true;
       cancelAnimationFrame(handle);
       clear();
+      document.removeEventListener('fullscreenchange', fullscreenChanged);
       window.removeEventListener('oath:clear-input', clear);
       window.removeEventListener('keydown', keydown);
       window.removeEventListener('keyup', keyup);

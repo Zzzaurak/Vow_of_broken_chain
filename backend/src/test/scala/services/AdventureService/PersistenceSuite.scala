@@ -10,7 +10,7 @@ import services.system.objects.ApiError
 import services.system.routes.Endpoint
 import io.circe.Json
 import services.AdventureService.objects.apiTypes.SaveListResponse
-import services.PlayerService.api.{CreateAnonymousPlayerMessage,ResolvePlayerMessage}
+import services.PlayerService.api.{CreateAnonymousPlayerMessage,ResolvePlayerMessage,RegisterAccountMessage,LoginMessage}
 import services.PlayerService.objects.PlayerId
 import services.PlayerService.tables.Player.PlayerTableInitializer
 import services.PlayerService.tables.PlayerSession.PlayerSessionTableInitializer
@@ -27,11 +27,31 @@ class PersistenceSuite extends CatsEffectSuite:
       Database.connection.use(c => Database.transaction(c)(f(c)))
   private def op: IO[String] = IO.delay(UUID.randomUUID().toString)
   private def player: IO[PlayerId] = for
-    _ <- tx(c => List(PlayerTableInitializer.initialize(c),PlayerSessionTableInitializer.initialize(c),AdventureTableInitializer.initialize(c),GameSaveTableInitializer.initialize(c),ProgressOperationTableInitializer.initialize(c)).sequence_)
+    _ <- tx(c => List(PlayerTableInitializer.initialize(c),PlayerSessionTableInitializer.initialize(c),services.PlayerService.tables.Account.AccountTableInitializer.initialize(c),AdventureTableInitializer.initialize(c),GameSaveTableInitializer.initialize(c),ProgressOperationTableInitializer.initialize(c)).sequence_)
     session <- tx(c => CreateAnonymousPlayerMessage().plan(c))
     id <- tx(c => ResolvePlayerMessage(session.token).plan(c))
   yield id
   private def start(p: PlayerId) = op.flatMap(id => tx(c => StartAdventureMessage(p,Difficulty.easy,id,0).plan(c)))
+
+  test("duplicate registration preserves the original account, password and guest ownership") {
+    for
+      owner <- player
+      other <- player
+      suffix <- op
+      name = "hero_" + suffix.take(8)
+      _ <- tx(c => RegisterAccountMessage(owner, name, "first-test-password").plan(c))
+      duplicate <- tx(c => RegisterAccountMessage(other, name.toUpperCase(java.util.Locale.ROOT),
+        "other-test-password").plan(c)).attempt
+      wrong <- tx(c => LoginMessage(name, "other-test-password").plan(c)).attempt
+      token <- tx(c => LoginMessage(name, "first-test-password").plan(c))
+      resolved <- tx(c => ResolvePlayerMessage(token).plan(c))
+      guest <- tx(c => ListSavesMessage(other).plan(c))
+    yield
+      assertEquals(duplicate.swap.toOption.collect { case e: ApiError => e.status }, Some(409))
+      assertEquals(wrong.swap.toOption.collect { case e: ApiError => e.status }, Some(401))
+      assertEquals(resolved, owner)
+      assertEquals(guest.username, None)
+  }
 
   test("new adventure survives independent connections and preserves fixed resources") {
     for

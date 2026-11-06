@@ -14,9 +14,10 @@ final case class ListSavesMessage(playerId: PlayerId) extends APIMessage[SaveLis
   def plan(c: Connection): IO[SaveListResponse] = for
     // Serialize the branch revision and records with concurrent saves and loads.
     player <- PlayerTable.lock(c,playerId).flatMap(IO.fromOption(_)(ApiError("invalid_token","玩家不存在",401)))
+    username <- services.PlayerService.tables.Account.AccountTable.username(c, playerId)
     adventures <- AdventureTable.list(c,playerId)
     saves <- GameSaveTable.list(c,playerId)
-  yield SaveListResponse(player.revision,player.continueSave,adventures,saves)
+  yield SaveListResponse(player.revision,player.continueSave,adventures,saves,username)
 object ListSavesMessage:
   given Decoder[ListSavesMessage] = deriveDecoder
   given Encoder[ListSavesMessage] = deriveEncoder

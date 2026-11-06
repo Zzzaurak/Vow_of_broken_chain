@@ -87,7 +87,20 @@ test('a failed dragon trial can retry its own checkpoint and a lost load can ret
       })),
     }));
   });
-  await page.locator('canvas').click({ position: { x: 700, y: 300 } });
+  const point = await page.evaluate(async () => {
+    const { getGameSnap } = await import('/src/pages/GamePage/runtime/store.ts');
+    const { camera } = await import('/src/pages/GamePage/functions/geometry.ts');
+    const { mapById } = await import('/src/pages/GamePage/objects/content.ts');
+    const game = getGameSnap()!;
+    const origin = camera(game.snapshot.position, mapById(game.snapshot.mapId));
+    const bounds = document.querySelector('canvas')!.getBoundingClientRect();
+    const enemy = game.enemies[0].position;
+    return {
+      x: ((enemy.x - origin.x) * bounds.width) / 960,
+      y: ((enemy.y - origin.y) * bounds.height) / 540,
+    };
+  });
+  await page.locator('canvas').click({ position: point });
   await expect(page.getByText('古龙的认可', { exact: true })).toBeVisible();
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: '存读档', exact: true }).click();

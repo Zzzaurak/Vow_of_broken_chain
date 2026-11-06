@@ -108,7 +108,9 @@ function playerActions(state: GameState, input: FrameInput, dt: number): GameSta
     ? normalize(input.aim)
     : locked
       ? normalize(subtract(locked.position, next.snapshot.position))
-      : next.aim;
+      : length(input.move) > 0
+        ? normalize(input.move)
+        : next.aim;
   const requestedTarget =
     input.target ?? locked?.position ?? add(next.snapshot.position, aim, balance.player.waterRange);
   const target = add(
@@ -116,7 +118,12 @@ function playerActions(state: GameState, input: FrameInput, dt: number): GameSta
     aim,
     Math.min(balance.player.waterRange, distance(next.snapshot.position, requestedTarget)),
   );
-  next = { ...next, aim, direction: facing(aim), lockedEnemy: input.aim ? null : next.lockedEnemy };
+  next = {
+    ...next,
+    aim,
+    direction: facing(length(input.move) > 0 ? input.move : aim),
+    lockedEnemy: input.aim ? null : next.lockedEnemy,
+  };
   if (!next.action && input.melee && next.meleeCooldown <= 0)
     next = {
       ...next,
