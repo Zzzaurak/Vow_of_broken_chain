@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
-test('cancelling browser reload preserves unsaved game progress', async ({ page }) => {
+test('cancelling reload or browser back preserves unsaved progress, accepting back leaves', async ({
+  page,
+}) => {
   await page.goto('/');
   await page.getByRole('button', { name: /开启新的冒险/ }).click();
   await expect(page.locator('canvas')).toBeVisible();
@@ -31,4 +33,15 @@ test('cancelling browser reload preserves unsaved game progress', async ({ page 
   expect(prompted).toBe(true);
   expect((await state()).snapshot).toEqual(before.snapshot);
   await expect(page.getByRole('heading', { name: '旅途中歇' })).toBeVisible();
+  const backDialog = page.waitForEvent('dialog');
+  await page.evaluate(() => history.back());
+  const cancelled = await backDialog;
+  expect(cancelled.type()).toBe('confirm');
+  await cancelled.dismiss();
+  await expect(page).toHaveURL(/\/game$/);
+  expect((await state()).snapshot).toEqual(before.snapshot);
+  const nextDialog = page.waitForEvent('dialog');
+  await page.evaluate(() => history.back());
+  await (await nextDialog).accept();
+  await expect(page.getByRole('button', { name: /开启新的冒险/ })).toBeVisible();
 });

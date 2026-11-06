@@ -8,7 +8,7 @@ import { drawScenery } from './scenery';
 import enemyAtlas from '../../../../../material/Enemies/manifest.json';
 import type { GameState, Vec } from '../objects/game';
 import { mapById, balance } from '../objects/content';
-import { camera } from '../functions/geometry';
+import { camera, facing } from '../functions/geometry';
 import { characters, animations, type Images } from './assets';
 const palettes: Record<string, string[]> = {
   temple: ['#38464a', '#415055', '#71817d', '#c4b575'],
@@ -251,6 +251,8 @@ function drawCinematic(
     ctx.font = '16px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('试炼通过 · 剧情重伤', 480, 398);
+    ctx.fillStyle = '#c89289';
+    ctx.fillText('HP 0 / 100', 480, 421);
   } else if (scene === 'healing') {
     actor('deepseek', 390, 330, t > 4 ? 'walk' : 'idle');
     actor('gpt', 560 - Math.min(t, 2) * 35, 330, 'starfall-cast', 125);
@@ -520,7 +522,7 @@ export function drawGame(
         images,
         enemy.kind,
         p,
-        enemy.aim.x > 0 ? 'right' : 'left',
+        facing(enemy.aim),
         'idle',
         0,
         enemy.kind === 'gpt' ? 110 : 80,

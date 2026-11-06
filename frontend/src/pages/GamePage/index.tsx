@@ -59,7 +59,7 @@ export function GamePage() {
         {toast && mode !== 'paused' && mode !== 'cinematic' && (
           <div
             role="status"
-            className="pointer-events-none absolute inset-x-0 bottom-5 text-center"
+            className={`pointer-events-none absolute inset-x-0 text-center ${mode === 'battle' ? 'top-24' : 'bottom-5'}`}
           >
             <span className="border border-[#b7a675]/40 bg-[#0b2029]/90 px-5 py-2 text-sm text-[#e4d6b0]">
               {toast}

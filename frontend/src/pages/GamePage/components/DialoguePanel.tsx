@@ -51,9 +51,16 @@ export function DialoguePanel() {
     >
       {cg ? (
         <div className="absolute inset-x-0 top-0 bottom-[28%] flex items-center justify-center bg-[#09151a]">
+          {cg === 'cg2' && mode.elapsed < 1 && (
+            <img
+              src="/assets/cg/cg1.png"
+              alt=""
+              className="absolute inset-0 h-full w-full object-contain"
+            />
+          )}
           <img
             src={`/assets/cg/${cg}.png`}
-            className="max-h-full w-full object-contain"
+            className="relative h-full w-full object-contain"
             style={{ opacity: Math.min(1, mode.elapsed) }}
             alt={cg === 'cg1' ? '晴空下，大肥鱼与 Claude 相拥' : '古龙 GPT 见证两人的重逢'}
           />
@@ -65,6 +72,15 @@ export function DialoguePanel() {
             {right && <DialogueFigure figure={right} active={id === right} />}
           </div>
         )
+      )}
+      {mode.scene === '6-3' && mode.elapsed < 0.7 && (
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 bottom-[28%] bg-[#09151a]"
+          style={{ opacity: 1 - mode.elapsed / 0.7 }}
+          aria-hidden="true"
+        >
+          <img src="/assets/cg/cg2.png" alt="" className="h-full w-full object-contain" />
+        </div>
       )}
       {!mode.hidden && (!cg || mode.elapsed >= 1.5) && (
         <div className="relative min-h-[28%] border-t border-[#c8b47a]/50 bg-[#0c1c24]/95 px-8 py-4">

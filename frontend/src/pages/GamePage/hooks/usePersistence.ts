@@ -1,6 +1,7 @@
 import { summarizeSave } from '../../../features/saves/summary';
 import { ApiError } from '../../../api/transport';
-import { useEffect, useRef, useState } from 'react';
+import { useBlocker } from 'react-router-dom';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { SaveProgressMessage } from '../../../apis/AdventureService/SaveProgressMessage';
 import { LoadAdventureMessage } from '../../../apis/AdventureService/LoadAdventureMessage';
 import { ListSavesMessage } from '../../../apis/AdventureService/ListSavesMessage';
@@ -24,9 +25,19 @@ export function usePersistence() {
     lastAuto = useRef(0);
   const generation = useRef(0);
   const listRequest = useRef(0);
+  const needsLeaveConfirmation = useCallback(
+    () => Boolean(getGameSnap()?.dirty || pending.current || busy.current),
+    [],
+  );
+  const blocker = useBlocker(needsLeaveConfirmation);
+  useEffect(() => {
+    if (blocker.state !== 'blocked') return;
+    if (window.confirm('离开游戏将放弃未保存的进度或尚未确认的操作。确定离开？')) blocker.proceed();
+    else blocker.reset();
+  }, [blocker]);
   useEffect(() => {
     const beforeUnload = (event: BeforeUnloadEvent) => {
-      if (!getGameSnap()?.dirty && !pending.current) return;
+      if (!needsLeaveConfirmation()) return;
       event.preventDefault();
       // Browsers supply their own wording and require a previous user gesture.
       event.returnValue = '';
@@ -37,7 +48,7 @@ export function usePersistence() {
       listRequest.current++;
       window.removeEventListener('beforeunload', beforeUnload);
     };
-  }, []);
+  }, [needsLeaveConfirmation]);
   async function execute() {
     if (busy.current || !pending.current) return;
     const request = pending.current,

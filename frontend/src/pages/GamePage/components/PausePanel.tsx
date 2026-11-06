@@ -116,14 +116,7 @@ export function PausePanel({ persistence }: { persistence: ReturnType<typeof use
                 ))}
               </div>
             )}
-            <Button
-              className="w-full"
-              disabled={busy}
-              onClick={() => {
-                if (!game.dirty || window.confirm('当前有未保存进度。确定返回标题？'))
-                  navigate('/');
-              }}
-            >
+            <Button className="w-full" disabled={busy} onClick={() => navigate('/')}>
               返回标题
             </Button>
           </div>
