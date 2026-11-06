@@ -1,3 +1,4 @@
+import { attackShape, coneReach, coneHalfAngle, hazardWarningSeconds } from './enemyAttack';
 import { clearPath, pursuitDirection } from './navigation';
 import { balance, encounters, mapById } from '../objects/content';
 import type { EnemyKind } from '../objects/content';
@@ -329,27 +330,22 @@ function enemyStep(state: GameState, dt: number): GameState {
             ),
           };
       } else if (enemy.phase === 'windup' && enemy.timer <= 0) {
-        const hit =
-          distance(enemy.position, next.snapshot.position) < spec.range + 20 &&
-          clearPath(enemy.position, next.snapshot.position, map);
-        const aimed = normalize(subtract(next.snapshot.position, enemy.position));
-        const inCone = aimed.x * enemy.aim.x + aimed.y * enemy.aim.y > 0.5;
-        if (['guard', 'beast', 'hound', 'knight'].includes(enemy.kind)) {
-          if (hit && inCone) next = hitPlayer(next, spec.damage);
+        const shape = attackShape(enemy);
+        if (shape === 'cone') {
+          const aimed = normalize(subtract(next.snapshot.position, enemy.position));
+          const inCone = aimed.x * enemy.aim.x + aimed.y * enemy.aim.y > Math.cos(coneHalfAngle);
+          if (
+            inCone &&
+            distance(enemy.position, next.snapshot.position) < coneReach(enemy) &&
+            clearPath(enemy.position, next.snapshot.position, map)
+          )
+            next = hitPlayer(next, spec.damage);
           if (enemy.kind === 'knight' || enemy.kind === 'hound')
             enemy = {
               ...enemy,
               position: movePosition(enemy.position, add({ x: 0, y: 0 }, enemy.aim, 65), map),
             };
-        } else if (enemy.kind === 'gpt' && enemy.attack % 2 === 0) {
-          if (hit && inCone) next = hitPlayer(next, spec.damage);
-        } else if (
-          enemy.kind === 'mage' ||
-          enemy.kind === 'glm' ||
-          enemy.kind === 'gpt' ||
-          enemy.kind === 'claude' ||
-          (enemy.kind === 'pope' && enemy.phaseTwo)
-        ) {
+        } else if (shape === 'ground') {
           const kind: Hazard['kind'] =
             enemy.kind === 'claude' ? 'petal' : enemy.kind === 'pope' ? 'bind' : 'blast';
           const radius = kind === 'bind' ? 145 : enemy.kind === 'gpt' ? 95 : 70;
@@ -424,9 +420,9 @@ function hazardsStep(state: GameState, dt: number): GameState {
   return active.hazards.reduce<GameState>(
     (next, h) => {
       const hazard = { ...h, timer: h.timer + dt };
-      if (hazard.timer > 1.2 + hazard.duration) return next;
+      if (hazard.timer > hazardWarningSeconds + hazard.duration) return next;
       if (
-        hazard.timer >= 1.2 &&
+        hazard.timer >= hazardWarningSeconds &&
         distance(hazard.position, next.snapshot.position) < hazard.radius
       ) {
         if (hazard.kind === 'petal') next = { ...next, slow: 0.3 };
@@ -435,7 +431,10 @@ function hazardsStep(state: GameState, dt: number): GameState {
             next = hitPlayer({ ...next, bound: 0.3 }, hazard.damage * dt, true);
         } else if (!hazard.fired) next = hitPlayer(next, hazard.damage);
       }
-      return { ...next, hazards: [...next.hazards, { ...hazard, fired: hazard.timer >= 1.2 }] };
+      return {
+        ...next,
+        hazards: [...next.hazards, { ...hazard, fired: hazard.timer >= hazardWarningSeconds }],
+      };
     },
     { ...active, hazards: [] },
   );

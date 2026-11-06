@@ -52,6 +52,37 @@ function finishDialogue(game: GameState): GameState {
   return next;
 }
 describe('deterministic game rules', () => {
+  it('dragon breath hits the marked edge while starfall warns at the chosen ground position', () => {
+    const release = (x: number, attack: number) => {
+      const game = battle('lair');
+      return stepGame(
+        {
+          ...game,
+          snapshot: { ...game.snapshot, position: { x, y: 400 } },
+          enemies: game.enemies.map((enemy) => ({
+            ...enemy,
+            position: { x: 400, y: 400 },
+            aim: { x: 1, y: 0 },
+            phase: 'windup',
+            timer: 0,
+            attack,
+          })),
+        },
+        emptyInput,
+        1 / 60,
+      );
+    };
+    expect(release(779, 0).snapshot.hp).toBe(80);
+    expect(release(781, 0).snapshot.hp).toBe(100);
+    expect(release(250, 0).snapshot.hp).toBe(100);
+    const starfall = release(779, 1);
+    expect(starfall.snapshot.hp).toBe(100);
+    expect(starfall.hazards[0]).toMatchObject({
+      kind: 'blast',
+      radius: 95,
+      position: { x: 779, y: 400 },
+    });
+  });
   it('ordinary defeat animates without continuing combat or changing the checkpoint', () => {
     const state = stepGame({ ...battle(), snapshot: { ...initial, hp: 0 } }, emptyInput, 1 / 60);
     expect(state.mode).toEqual({ kind: 'failed', elapsed: 0 });

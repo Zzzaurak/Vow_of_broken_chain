@@ -1,3 +1,9 @@
+import {
+  attackShape,
+  coneReach,
+  coneHalfAngle,
+  hazardWarningSeconds,
+} from '../functions/enemyAttack';
 import { drawScenery } from './scenery';
 import enemyAtlas from '../../../../../material/Enemies/manifest.json';
 import type { GameState, Vec } from '../objects/game';
@@ -417,7 +423,7 @@ export function drawGame(
       ctx,
       h.position,
       h.radius,
-      h.timer < 1.2
+      h.timer < hazardWarningSeconds
         ? '#e7a24b38'
         : h.kind === 'petal'
           ? '#e5c76266'
@@ -430,20 +436,56 @@ export function drawGame(
     ctx.beginPath();
     ctx.arc(h.position.x, h.position.y, h.radius, 0, Math.PI * 2);
     ctx.stroke();
+    if (h.kind === 'petal') {
+      ctx.fillStyle = h.timer < hazardWarningSeconds ? '#f0ce77' : '#ffe791';
+      for (let i = 0; i < 10; i++) {
+        const angle = (i * Math.PI) / 5;
+        ctx.beginPath();
+        ctx.ellipse(
+          h.position.x + Math.cos(angle) * h.radius * 0.8,
+          h.position.y + Math.sin(angle) * h.radius * 0.8,
+          8,
+          3,
+          angle,
+          0,
+          Math.PI * 2,
+        );
+        ctx.fill();
+      }
+    }
   }
   for (const enemy of state.enemies) {
     if (enemy.hp <= 0) continue;
     if (enemy.phase === 'windup') {
-      const range = balance.enemies[enemy.kind].range;
+      const shape = attackShape(enemy);
       ctx.save();
       ctx.translate(enemy.position.x, enemy.position.y);
       ctx.rotate(Math.atan2(enemy.aim.y, enemy.aim.x));
-      ctx.fillStyle = '#efad5b30';
       ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.arc(0, 0, range, -Math.PI / 3, Math.PI / 3);
-      ctx.closePath();
-      ctx.fill();
+      if (shape === 'cone') {
+        const frost = enemy.kind === 'gpt';
+        ctx.fillStyle = frost ? '#8bdbf14a' : '#efad5b30';
+        ctx.strokeStyle = frost ? '#bdeafa' : '#eebd79';
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, coneReach(enemy), -coneHalfAngle, coneHalfAngle);
+        ctx.closePath();
+        ctx.fill();
+      } else if (shape === 'projectile') {
+        ctx.strokeStyle = '#ffd397';
+        ctx.moveTo(22, 0);
+        ctx.lineTo(95, 0);
+      } else {
+        // Ground targets are selected when the cast finishes. Only mark the caster until then.
+        ctx.strokeStyle = enemy.kind === 'claude' ? '#f3d378' : '#d0bee6';
+        ctx.arc(0, 0, 35, 0, Math.PI * 2);
+      }
+      const highlight = ctx.strokeStyle;
+      ctx.strokeStyle = '#253648';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+      ctx.strokeStyle = highlight;
+      ctx.lineWidth = 2;
+      ctx.stroke();
       ctx.restore();
     }
   }
