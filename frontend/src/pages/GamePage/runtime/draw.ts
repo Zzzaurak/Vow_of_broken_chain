@@ -518,27 +518,37 @@ export function drawGame(
     Math.floor(state.simulationTime * 20) % 2 === 0
       ? 0.5
       : 1;
-  drawActor(
-    ctx,
-    images,
-    'deepseek',
-    p,
-    state.direction,
-    state.action?.kind === 'melee'
-      ? 'melee'
-      : state.action?.kind === 'cast'
-        ? 'cast'
-        : state.moving
-          ? 'walk'
-          : 'idle',
-    state.action?.age ?? state.walkTime,
-  );
-  ctx.globalAlpha = 1;
-  ctx.strokeStyle = '#a9d9dc88';
-  ctx.beginPath();
-  ctx.moveTo(p.x + state.aim.x * 28, p.y + state.aim.y * 28);
-  ctx.lineTo(p.x + state.aim.x * 42, p.y + state.aim.y * 42);
-  ctx.stroke();
+  if (state.mode.kind === 'failed') {
+    const progress = Math.min(1, state.mode.elapsed / 0.65);
+    ctx.globalAlpha = 1;
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate((-Math.PI / 2) * progress);
+    drawActor(ctx, images, 'deepseek', { x: 0, y: 0 }, 'down', 'idle', 0);
+    ctx.restore();
+  } else {
+    drawActor(
+      ctx,
+      images,
+      'deepseek',
+      p,
+      state.direction,
+      state.action?.kind === 'melee'
+        ? 'melee'
+        : state.action?.kind === 'cast'
+          ? 'cast'
+          : state.moving
+            ? 'walk'
+            : 'idle',
+      state.action?.age ?? state.walkTime,
+    );
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = '#a9d9dc88';
+    ctx.beginPath();
+    ctx.moveTo(p.x + state.aim.x * 28, p.y + state.aim.y * 28);
+    ctx.lineTo(p.x + state.aim.x * 42, p.y + state.aim.y * 42);
+    ctx.stroke();
+  }
   for (const cast of state.casts) {
     const suffix =
       cast.partner === 'glm'

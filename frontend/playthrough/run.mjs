@@ -212,6 +212,7 @@ try {
       failures++;
       if (failures > 3)
         throw new Error(`Too many deaths at ${map.id}; investigate combat or input strategy`);
+      await page.getByRole('heading', { name: '旅途尚未结束' }).waitFor();
       await choose(/重试检查点/);
       continue;
     }

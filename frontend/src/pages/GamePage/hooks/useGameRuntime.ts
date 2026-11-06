@@ -7,6 +7,7 @@ import { drawGame } from '../runtime/draw';
 import { stepGame } from '../functions/combat';
 import {
   advanceDialogue,
+  advanceDefeat,
   advanceReading,
   advanceCinematic,
   interact,
@@ -163,7 +164,11 @@ export function useGameRuntime() {
           last = now;
           const game = getGameSnap();
           if (game) {
-            if (game.mode.kind === 'cinematic') {
+            if (game.mode.kind === 'failed') {
+              setGame(advanceDefeat(game, delta));
+              clear();
+              accumulator = 0;
+            } else if (game.mode.kind === 'cinematic') {
               setGame(advanceCinematic(game, delta));
               clear();
               accumulator = 0;

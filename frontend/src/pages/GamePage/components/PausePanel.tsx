@@ -10,7 +10,11 @@ import { mapById } from '../objects/content';
 import type { usePersistence } from '../hooks/usePersistence';
 export function PausePanel({ persistence }: { persistence: ReturnType<typeof usePersistence> }) {
   const game = useGame((g) =>
-      g && ['paused', 'failed', 'credits'].includes(g.mode.kind) ? g : null,
+      g &&
+      ['paused', 'failed', 'credits'].includes(g.mode.kind) &&
+      (g.mode.kind !== 'failed' || g.mode.elapsed >= 0.9)
+        ? g
+        : null,
     ),
     navigate = useNavigate();
   const [tab, setTab] = useState<'main' | 'saves' | 'settings'>('main');

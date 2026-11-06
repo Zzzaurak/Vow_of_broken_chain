@@ -512,7 +512,7 @@ export function stepGame(state: GameState, input: FrameInput, dt: number): GameS
     if (next.mode.kind !== 'battle') return next;
     next = hazardsStep(enemyStep(next, dt), dt);
     if (next.snapshot.hp <= 0)
-      return { ...next, mode: { kind: 'failed' }, action: null, moving: false };
+      return { ...next, mode: { kind: 'failed', elapsed: 0 }, action: null, moving: false };
   }
   return next;
 }

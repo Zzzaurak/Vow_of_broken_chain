@@ -5,6 +5,7 @@ import {
   createGame,
   beginBattle,
   advanceDialogue,
+  advanceDefeat,
   interact,
   retryCheckpoint,
   configureSupport,
@@ -51,6 +52,21 @@ function finishDialogue(game: GameState): GameState {
   return next;
 }
 describe('deterministic game rules', () => {
+  it('ordinary defeat animates without continuing combat or changing the checkpoint', () => {
+    const state = stepGame({ ...battle(), snapshot: { ...initial, hp: 0 } }, emptyInput, 1 / 60);
+    expect(state.mode).toEqual({ kind: 'failed', elapsed: 0 });
+    const half = advanceDefeat(state, 0.4);
+    expect(half.mode).toEqual({ kind: 'failed', elapsed: 0.4 });
+    expect(half.snapshot).toEqual(state.snapshot);
+    expect(half.checkpoint).toEqual(state.checkpoint);
+    expect(half.enemies).toEqual(state.enemies);
+    expect(canSave(half)).toBe(false);
+    expect(stepGame(half, { ...emptyInput, melee: true }, 1)).toEqual(half);
+    const end = advanceDefeat(half, 1);
+    expect(end.mode).toEqual({ kind: 'failed', elapsed: 0.9 });
+    expect(advanceDefeat(end, 1)).toBe(end);
+    expect(retryCheckpoint(end).snapshot.hp).toBe(100);
+  });
   it('cinematics freeze combat and snapshots, disallow saving and respect pause and minimum skip time', () => {
     const state = startCinematic(battle('lair'), 'trialFall', {
       kind: 'victoryDialogue',
@@ -273,7 +289,7 @@ describe('deterministic game rules', () => {
     const dead = {
       ...state,
       snapshot: { ...state.snapshot, hp: 0 },
-      mode: { kind: 'failed' } as const,
+      mode: { kind: 'failed', elapsed: 0 } as const,
       autosave: 7,
     };
     const retry = retryCheckpoint(dead);

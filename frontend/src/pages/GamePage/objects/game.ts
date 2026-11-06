@@ -21,7 +21,7 @@ export type WorldMode =
       history: boolean;
       after: DialogueAfter;
     }
-  | { kind: 'failed' }
+  | { kind: 'failed'; elapsed: number }
   | { kind: 'credits' };
 export type Mode = WorldMode | { kind: 'paused'; previous: WorldMode };
 export type EnemyPhase = 'chase' | 'windup' | 'recover';

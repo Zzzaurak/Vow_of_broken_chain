@@ -331,3 +331,9 @@ export function advanceReading(state: GameState, dt: number, textSpeed: number):
       : Math.min(text.length, mode.revealed + dt * textSpeed);
   return { ...state, mode: { ...mode, elapsed, revealed } };
 }
+
+// Failure presentation advances alone: battle, resources and save counters stay frozen.
+export function advanceDefeat(state: GameState, dt: number): GameState {
+  if (state.mode.kind !== 'failed' || state.mode.elapsed >= 0.9) return state;
+  return { ...state, mode: { ...state.mode, elapsed: Math.min(0.9, state.mode.elapsed + dt) } };
+}
