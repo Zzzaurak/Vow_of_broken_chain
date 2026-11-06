@@ -1,3 +1,7 @@
+import { drawWildlife } from './wildlife';
+import { drawRegionScenery } from './regionScenery';
+import { regionPaths } from './regionPaths';
+import { drawExploration, isExitTile, drawRest } from './explorationDraw';
 import {
   attackShape,
   coneReach,
@@ -7,7 +11,7 @@ import {
 import { drawScenery } from './scenery';
 import enemyAtlas from '../../../../../material/Enemies/manifest.json';
 import type { GameState, Vec } from '../objects/game';
-import { mapById, balance } from '../objects/content';
+import { mapById, balance, enemyBehavior } from '../objects/content';
 import { camera, facing } from '../functions/geometry';
 import { characters, animations, type Images } from './assets';
 const palettes: Record<string, string[]> = {
@@ -370,8 +374,7 @@ export function drawGame(
     for (let x = 0; x < map.width; x += 2) {
       tile(floor, x * 32, y * 32, 64, 64);
     }
-  // Path and decorative borders never introduce hidden collision bodies.
-  for (let x = 1; x < map.width - 1; x += 2) {
+  for (const [x, y] of regionPaths.get(map.id) ?? []) {
     tile(
       map.theme === 'forest'
         ? 5
@@ -379,25 +382,18 @@ export function drawGame(
           ? 6
           : map.theme === 'snow'
             ? 7
-            : map.id === 'steps'
-              ? 15
-              : floor,
+            : floor,
       x * 32,
-      map.height * 16 - 32,
-      64,
-      64,
+      y * 32,
+      32,
+      32,
     );
   }
   for (let y = 0; y < map.height; y++)
     for (let x = 0; x < map.width; x++)
       if (
         (y === 0 || x === 0 || y === map.height - 1 || x === map.width - 1) &&
-        !(
-          map.next &&
-          x === map.width - 1 &&
-          Math.abs(y * 32 - map.exit[1]) <= 32 &&
-          (!map.encounter || state.snapshot.stage === 'cleared')
-        )
+        !isExitTile(state, x, y)
       ) {
         ctx.fillStyle = palette[2];
         ctx.fillRect(x * 32, y * 32, 31, 29);
@@ -426,32 +422,15 @@ export function drawGame(
     );
   }
   drawScenery(ctx, map);
+  drawRegionScenery(ctx, state);
   circle(ctx, { x: map.spawn[0], y: map.spawn[1] }, 30, '#e8d79928');
   ctx.fillStyle = '#e8d799';
   ctx.font = '12px sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText('休整', map.spawn[0], map.spawn[1] + 46);
-  const open = !map.encounter || state.snapshot.stage === 'cleared';
-  if (map.next && open) {
-    ctx.fillStyle = '#69cfff';
-    for (let i = 0; i < 3; i++) {
-      const x = map.width * 32 - 100 + i * 24;
-      const y = map.exit[1] + 16;
-      ctx.beginPath();
-      ctx.moveTo(x - 7, y - 10);
-      ctx.lineTo(x + 5, y);
-      ctx.lineTo(x - 7, y + 10);
-      ctx.lineTo(x - 1, y + 10);
-      ctx.lineTo(x + 11, y);
-      ctx.lineTo(x - 1, y - 10);
-      ctx.closePath();
-      ctx.fill();
-    }
-  }
-  if (state.mode.kind === 'explore' && map.encounter && state.snapshot.stage !== 'cleared') {
-    ctx.fillStyle = '#e8d799';
-    ctx.fillText('进入场地 · 交互开始', map.width * 32 * 0.4, map.height * 16 - 70);
-  }
+  drawExploration(ctx, state, (id, position) =>
+    drawActor(ctx, images, id, position, 'down', 'idle', 0),
+  );
   for (const h of state.hazards) {
     circle(
       ctx,
@@ -535,13 +514,11 @@ export function drawGame(
     }
   }
   const npc =
-    state.snapshot.mapId === 'market'
-      ? 'qwen'
-      : state.snapshot.mapId === 'crystal' && state.snapshot.stage === 'cleared'
-        ? 'gemini'
-        : state.snapshot.mapId === 'alley'
-          ? 'claude'
-          : null;
+    state.snapshot.mapId === 'crystal' && state.snapshot.stage === 'cleared'
+      ? 'gemini'
+      : state.snapshot.mapId === 'alley'
+        ? 'claude'
+        : null;
   if (npc)
     drawActor(ctx, images, npc, { x: map.width * 16 + 72, y: map.height * 16 }, 'left', 'idle', 0);
   for (const enemy of [...state.enemies].sort((a, b) => a.position.y - b.position.y)) {
@@ -559,8 +536,8 @@ export function drawGame(
         0,
         enemy.kind === 'gpt' ? 110 : 80,
       );
-    else {
-      const frame = enemyAtlas.frames.find((f) => f.id === enemy.kind),
+    else if (!drawWildlife(ctx, enemy, state.simulationTime)) {
+      const frame = enemyAtlas.frames.find((f) => f.id === enemyBehavior(enemy.kind)),
         image = images.get('/assets/enemies/enemies-atlas.png');
       if (frame && image) {
         const [x, y, w, h] = frame.rect,
@@ -636,6 +613,7 @@ export function drawGame(
     ctx.lineTo(p.x + state.aim.x * 42, p.y + state.aim.y * 42);
     ctx.stroke();
   }
+  drawRest(ctx, state);
   for (const cast of state.casts) {
     const suffix =
       cast.partner === 'glm'

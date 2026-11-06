@@ -1,3 +1,5 @@
+import { playerStats, explorationObjective } from '../functions/exploration';
+import { ExplorationHud } from './ExplorationHud';
 import { useShallow } from 'zustand/react/shallow';
 import { useGame } from '../runtime/store';
 import { mapById } from '../objects/content';
@@ -17,6 +19,14 @@ export function GameHud() {
       claude: Math.ceil(g?.snapshot.cooldowns.claude ?? 0),
     })),
   );
+  const stats = useGame(
+    useShallow((g) =>
+      g
+        ? playerStats(g.snapshot)
+        : { maxHp: 100, maxMp: 100, regen: 2, melee: 18, water: 32, radius: 90 },
+    ),
+  );
+  const objective = useGame((g) => (g ? explorationObjective(g.snapshot) : ''));
   useSettings();
   return (
     <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-4 bg-gradient-to-b from-[#07161e]/90 to-transparent p-5">
@@ -24,14 +34,14 @@ export function GameHud() {
         <div className="mb-2 flex justify-between text-xs text-[#d9d7c1]">
           <span>大肥鱼</span>
           <span>
-            HP {hp} / MP {mp}
+            HP {hp}/{stats.maxHp} · MP {mp}/{stats.maxMp}
           </span>
         </div>
         <div className="h-2 bg-black/50">
-          <div className="h-full bg-[#d18d76]" style={{ width: `${hp}%` }} />
+          <div className="h-full bg-[#d18d76]" style={{ width: `${(hp / stats.maxHp) * 100}%` }} />
         </div>
         <div className="mt-1 h-1.5 bg-black/50">
-          <div className="h-full bg-[#79bfcd]" style={{ width: `${mp}%` }} />
+          <div className="h-full bg-[#79bfcd]" style={{ width: `${(mp / stats.maxMp) * 100}%` }} />
         </div>
         <div className="mt-3 flex w-max gap-2 text-xs">
           <span className="border border-white/20 bg-black/30 px-2 py-1">
@@ -51,12 +61,9 @@ export function GameHud() {
       <div className="text-right text-xs">
         <p className="font-serif text-lg text-[#e4d5ae]">{mapById(mapId).name}</p>
         <p className="mt-1 text-[#b7c9c4]">
-          {mode === 'battle'
-            ? mapById(mapId).objective
-            : stage === 'cleared'
-              ? '沿蓝色箭头走入出口'
-              : mapById(mapId).objective}
+          {mode === 'battle' ? mapById(mapId).objective : objective}
         </p>
+        <ExplorationHud />
         <p className="mt-2 text-[#91aaa5]">
           {actionLabel('pause')} 暂停 · {actionLabel('interact')} 交互
         </p>

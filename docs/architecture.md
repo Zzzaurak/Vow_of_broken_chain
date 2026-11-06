@@ -77,3 +77,10 @@ JDBC 行读取发生在 IO.blocking 内，SQL 和行映射保持 Table 私有，
 | 54–59 | 页面和菜单使用 Tailwind，公共 CSS 仅定义主题与基础样式。战斗动画与像素绘制由 Canvas 承担；进度条等运行时尺寸由实际数据计算。类型检查、格式与生产构建包含在检查脚本中。 |
 
 音频边界审查补充：AudioLifecycle 负责用户手势、窗口焦点和可见性监听；engine 保持私有 AudioContext／节点／计时器，外部只调用明确操作。音乐暂停与窗口失焦分别建模，避免每帧 setSoundtrack 覆盖失焦状态。焦点／静音经 master 增益淡出，暂停经 music 增益淡出，音效通道仍支持菜单试听；资源销毁清理计时器和 AudioContext。真实 WebAudio 幅度检查与模拟时钟测试证明门控路径，实际听音仍为单独验收项。
+
+
+## 区域探索与存档
+
+当前 23 个区域的几何与内容连接分别位于 maps.json、exploration.json。地图数组不表示推进顺序。区域、出口、机关和宝物通过稳定 ID 和前置条件连接；GamePage 的 exploration 纯函数推导碰撞、可通行状态与成长，私有运行态 store 保存当前快照和动画。
+
+安全快照扩展 ExplorationProgress（visited／flags／collected）。数据库继续保存原有 JSONB 快照，不新增独立角色或地图服务。AdventureService 内的 RegionDefinition、MapExit、ExplorationPoint、GrowthItem 是内容模型，各自文件中提供 Circe 编解码器。LoadAdventureMessage 在同一事务中先升级旧内容快照、再校验、最后更新继续指针与版本；旧存档行不被迁移过程覆盖。

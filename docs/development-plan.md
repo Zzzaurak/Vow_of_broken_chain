@@ -1,5 +1,7 @@
 # 《断链之誓》开发 Plan（修订版）
 
+**当前探索改造以 [非线性区域探索计划](exploration-plan.md) 为准。以下 12 房间规划保留为首版设计历史；当前版本为 23 张可往返小地图，并引入永久探索成长。**
+
 本计划依据 [企划 v0.5](../material/AI娘冒险游戏_简版企划书.md)、[完整剧本](../material/script.md)、[Scala 课程规范](../../course-skills/scala-course-homework/SKILL.md) 与 [React 课程规范](../../course-skills/react-course-frontend/SKILL.md)。用于指导后续实现和验收，不代表以下工作已经完成；实际工程状态另见 implementation-status.md。
 
 ## 1. 服务边界与技术方案
@@ -169,7 +171,7 @@ Boss 使用独立状态机：GLM 移动／符文闪避／书页炸弹；GPT 星�
 
 硬性数值与胜利约束：
 
-- 玩家 HP／MP 上限始终 100；水球当前基准消耗 20 MP、CD 4 秒、MP 回复每秒 2；援助 CD 为 GLM 10、GPT 18、Claude 16 秒，调整须同步企划与测试。
+- 玩家 HP／MP 基础上限 100，当前版本按探索宝物提升；水球当前基准消耗 20 MP、CD 4 秒、MP 回复每秒 2；援助 CD 为 GLM 10、GPT 18、Claude 16 秒，调整须同步企划与测试。
 - 困难仅使敌态最大 HP／初始 HP 和伤害乘 2；独立护盾、敌人数、速度、前摇、CD、支援能力均不加倍。
 - GLM 低于相对 30% HP 投降；GPT 破盾并受一次实际本体伤害即胜利，同帧胜利优先于普通死亡；Claude 只破盾；教皇相对 50% HP 转阶段。
 - 剧情重伤是过场状态，不能产生失败菜单或濒死存档；终战前独立检查点，失败不要求重打 Claude。

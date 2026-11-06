@@ -1,3 +1,4 @@
+import { ExplorationJournal } from './ExplorationJournal';
 import { SaveRecordButton } from '../../../features/saves/SaveRecordButton';
 import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -18,7 +19,7 @@ export function PausePanel({ persistence }: { persistence: ReturnType<typeof use
         : null,
     ),
     navigate = useNavigate();
-  const [tab, setTab] = useState<'main' | 'saves' | 'settings' | 'help'>('main');
+  const [tab, setTab] = useState<'main' | 'saves' | 'settings' | 'help' | 'journal'>('main');
   const panel = useRef<HTMLElement>(null);
   const open = !!game && ['paused', 'failed', 'credits'].includes(game.mode.kind);
   const back = useCallback(() => {
@@ -50,7 +51,7 @@ export function PausePanel({ persistence }: { persistence: ReturnType<typeof use
               : mapById(game.snapshot.mapId).name}
         </p>
         <div className="mb-5 flex gap-2">
-          {(['main', 'saves', 'settings', 'help'] as const).map((t) => (
+          {(['main', 'saves', 'journal', 'settings', 'help'] as const).map((t) => (
             <Button
               key={t}
               className="flex-1 px-2! py-2!"
@@ -59,10 +60,19 @@ export function PausePanel({ persistence }: { persistence: ReturnType<typeof use
                 if (t === 'saves') void persistence.refreshList();
               }}
             >
-              {t === 'main' ? '旅途' : t === 'saves' ? '存读档' : t === 'help' ? '帮助' : '设置'}
+              {t === 'main'
+                ? '旅途'
+                : t === 'saves'
+                  ? '存读档'
+                  : t === 'help'
+                    ? '帮助'
+                    : t === 'journal'
+                      ? '手记'
+                      : '设置'}
             </Button>
           ))}
         </div>
+        {tab === 'journal' && <ExplorationJournal />}
         {tab === 'help' && <HelpPanel onSettings={() => setTab('settings')} />}
         {tab === 'main' && (
           <div className="space-y-3">

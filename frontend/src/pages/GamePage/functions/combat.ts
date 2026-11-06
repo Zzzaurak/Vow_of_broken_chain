@@ -1,3 +1,4 @@
+import { playerStats, collisionMap, breakObjects } from './exploration';
 import { directionVector, nearestForwardEnemy } from './targeting';
 import {
   attackShape,
@@ -7,7 +8,7 @@ import {
   runeLanding,
 } from './enemyAttack';
 import { clearPath, pursuitDirection } from './navigation';
-import { balance, encounters, mapById } from '../objects/content';
+import { balance, encounters, mapById, enemyBehavior, regionById } from '../objects/content';
 import type { EnemyKind } from '../objects/content';
 import type {
   Enemy,
@@ -28,17 +29,26 @@ import {
   subtract,
   validPosition,
 } from './geometry';
-import { notify, spawnWave, victory, dialogueMode, crossExit } from './progression';
+import { notify, spawnWave, victory, dialogueMode, crossExit, beginBattle } from './progression';
 const decay = (v: number, dt: number) => Math.max(0, v - dt);
 const isBoss = (kind: EnemyKind) => ['glm', 'gpt', 'claude', 'pope'].includes(kind);
 const cooldowns = (s: GameState, dt: number) =>
   Object.fromEntries(
     Object.entries(s.snapshot.cooldowns).map(([k, v]) => [k, decay(v, dt)]),
   ) as GameState['snapshot']['cooldowns'];
+function shellReflects(enemy: Enemy, source: Vec): boolean {
+  const toward = normalize(subtract(source, enemy.position));
+  return (
+    enemy.kind === 'spider' &&
+    enemy.hp > 0 &&
+    enemy.broken <= 0 &&
+    toward.x * enemy.aim.x + toward.y * enemy.aim.y > 0.25
+  );
+}
 function damageEnemy(enemy: Enemy, amount: number, source: Vec, pierce = false): Enemy {
   const front = normalize(subtract(source, enemy.position));
   if (
-    enemy.kind === 'knight' &&
+    enemyBehavior(enemy.kind) === 'knight' &&
     enemy.broken <= 0 &&
     !pierce &&
     front.x * enemy.aim.x + front.y * enemy.aim.y > 0.25
@@ -57,7 +67,7 @@ function damageEnemy(enemy: Enemy, amount: number, source: Vec, pierce = false):
   return { ...enemy, hp: Math.max(0, enemy.hp - amount) };
 }
 function interruptMage(enemy: Enemy): Enemy {
-  return enemy.kind === 'mage' && enemy.phase === 'windup'
+  return enemyBehavior(enemy.kind) === 'mage' && enemy.phase === 'windup'
     ? { ...enemy, phase: 'recover', timer: balance.enemies.mage.recovery }
     : enemy;
 }
@@ -68,8 +78,14 @@ function areaDamage(
   damage: number,
   pierce = false,
 ): GameState {
+  const reflected =
+    !pierce &&
+    state.enemies.some(
+      (e) => distance(e.position, point) < radius && shellReflects(e, state.snapshot.position),
+    );
+  const next = reflected ? hitPlayer(state, 3) : state;
   return {
-    ...state,
+    ...next,
     enemies: state.enemies.map((e) =>
       distance(e.position, point) < radius
         ? damageEnemy(interruptMage(e), damage, state.snapshot.position, pierce)
@@ -188,6 +204,18 @@ function playerActions(state: GameState, input: FrameInput, dt: number): GameSta
     if (!action.fired && action.age >= (action.kind === 'melee' ? 0.11 : 0.12)) {
       action.fired = true;
       if (action.kind === 'melee') {
+        if (
+          next.enemies.some((e) => {
+            const delta = subtract(e.position, next.snapshot.position),
+              unit = normalize(delta);
+            return (
+              length(delta) < balance.player.meleeRange &&
+              unit.x * action.aim.x + unit.y * action.aim.y > -0.1 &&
+              shellReflects(e, next.snapshot.position)
+            );
+          })
+        )
+          next = hitPlayer(next, 3);
         next = {
           ...next,
           enemies: next.enemies.map((e) => {
@@ -195,10 +223,15 @@ function playerActions(state: GameState, input: FrameInput, dt: number): GameSta
               unit = normalize(v);
             return length(v) < balance.player.meleeRange &&
               unit.x * action.aim.x + unit.y * action.aim.y > -0.1
-              ? damageEnemy(e, balance.player.meleeDamage, next.snapshot.position)
+              ? damageEnemy(e, playerStats(next.snapshot).melee, next.snapshot.position)
               : e;
           }),
         };
+        next = breakObjects(
+          next,
+          add(next.snapshot.position, action.aim, 42),
+          balance.player.meleeRange,
+        );
         next = flash(next, 'melee', add(next.snapshot.position, action.aim, 42), 0.22);
       } else {
         next = {
@@ -216,7 +249,7 @@ function playerActions(state: GameState, input: FrameInput, dt: number): GameSta
                 balance.player.waterRange,
                 distance(next.snapshot.position, action.target),
               ),
-              damage: balance.player.waterDamage,
+              damage: playerStats(next.snapshot).water,
               enemy: false,
               homing: false,
             },
@@ -270,7 +303,7 @@ function playerActions(state: GameState, input: FrameInput, dt: number): GameSta
                     ),
                     55,
                   ),
-                  mapById(next.snapshot.mapId),
+                  collisionMap(next.snapshot),
                 ),
               }
             : e,
@@ -304,7 +337,7 @@ function projectilesStep(state: GameState, dt: number): GameState {
       const travel = Math.min(p.distance, p.speed * dt);
       const position = add(p.position, direction, travel),
         remaining = p.distance - travel;
-      const blocked = !validPosition(position, mapById(next.snapshot.mapId));
+      const blocked = !validPosition(position, collisionMap(next.snapshot));
       if (p.enemy && blocked) return next;
       if (p.enemy) {
         if (distance(position, next.snapshot.position) < 22) return hitPlayer(next, p.damage);
@@ -315,7 +348,12 @@ function projectilesStep(state: GameState, dt: number): GameState {
         next.enemies.some((e) => e.hp > 0 && distance(position, e.position) < 26)
       ) {
         return flash(
-          areaDamage(next, position, balance.player.waterRadius, p.damage),
+          areaDamage(
+            breakObjects(next, position, playerStats(next.snapshot).radius),
+            position,
+            playerStats(next.snapshot).radius,
+            p.damage,
+          ),
           'water',
           position,
           0.36,
@@ -330,7 +368,7 @@ function projectilesStep(state: GameState, dt: number): GameState {
   );
 }
 function enemyStep(state: GameState, dt: number): GameState {
-  const map = mapById(state.snapshot.mapId);
+  const map = collisionMap(state.snapshot);
   return state.enemies.reduce<GameState>(
     (next, original) => {
       if (original.hp <= 0) return { ...next, enemies: [...next.enemies, original] };
@@ -379,7 +417,7 @@ function enemyStep(state: GameState, dt: number): GameState {
             clearPath(enemy.position, next.snapshot.position, map)
           )
             next = hitPlayer(next, spec.damage);
-          if (enemy.kind === 'knight' || enemy.kind === 'hound')
+          if (enemyBehavior(enemy.kind) === 'knight' || enemyBehavior(enemy.kind) === 'hound')
             enemy = {
               ...enemy,
               position: movePosition(enemy.position, add({ x: 0, y: 0 }, enemy.aim, 65), map),
@@ -398,7 +436,7 @@ function enemyStep(state: GameState, dt: number): GameState {
               ? 'page'
               : enemy.kind === 'claude'
                 ? 'petal'
-                : enemy.kind === 'pope' || enemy.kind === 'mage'
+                : enemy.kind === 'pope' || enemyBehavior(enemy.kind) === 'mage'
                   ? 'bind'
                   : 'blast';
           const radius = enemy.kind === 'pope' ? 145 : enemy.kind === 'gpt' ? 95 : 70;
@@ -484,7 +522,7 @@ function hazardsStep(state: GameState, dt: number): GameState {
   );
 }
 function resolveBattle(state: GameState): GameState {
-  const map = mapById(state.snapshot.mapId),
+  const map = collisionMap(state.snapshot),
     encounter = encounters.find((e) => e.id === map.encounter);
   if (!encounter) return state;
   const special = state.enemies[0];
@@ -517,7 +555,7 @@ function resolveBattle(state: GameState): GameState {
 }
 export function stepGame(state: GameState, input: FrameInput, dt: number): GameState {
   if (state.mode.kind !== 'explore' && state.mode.kind !== 'battle') return state;
-  const map = mapById(state.snapshot.mapId),
+  const map = collisionMap(state.snapshot),
     movement = length(input.move) > 0 ? normalize(input.move) : { x: 0, y: 0 };
   const speed = state.bound > 0 ? 0 : balance.player.speed * (state.slow > 0 ? 0.45 : 1);
   let next: GameState = {
@@ -529,10 +567,14 @@ export function stepGame(state: GameState, input: FrameInput, dt: number): GameS
         add({ x: 0, y: 0 }, movement, speed * dt),
         map,
       ),
-      mp: Math.min(100, state.snapshot.mp + balance.player.mpRegeneration * dt),
+      mp: Math.min(
+        playerStats(state.snapshot).maxMp,
+        state.snapshot.mp + playerStats(state.snapshot).regen * dt,
+      ),
       cooldowns: cooldowns(state, dt),
       playSeconds: state.snapshot.playSeconds + dt,
     },
+    restTime: Math.max(0, (state.restTime ?? 0) - dt),
     moving: length(movement) > 0 && speed > 0,
     walkTime: state.walkTime + dt,
     simulationTime: state.simulationTime + dt,
@@ -547,8 +589,64 @@ export function stepGame(state: GameState, input: FrameInput, dt: number): GameS
       .filter((e) => e.age < e.duration),
     dirty: state.dirty || length(movement) > 0,
   };
+  const region = regionById(map.id);
+  if (
+    next.mode.kind === 'explore' &&
+    region.autoBattle &&
+    map.encounter &&
+    !next.snapshot.completed.includes(map.encounter)
+  ) {
+    if (!next.enemies.length) next = { ...next, enemies: spawnWave(next, 0) };
+    const homes = spawnWave(next, 0);
+    next = {
+      ...next,
+      enemies: next.enemies.map((e, i) => {
+        const home = homes[i]?.position ?? e.position;
+        const target = add(
+          home,
+          {
+            x: Math.sin(next.simulationTime * 0.5 + i),
+            y: Math.cos(next.simulationTime * 0.5 + i),
+          },
+          42,
+        );
+        const direction = pursuitDirection(e.position, target, map);
+        return {
+          ...e,
+          position: movePosition(e.position, add({ x: 0, y: 0 }, direction, 24 * dt), map),
+          aim: direction,
+        };
+      }),
+    };
+    if (
+      region.autoBattle &&
+      next.enemies.some((e) => distance(e.position, next.snapshot.position) < 230)
+    )
+      next = { ...beginBattle(next), enemies: next.enemies };
+  }
   next = playerActions(next, input, dt);
   next = projectilesStep(next, dt);
+  const defeated = next.enemies.filter(
+    (e) =>
+      e.hp <= 0 &&
+      state.enemies.some((old) => old.id === e.id && old.hp > 0) &&
+      ['sprout', 'rabbit', 'crab'].includes(e.kind),
+  );
+  next = {
+    ...next,
+    drops: [...next.drops, ...defeated.map((e) => ({ id: e.id, position: e.position }))],
+  };
+  const gathered = next.drops.filter((d) => distance(d.position, next.snapshot.position) < 40);
+  if (gathered.length)
+    next = {
+      ...next,
+      snapshot: {
+        ...next.snapshot,
+        hp: Math.min(playerStats(next.snapshot).maxHp, next.snapshot.hp + gathered.length * 6),
+      },
+      drops: next.drops.filter((d) => !gathered.includes(d)),
+      dirty: true,
+    };
   if (next.mode.kind === 'battle') {
     // Resolve player success before enemy damage: the dragon trial cannot turn a winning hit into defeat.
     next = resolveBattle(next);
@@ -557,5 +655,16 @@ export function stepGame(state: GameState, input: FrameInput, dt: number): GameS
     if (next.snapshot.hp <= 0)
       return { ...next, mode: { kind: 'failed', elapsed: 0 }, action: null, moving: false };
   }
+  for (const trap of region.traps) {
+    const active = next.simulationTime % trap.period;
+    if (
+      active >= 1.5 &&
+      active < 2 &&
+      distance(next.snapshot.position, { x: trap.position[0], y: trap.position[1] }) < trap.radius
+    )
+      next = hitPlayer(next, trap.damage);
+  }
+  if (next.snapshot.hp <= 0)
+    return { ...next, mode: { kind: 'failed', elapsed: 0 }, action: null, moving: false };
   return crossExit(next);
 }

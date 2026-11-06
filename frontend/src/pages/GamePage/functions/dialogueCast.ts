@@ -1,6 +1,6 @@
 import type { DialogueLine } from '../objects/content';
 export type PortraitId = 'deepseek' | 'claude' | 'glm' | 'gpt' | 'qwen' | 'gemini';
-export type SpeakerFigure = PortraitId | 'pope' | 'inquisitor' | 'deacon' | 'mystery';
+export type SpeakerFigure = PortraitId | 'pope' | 'inquisitor' | 'deacon' | 'mystery' | 'villager';
 const speakers: Record<string, SpeakerFigure> = {
   大肥鱼: 'deepseek',
   Claude: 'claude',
@@ -14,15 +14,17 @@ const speakers: Record<string, SpeakerFigure> = {
   神秘声音: 'mystery',
 };
 export function dialogueCast(lines: DialogueLine[], index: number) {
-  const active = speakers[lines[index]?.speaker] ?? null;
+  const figure = (speaker: string): SpeakerFigure | null =>
+    speaker === '旁白' ? null : (speakers[speaker] ?? 'villager');
+  const active = figure(lines[index]?.speaker ?? '旁白');
   const prior = lines
     .slice(0, index + 1)
-    .map((line) => speakers[line.speaker])
+    .map((line) => figure(line.speaker))
     .filter((figure) => figure && figure !== 'deepseek')
     .at(-1);
   const upcoming = lines
     .slice(index + 1)
-    .map((line) => speakers[line.speaker])
+    .map((line) => figure(line.speaker))
     .find((figure) => figure && figure !== 'deepseek');
   return { active, right: active && active !== 'deepseek' ? active : (prior ?? upcoming ?? null) };
 }

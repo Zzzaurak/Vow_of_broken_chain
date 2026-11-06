@@ -68,7 +68,9 @@ test('tutorial plays through real input and preserves its checkpoint through sav
   await expect.poll(async () => (await state(page))?.mode.kind).toBe('dialogue');
   for (let i = 0; i < 80 && (await state(page))?.mode.kind === 'dialogue'; i++)
     await page.keyboard.press('Enter');
-  expect((await state(page)).snapshot.stage).toBe('cleared');
+  expect((await state(page)).snapshot.mapId).toBe('rain');
+  expect((await state(page)).snapshot.completed).toContain('0-A');
+  expect((await state(page)).snapshot.stage).toBe('ready');
   await expect(page.getByText('进度已保存').first()).toBeVisible();
   await page.screenshot({ path: '../.local/tutorial-cleared.png' });
   await page.keyboard.press('Escape');

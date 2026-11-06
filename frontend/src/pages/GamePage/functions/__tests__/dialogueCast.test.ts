@@ -4,9 +4,10 @@ import { dialogue } from '../../objects/content';
 describe('dialogue cast', () => {
   it('recognizes every authored speaker including the church and mysterious voice', () => {
     for (const scene of dialogue)
-      scene.lines.forEach((_, index) =>
-        expect(dialogueCast(scene.lines, index).active).not.toBeNull(),
-      );
+      scene.lines.forEach((line, index) => {
+        if (line.speaker === '旁白') expect(dialogueCast(scene.lines, index).active).toBeNull();
+        else expect(dialogueCast(scene.lines, index).active).not.toBeNull();
+      });
   });
   it('retains the latest interlocutor when DeepSeek answers instead of reverting to the first companion', () => {
     const lines = ['Claude', 'D 教皇', '大肥鱼', 'GLM', '大肥鱼'].map((speaker) => ({

@@ -13,7 +13,7 @@
       1184,
       384
     ],
-    "next": "market",
+    "next": "rain",
     "obstacles": [
       [
         320,
@@ -51,9 +51,9 @@
   },
   {
     "id": "market",
-    "name": "东方集市",
-    "width": 32,
-    "height": 20,
+    "name": "东方青瓦集市",
+    "width": 40,
+    "height": 30,
     "theme": "town",
     "spawn": [
       96,
@@ -63,7 +63,7 @@
       928,
       320
     ],
-    "next": "forest",
+    "next": "rain",
     "obstacles": [
       [
         160,
@@ -102,18 +102,18 @@
         96
       ]
     ],
-    "before": "1-1",
+    "before": null,
     "encounter": null,
     "after": null,
     "checkpoint": "market",
     "unlock": null,
     "finalPreparation": false,
-    "objective": "向 Qwen 打听去往西方的线索",
+    "objective": "在市集打听消息，寻找南边四海茶摊的 Qwen",
     "chapter": "第一章 · 大洋彼岸的飞鸟"
   },
   {
     "id": "forest",
-    "name": "东方林道",
+    "name": "枫叶古道",
     "width": 56,
     "height": 28,
     "theme": "forest",
@@ -125,7 +125,7 @@
       1696,
       448
     ],
-    "next": "harbor",
+    "next": "market",
     "obstacles": [
       [
         224,
@@ -193,7 +193,7 @@
       1440,
       448
     ],
-    "next": "coast",
+    "next": "forest",
     "obstacles": [
       [
         192,
@@ -233,12 +233,12 @@
       ]
     ],
     "before": "2-1",
-    "encounter": "2-A",
-    "after": "2-2",
+    "encounter": null,
+    "after": null,
     "checkpoint": "harbor",
-    "unlock": "glm",
+    "unlock": null,
     "finalPreparation": false,
-    "objective": "追回行囊，让 GLM 认输",
+    "objective": "向老水手打听 GLM 的去向，探索船坞与旧仓库",
     "chapter": "第二章 · 港镇薄雾"
   },
   {
@@ -255,7 +255,7 @@
       928,
       320
     ],
-    "next": "crystal",
+    "next": "rift",
     "obstacles": [
       [
         256,
@@ -305,7 +305,7 @@
       1440,
       448
     ],
-    "next": "pass",
+    "next": "rift",
     "obstacles": [
       [
         256,
@@ -355,7 +355,7 @@
   },
   {
     "id": "pass",
-    "name": "北境山口",
+    "name": "北境风暴雪径",
     "width": 32,
     "height": 24,
     "theme": "snow",
@@ -367,18 +367,12 @@
       928,
       384
     ],
-    "next": "lair",
+    "next": "rift",
     "obstacles": [
       [
         224,
         64,
         128,
-        192
-      ],
-      [
-        416,
-        512,
-        160,
         192
       ],
       [
@@ -423,7 +417,7 @@
       1184,
       448
     ],
-    "next": "corridor",
+    "next": "pass",
     "obstacles": [
       [
         128,
@@ -473,7 +467,7 @@
       1440,
       448
     ],
-    "next": "garden",
+    "next": "relics",
     "obstacles": [
       [
         320,
@@ -547,7 +541,7 @@
       1056,
       384
     ],
-    "next": "throne",
+    "next": "corridor",
     "obstacles": [
       [
         160,
@@ -682,5 +676,549 @@
     "finalPreparation": false,
     "objective": "去一条没有地图的小巷，共享白米饭",
     "chapter": "尾声 · 没有地图的小巷"
+  },
+  {
+    "id": "rain",
+    "name": "圣殿后山·退路雨林",
+    "width": 40,
+    "height": 30,
+    "theme": "forest",
+    "spawn": [
+      640,
+      800
+    ],
+    "exit": [
+      1184,
+      480
+    ],
+    "next": "market",
+    "obstacles": [
+      [
+        256,
+        192,
+        256,
+        64
+      ],
+      [
+        768,
+        192,
+        256,
+        64
+      ],
+      [
+        256,
+        640,
+        256,
+        64
+      ],
+      [
+        768,
+        640,
+        256,
+        64
+      ]
+    ],
+    "before": null,
+    "encounter": "rain-wild",
+    "after": null,
+    "checkpoint": "rain",
+    "unlock": null,
+    "finalPreparation": false,
+    "objective": "留意岔路、路牌与旅人，探索后继续旅途",
+    "chapter": "序章 · 雨中退路"
+  },
+  {
+    "id": "mine",
+    "name": "琉璃石矿洞",
+    "width": 40,
+    "height": 30,
+    "theme": "forest",
+    "spawn": [
+      640,
+      800
+    ],
+    "exit": [
+      1184,
+      480
+    ],
+    "next": "forest",
+    "obstacles": [
+      [
+        256,
+        192,
+        256,
+        64
+      ],
+      [
+        768,
+        192,
+        256,
+        64
+      ],
+      [
+        256,
+        640,
+        256,
+        64
+      ],
+      [
+        768,
+        640,
+        256,
+        64
+      ]
+    ],
+    "before": null,
+    "encounter": "mine-guard",
+    "after": null,
+    "checkpoint": "mine",
+    "unlock": null,
+    "finalPreparation": false,
+    "objective": "留意岔路、路牌与旅人，探索后继续旅途",
+    "chapter": "第一章 · 古道迷途"
+  },
+  {
+    "id": "pavilion",
+    "name": "古亭驿站",
+    "width": 40,
+    "height": 30,
+    "theme": "forest",
+    "spawn": [
+      640,
+      800
+    ],
+    "exit": [
+      1184,
+      480
+    ],
+    "next": "forest",
+    "obstacles": [
+      [
+        256,
+        192,
+        256,
+        64
+      ],
+      [
+        768,
+        192,
+        256,
+        64
+      ],
+      [
+        256,
+        640,
+        256,
+        64
+      ],
+      [
+        768,
+        640,
+        256,
+        64
+      ]
+    ],
+    "before": null,
+    "encounter": null,
+    "after": null,
+    "checkpoint": "pavilion",
+    "unlock": null,
+    "finalPreparation": false,
+    "objective": "留意岔路、路牌与旅人，探索后继续旅途",
+    "chapter": "第一章 · 古道迷途"
+  },
+  {
+    "id": "dock",
+    "name": "废弃船坞",
+    "width": 40,
+    "height": 30,
+    "theme": "town",
+    "spawn": [
+      640,
+      800
+    ],
+    "exit": [
+      1184,
+      480
+    ],
+    "next": "harbor",
+    "obstacles": [
+      [
+        256,
+        192,
+        256,
+        64
+      ],
+      [
+        768,
+        192,
+        256,
+        64
+      ],
+      [
+        256,
+        640,
+        256,
+        64
+      ],
+      [
+        768,
+        640,
+        256,
+        64
+      ]
+    ],
+    "before": null,
+    "encounter": "dock-crabs",
+    "after": null,
+    "checkpoint": "dock",
+    "unlock": null,
+    "finalPreparation": false,
+    "objective": "留意岔路、路牌与旅人，探索后继续旅途",
+    "chapter": "第二章 · 追踪怪盗"
+  },
+  {
+    "id": "warehouse",
+    "name": "旧货与禁书仓库",
+    "width": 40,
+    "height": 30,
+    "theme": "town",
+    "spawn": [
+      640,
+      800
+    ],
+    "exit": [
+      1184,
+      480
+    ],
+    "next": "dock",
+    "obstacles": [
+      [
+        256,
+        192,
+        256,
+        64
+      ],
+      [
+        768,
+        192,
+        256,
+        64
+      ],
+      [
+        256,
+        640,
+        256,
+        64
+      ],
+      [
+        768,
+        640,
+        256,
+        64
+      ]
+    ],
+    "before": null,
+    "encounter": "2-A",
+    "after": "2-2",
+    "checkpoint": "warehouse",
+    "unlock": "glm",
+    "finalPreparation": false,
+    "objective": "找到 GLM，夺回行囊与暗流海图",
+    "chapter": "第二章 · 追踪怪盗"
+  },
+  {
+    "id": "rift",
+    "name": "断罪裂谷·崖壁",
+    "width": 40,
+    "height": 30,
+    "theme": "coast",
+    "spawn": [
+      640,
+      800
+    ],
+    "exit": [
+      1184,
+      480
+    ],
+    "next": "coast",
+    "obstacles": [
+      [
+        256,
+        192,
+        256,
+        64
+      ],
+      [
+        768,
+        192,
+        256,
+        64
+      ],
+      [
+        256,
+        640,
+        256,
+        64
+      ],
+      [
+        768,
+        640,
+        256,
+        64
+      ]
+    ],
+    "before": null,
+    "encounter": null,
+    "after": null,
+    "checkpoint": "rift",
+    "unlock": null,
+    "finalPreparation": false,
+    "objective": "留意岔路、路牌与旅人，探索后继续旅途",
+    "chapter": "第三章 · 星盘指引"
+  },
+  {
+    "id": "riverbed",
+    "name": "干涸河床·石刻洞穴",
+    "width": 40,
+    "height": 30,
+    "theme": "forest",
+    "spawn": [
+      640,
+      800
+    ],
+    "exit": [
+      1184,
+      480
+    ],
+    "next": "rift",
+    "obstacles": [
+      [
+        256,
+        192,
+        256,
+        64
+      ],
+      [
+        768,
+        192,
+        256,
+        64
+      ],
+      [
+        256,
+        640,
+        256,
+        64
+      ],
+      [
+        768,
+        640,
+        256,
+        64
+      ]
+    ],
+    "before": null,
+    "encounter": "river-golem",
+    "after": null,
+    "checkpoint": "riverbed",
+    "unlock": null,
+    "finalPreparation": false,
+    "objective": "留意岔路、路牌与旅人，探索后继续旅途",
+    "chapter": "第三章 · 星盘指引"
+  },
+  {
+    "id": "icehall",
+    "name": "冰封龙语古殿",
+    "width": 40,
+    "height": 30,
+    "theme": "snow",
+    "spawn": [
+      640,
+      800
+    ],
+    "exit": [
+      1184,
+      480
+    ],
+    "next": "pass",
+    "obstacles": [
+      [
+        256,
+        192,
+        256,
+        64
+      ],
+      [
+        256,
+        640,
+        256,
+        64
+      ],
+      [
+        768,
+        640,
+        256,
+        64
+      ]
+    ],
+    "before": null,
+    "encounter": "ice-guard",
+    "after": null,
+    "checkpoint": "icehall",
+    "unlock": null,
+    "finalPreparation": false,
+    "objective": "留意岔路、路牌与旅人，探索后继续旅途",
+    "chapter": "第四章 · 北境霜雪"
+  },
+  {
+    "id": "camp",
+    "name": "山腰避风营地",
+    "width": 40,
+    "height": 30,
+    "theme": "snow",
+    "spawn": [
+      640,
+      800
+    ],
+    "exit": [
+      1184,
+      480
+    ],
+    "next": "pass",
+    "obstacles": [
+      [
+        256,
+        192,
+        256,
+        64
+      ],
+      [
+        768,
+        192,
+        256,
+        64
+      ],
+      [
+        256,
+        640,
+        256,
+        64
+      ],
+      [
+        768,
+        640,
+        256,
+        64
+      ]
+    ],
+    "before": null,
+    "encounter": null,
+    "after": null,
+    "checkpoint": "camp",
+    "unlock": null,
+    "finalPreparation": false,
+    "objective": "留意岔路、路牌与旅人，探索后继续旅途",
+    "chapter": "第四章 · 北境霜雪"
+  },
+  {
+    "id": "relics",
+    "name": "左翼圣物厅",
+    "width": 40,
+    "height": 30,
+    "theme": "temple",
+    "spawn": [
+      640,
+      800
+    ],
+    "exit": [
+      1184,
+      480
+    ],
+    "next": "corridor",
+    "obstacles": [
+      [
+        256,
+        192,
+        256,
+        64
+      ],
+      [
+        768,
+        192,
+        256,
+        64
+      ],
+      [
+        256,
+        640,
+        256,
+        64
+      ],
+      [
+        768,
+        640,
+        256,
+        64
+      ]
+    ],
+    "before": null,
+    "encounter": "relic-guard",
+    "after": null,
+    "checkpoint": "relics",
+    "unlock": null,
+    "finalPreparation": false,
+    "objective": "留意岔路、路牌与旅人，探索后继续旅途",
+    "chapter": "终章 · 并肩之誓"
+  },
+  {
+    "id": "library",
+    "name": "右翼枢机图书馆",
+    "width": 40,
+    "height": 30,
+    "theme": "temple",
+    "spawn": [
+      640,
+      800
+    ],
+    "exit": [
+      1184,
+      480
+    ],
+    "next": "corridor",
+    "obstacles": [
+      [
+        256,
+        192,
+        256,
+        64
+      ],
+      [
+        768,
+        192,
+        256,
+        64
+      ],
+      [
+        256,
+        640,
+        256,
+        64
+      ],
+      [
+        768,
+        640,
+        256,
+        64
+      ]
+    ],
+    "before": null,
+    "encounter": null,
+    "after": null,
+    "checkpoint": "library",
+    "unlock": null,
+    "finalPreparation": false,
+    "objective": "留意岔路、路牌与旅人，探索后继续旅途",
+    "chapter": "终章 · 并肩之誓"
   }
 ]

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-test('harbor chase pauses safely and returns to a loadable pre-battle checkpoint', async ({
+test('harbor theft leaves a loadable exploration hub instead of forcing a chase duel', async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -28,6 +28,11 @@ test('harbor chase pauses safely and returns to a loadable pre-battle checkpoint
         position: { x: map.spawn[0], y: map.spawn[1] },
         stage: 'arrival',
         completed: ['0-A', '1-A'],
+        exploration: {
+          visited: ['steps', 'market', 'forest', 'harbor'],
+          flags: ['qwen'],
+          collected: [],
+        },
       },
       crypto.randomUUID(),
       progress.revision,
@@ -44,20 +49,13 @@ test('harbor chase pauses safely and returns to a loadable pre-battle checkpoint
   await expect.poll(async () => (await state())?.mode.kind).toBe('dialogue');
   for (let i = 0; i < 40 && (await state())?.mode.kind === 'dialogue'; i++)
     await page.keyboard.press('Enter');
-  await expect(page.getByText('追上那只狐狸', { exact: true })).toBeVisible();
+  await expect.poll(async () => (await state())?.mode.kind).toBe('explore');
   const before = (await state())!.snapshot;
-  await expect(page.getByRole('button', { name: /跳过演出/ })).toBeDisabled();
-  await page.waitForTimeout(900);
   await page.keyboard.press('Escape');
-  const paused = await state();
-  await page.waitForTimeout(300);
-  expect((await state())?.mode).toEqual(paused?.mode);
-  expect((await state())?.snapshot).toEqual(before);
   await page.getByRole('button', { name: '存读档', exact: true }).click();
-  await expect(page.getByRole('button', { name: '存 1', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: '存 1', exact: true })).toBeEnabled();
   await page.getByRole('button', { name: '旅途', exact: true }).click();
   await page.getByRole('button', { name: '继续游戏', exact: true }).click();
-  await expect.poll(async () => (await state())?.mode.kind, { timeout: 10000 }).toBe('explore');
   const end = (await state())!;
   expect(end.snapshot.stage).toBe('ready');
   expect(end.snapshot.unlocked).toEqual([]);

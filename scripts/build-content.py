@@ -24,7 +24,7 @@ def main():
             if text.startswith('“') and text.endswith('”'):
                 lines.append({'speaker': speaker, 'text': text[1:-1]})
         scenes.append({'id': scene_id, 'title': title, 'lines': lines})
-    assert len(scenes) == 16, f'Unexpected authored scene count: {len(scenes)}'
+    assert {'0-1','0-2','1-2','2-1','2-2','3-1','3-2','4-1','4-2','5-1','5-2','5-3','5-4','6-1','6-2','6-3'} <= {scene['id'] for scene in scenes}
     assert all(scene['lines'] for scene in scenes)
     # Battle calls reuse authored lines, rather than inventing conflicting dialogue.
     garden = next(scene for scene in scenes if scene['id'] == '5-2')
@@ -34,9 +34,10 @@ def main():
         {'id': '5-B-call-2', 'title': '向日葵下的真心', 'lines': [calls[-1]]},
     ])
     write(ROOT / 'content/story/dialogue.json', scenes)
+    region_catalog={r['mapId']:r for r in json.loads((ROOT/'content/world/exploration.json').read_text())}
     maps = json.loads((ROOT / 'content/world/maps.json').read_text())
     ids = {m['id'] for m in maps}
-    assert len(ids) == len(maps) == 12
+    assert len(ids) == len(maps)
     for m in maps:
         assert isinstance(m.get('chapter'), str) and m['chapter'].strip(), f"Missing chapter: {m['id']}"
         assert m['width'] > 0 and m['height'] > 0
@@ -53,7 +54,6 @@ def main():
     assert len(encounter_ids)==len(encounters)
     assert all(e['waves'] and all(wave and set(wave)<=enemy_ids for wave in e['waves']) for e in encounters)
     for index,m in enumerate(maps):
-        assert m['next']==(maps[index+1]['id'] if index+1<len(maps) else None)
         assert m['encounter'] is None or m['encounter'] in encounter_ids
         assert all(m[key] is None or m[key] in scene_ids for key in ('before','after'))
         assert m['unlock'] in (None,'glm','gpt','claude')
@@ -76,12 +76,42 @@ def main():
             encounter=next(e for e in encounters if e['id']==m['encounter'])
             for wave in encounter['waves']:
                 for i,_ in enumerate(wave):
-                    px=m['width']*32*.55+(i%3)*100
-                    py=m['height']*16+(i//3*2-1)*90
+                    spawn=region_catalog[m['id']].get('enemySpawns',[])
+                    px,py=spawn[i] if i<len(spawn) else (m['width']*32*.55+(i%3)*100,m['height']*16+(i//3*2-1)*90)
                     assert 24<=px<=m['width']*32-24 and 24<=py<=m['height']*32-24
                     assert not any(ox-12<=px<=ox+w+12 and oy-8<=py<=oy+h+8 for ox,oy,w,h in m['obstacles']), f"Blocked enemy spawn: {m['id']} #{i}"
                     assert (int(px//32),int(py//32)) in seen, f"Unreachable enemy spawn: {m['id']} #{i}"
+                    assert not any(b[0]-12<=px<=b[0]+b[2]+12 and b[1]-8<=py<=b[1]+b[3]+8 for p in region_catalog[m['id']]['points'] if (b:=p['blocker']) is not None),f"Spawn in closed mechanism: {m['id']}"
+        for p in region_catalog[m['id']]['points']:
+            assert tuple(int(v//32) for v in p['position']) in seen,f"Unreachable point: {m['id']} {p['id']}"
 
+    regions=json.loads((ROOT/'content/world/exploration.json').read_text())
+    assert {r['mapId'] for r in regions} == ids and len(regions)==len(maps)
+    points=[p for r in regions for p in r['points']]
+    point_ids={p['id'] for p in points}
+    assert len(point_ids)==len(points)
+    known=point_ids|encounter_ids|{m['id']+':arrival' for m in maps}
+    items={i['id'] for i in json.loads((ROOT/'content/balance/growth.json').read_text())}
+    by_id={m['id']:m for m in maps}
+    def position_valid(m,xy):
+        x,y=xy
+        return 24<=x<=m['width']*32-24 and 24<=y<=m['height']*32-24 and not any(ox-12<=x<=ox+w+12 and oy-8<=y<=oy+h+8 for ox,oy,w,h in m['obstacles'])
+    for r in regions:
+        m=by_id[r['mapId']]
+        assert set(r['requires'])<=known
+        assert len({e['side'] for e in r['exits']})==len(r['exits']),r['mapId']
+        for e in r['exits']:
+            assert e['to'] in ids and set(e['requires'])<=known
+            assert position_valid(by_id[e['to']],e['arrival']),(r['mapId'],e['to'],'arrival')
+        for p in r['points']:
+            assert position_valid(m,p['position']),(r['mapId'],p['id'],'position')
+            assert set(p['requires'])<=known and p['reward'] in items|{None,'heal','restore'}
+            assert p['scene'] is None or p['scene'] in scene_ids
+            assert p['warp'] is None or position_valid(m,p['warp'])
+    reachable={'steps'}
+    for _ in regions:
+        reachable|={e['to'] for r in regions if r['mapId'] in reachable for e in r['exits']}
+    assert reachable|{'alley'}==ids,'Disconnected region'
     assert sum(m['finalPreparation'] for m in maps)==1
     print(f'Validated {len(maps)} maps, {len(scenes)} scenes, {sum(len(s["lines"]) for s in scenes)} dialogue lines')
 

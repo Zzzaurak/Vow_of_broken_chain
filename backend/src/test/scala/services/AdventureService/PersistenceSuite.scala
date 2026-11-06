@@ -9,6 +9,7 @@ import services.system.database.Database
 import services.system.objects.ApiError
 import services.system.routes.Endpoint
 import io.circe.Json
+import io.circe.syntax.*
 import services.AdventureService.objects.apiTypes.SaveListResponse
 import services.PlayerService.api.{CreateAnonymousPlayerMessage,ResolvePlayerMessage,RegisterAccountMessage,LoginMessage}
 import services.PlayerService.objects.PlayerId
@@ -32,6 +33,25 @@ class PersistenceSuite extends CatsEffectSuite:
     id <- tx(c => ResolvePlayerMessage(session.token).plan(c))
   yield id
   private def start(p: PlayerId) = op.flatMap(id => tx(c => StartAdventureMessage(p,Difficulty.easy,id,0).plan(c)))
+
+  private def regionSnapshot(id: String, stage: ProgressStage = ProgressStage.ready): IO[GameSnapshot] =
+    for
+      initial <- Content.initial(Difficulty.easy)
+      catalog <- Content.maps
+      world <- Content.regions
+      current <- IO.fromOption(catalog.find(_.id == id))(new IllegalArgumentException(id))
+      region <- IO.fromOption(world.find(_.mapId == id))(new IllegalArgumentException(id))
+      points = world.flatMap(r => r.points.map(p => p.id -> (r.requires ++ p.requires))).toMap
+      encounters = catalog.flatMap(m => m.encounter.map(_ -> world.find(_.mapId == m.id).toList.flatMap(_.requires))).toMap
+      seeds = region.requires.toSet ++ (if stage == ProgressStage.cleared then current.encounter.toSet else Set.empty[String])
+      closure = world.foldLeft(seeds)((known, _) => known ++ known.flatMap(k => points.getOrElse(k, encounters.getOrElse(k, Nil))))
+      completed = closure.toList.filter(encounters.contains).sorted
+      flags = closure.toList.filter(points.contains).sorted
+      visited = world.filter(r => r.requires.forall(closure.contains)).map(_.mapId)
+      unlocked = catalog.filter(m => m.encounter.exists(completed.contains)).flatMap(_.unlock)
+      supports = if current.finalPreparation then List(Partner.claude, Partner.gpt) else unlocked.take(2)
+    yield initial.copy(mapId = id, checkpoint = id, stage = stage, position = Position(current.spawn.head, current.spawn(1)),
+      completed = completed, unlocked = unlocked, supports = supports, exploration = ExplorationProgress(visited, flags, Nil))
 
   test("duplicate registration preserves the original account, password and guest ownership") {
     for
@@ -176,23 +196,14 @@ class PersistenceSuite extends CatsEffectSuite:
       assert(incompatible.isLeft)
   }
 
-  test("every authored map accepts its safe arrival and cleared checkpoints in both difficulties") {
+  test("every graph region accepts arrival and cleared states independent of catalog order") {
     for
       catalog <- Content.maps
-      initial <- Content.initial(Difficulty.easy)
-      _ <- List(Difficulty.easy,Difficulty.hard).traverse_ { difficulty =>
-        catalog.zipWithIndex.traverse_ { (map,index) =>
-          val stages = if map.next.isEmpty then List(ProgressStage.ending,ProgressStage.finished)
-            else List(ProgressStage.arrival,ProgressStage.ready,ProgressStage.cleared)
-          stages.traverse_ { stage =>
-            val finished = catalog.take(index + (if stage == ProgressStage.cleared then 1 else 0))
-            val unlocked = finished.flatMap(_.unlock)
-            val supports = if map.finalPreparation then List(Partner.claude,Partner.gpt) else unlocked.take(2)
-            val point = Position(map.spawn.head,map.spawn(1))
-            Content.validate(initial.copy(difficulty=difficulty,mapId=map.id,checkpoint=map.checkpoint,
-              stage=stage,position=point,completed=finished.flatMap(_.encounter),unlocked=unlocked,supports=supports))
-          }
-        }
+      _ <- catalog.traverse_ { map =>
+        val stages = if map.id == "alley" then List(ProgressStage.ending, ProgressStage.finished)
+          else List(ProgressStage.arrival, ProgressStage.ready, ProgressStage.cleared)
+        stages.traverse_(stage => regionSnapshot(map.id, stage).flatMap(snapshot =>
+          List(Difficulty.easy, Difficulty.hard).traverse_(difficulty => Content.validate(snapshot.copy(difficulty = difficulty)))))
       }
     yield ()
   }
@@ -201,7 +212,7 @@ class PersistenceSuite extends CatsEffectSuite:
     for
       catalog <- Content.maps
       initial <- Content.initial(Difficulty.easy)
-      ending <- IO.fromOption(catalog.lastOption)(new IllegalStateException("Missing epilogue"))
+      ending <- IO.fromOption(catalog.find(_.id == "alley"))(new IllegalStateException("Missing epilogue"))
       snapshot = initial.copy(mapId=ending.id,checkpoint=ending.checkpoint,
         completed=catalog.flatMap(_.encounter),unlocked=catalog.flatMap(_.unlock),
         supports=List(Partner.claude,Partner.gpt),stage=ProgressStage.ready)
@@ -214,10 +225,9 @@ class PersistenceSuite extends CatsEffectSuite:
       catalog <- Content.maps
       initial <- Content.initial(Difficulty.easy)
       throne = catalog.find(_.finalPreparation).get
-      prior = catalog.takeWhile(_.id != throne.id)
-      snapshot = initial.copy(mapId=throne.id,checkpoint=throne.checkpoint,
-        position=Position(throne.spawn.head,throne.spawn(1)),completed=prior.flatMap(_.encounter),
-        unlocked=prior.flatMap(_.unlock),supports=List(Partner.gpt,Partner.claude))
+      valid <- regionSnapshot(throne.id)
+      snapshot = valid.copy(supports=List(Partner.gpt,Partner.claude))
+      _ <- Content.validate(valid)
       invalid <- Content.validate(snapshot).attempt
       future <- Content.validate(initial.copy(contentVersion="future")).attempt
     yield
@@ -266,4 +276,61 @@ class PersistenceSuite extends CatsEffectSuite:
     yield
       assertEquals(list.saves.map(_.id), List(first.save.id))
       assertEquals(denied.swap.toOption.collect { case error: ApiError => error.status }, Some(401))
+  }
+
+  test("exploration growth and rollback survive real storage without duplicate rewards") {
+    for
+      p <- player
+      first <- start(p)
+      base <- regionSnapshot("market")
+      upgraded = base.copy(hp=120, exploration=base.exploration.copy(flags=base.exploration.flags :+ "market-rice", collected=List("market-rice")))
+      id <- op
+      saved <- tx(c => SaveProgressMessage(p,first.save.adventureId,SaveKind.manual,1,upgraded,id,first.revision).plan(c))
+      readId <- op
+      loaded <- tx(c => LoadAdventureMessage(p,saved.save.id,readId,saved.revision).plan(c))
+      duplicated <- Content.validate(upgraded.copy(exploration=upgraded.exploration.copy(collected=List("market-rice","market-rice")))).attempt
+      forged <- Content.validate(base.copy(hp=120)).attempt
+      oldId <- op
+      restored <- tx(c => LoadAdventureMessage(p,first.save.id,oldId,loaded.revision).plan(c))
+    yield
+      assertEquals(loaded.save.snapshot.hp,120d)
+      assertEquals(loaded.save.snapshot.exploration.collected,List("market-rice"))
+      assert(duplicated.isLeft)
+      assert(forged.isLeft)
+      assertEquals(restored.save.snapshot.hp,100d)
+      assertEquals(restored.save.snapshot.exploration.collected,Nil)
+  }
+
+  test("locked regions and unearned rewards fail; old linear saves upgrade without treasure") {
+    for
+      initial <- Content.initial(Difficulty.easy)
+      locked <- Content.validate(initial.copy(mapId="warehouse",checkpoint="warehouse",exploration=ExplorationProgress(List("warehouse"),Nil,Nil))).attempt
+      market <- regionSnapshot("market")
+      forged <- Content.validate(market.copy(exploration=market.exploration.copy(flags=market.exploration.flags :+ "ice-pearl",collected=List("ice-pearl")))).attempt
+      old = initial.copy(contentVersion="1.1.0",mapId="harbor",checkpoint="harbor",stage=ProgressStage.ready,position=Position(96,448),completed=List("0-A","1-A"),exploration=ExplorationProgress(Nil,Nil,Nil))
+      migrated <- Content.upgrade(old)
+      _ <- Content.validate(migrated)
+    yield
+      assert(locked.isLeft)
+      assert(forged.isLeft)
+      assertEquals(migrated.mapId,"warehouse")
+      assertEquals(migrated.exploration.collected,Nil)
+      assertEquals(migrated.hp,old.hp)
+  }
+
+  test("loading a legacy record upgrades the response without rewriting the source row") {
+    for
+      p <- player
+      first <- start(p)
+      savedId <- op.map(SaveId.apply)
+      legacy = first.save.snapshot.copy(contentVersion="1.1.0",exploration=ExplorationProgress(Nil,Nil,Nil))
+      decoded <- IO.fromEither(io.circe.parser.decode[GameSnapshot](legacy.asJson.mapObject(_.remove("exploration")).noSpaces))
+      _ <- tx(c => services.AdventureService.tables.GameSave.GameSaveTable.insert(c,savedId,first.save.adventureId,SaveKind.manual,2,decoded))
+      operation <- op
+      loaded <- tx(c => LoadAdventureMessage(p,savedId,operation,first.revision).plan(c))
+      original <- tx(c => services.AdventureService.tables.GameSave.GameSaveTable.find(c,savedId,p))
+    yield
+      assertEquals(loaded.save.snapshot.contentVersion,"2.0.0")
+      assertEquals(loaded.save.snapshot.exploration.collected,Nil)
+      assertEquals(original.map(_.snapshot.contentVersion),Some("1.1.0"))
   }

@@ -105,6 +105,86 @@
       "range": 400,
       "windup": 1.2,
       "recovery": 1.3
+    },
+    "sprout": {
+      "hp": 24,
+      "damage": 4,
+      "speed": 95,
+      "range": 72,
+      "windup": 0.8,
+      "recovery": 1.2,
+      "behavior": "beast",
+      "name": "林间小树精"
+    },
+    "rabbit": {
+      "hp": 28,
+      "damage": 5,
+      "speed": 125,
+      "range": 76,
+      "windup": 0.7,
+      "recovery": 1,
+      "behavior": "hound",
+      "name": "迷途野兔兽"
+    },
+    "spider": {
+      "hp": 64,
+      "damage": 9,
+      "speed": 65,
+      "range": 170,
+      "windup": 1,
+      "recovery": 1.5,
+      "behavior": "knight",
+      "name": "晶石硬壳蛛"
+    },
+    "crab": {
+      "hp": 40,
+      "damage": 7,
+      "speed": 95,
+      "range": 72,
+      "windup": 0.8,
+      "recovery": 1.2,
+      "behavior": "beast",
+      "name": "发条寄居蟹"
+    },
+    "golem": {
+      "hp": 220,
+      "damage": 16,
+      "speed": 65,
+      "range": 170,
+      "windup": 1,
+      "recovery": 1.5,
+      "behavior": "knight",
+      "name": "晶石巨像"
+    },
+    "lizard": {
+      "hp": 65,
+      "damage": 11,
+      "speed": 125,
+      "range": 76,
+      "windup": 0.7,
+      "recovery": 1,
+      "behavior": "hound",
+      "name": "霜冻翼蜥"
+    },
+    "slime": {
+      "hp": 75,
+      "damage": 10,
+      "speed": 95,
+      "range": 72,
+      "windup": 0.8,
+      "recovery": 1.2,
+      "behavior": "beast",
+      "name": "极冰史莱姆"
+    },
+    "officer": {
+      "hp": 120,
+      "damage": 14,
+      "speed": 65,
+      "range": 170,
+      "windup": 1,
+      "recovery": 1.5,
+      "behavior": "knight",
+      "name": "机械督战官"
     }
   }
 }

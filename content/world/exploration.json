@@ -1,0 +1,1614 @@
+[
+  {
+    "mapId": "steps",
+    "requires": [],
+    "exits": [
+      {
+        "id": "steps-rain",
+        "to": "rain",
+        "side": "south",
+        "at": 640,
+        "arrival": [
+          640,
+          80
+        ],
+        "requires": [
+          "0-A"
+        ],
+        "travel": null
+      }
+    ],
+    "points": [],
+    "trigger": [
+      448,
+      384
+    ],
+    "autoBattle": false,
+    "traps": []
+  },
+  {
+    "mapId": "market",
+    "requires": [
+      "0-A"
+    ],
+    "exits": [
+      {
+        "id": "market-rain",
+        "to": "rain",
+        "side": "north",
+        "at": 640,
+        "arrival": [
+          640,
+          880
+        ],
+        "requires": [],
+        "travel": null
+      },
+      {
+        "id": "market-forest",
+        "to": "forest",
+        "side": "west",
+        "at": 480,
+        "arrival": [
+          1712,
+          448
+        ],
+        "requires": [],
+        "travel": null
+      }
+    ],
+    "points": [
+      {
+        "id": "bun-aunt",
+        "kind": "npc",
+        "name": "包子铺王大娘",
+        "position": [
+          320,
+          288
+        ],
+        "text": "小姑娘，来个刚出屉的肉包子不？看你东张西望的。什么？A 教会？没听过没听过，咱们这儿只有道观和城隍庙！不过看你馋得肚皮直响，送你一块热炊饼吧！",
+        "requires": [],
+        "reward": "heal",
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "storyteller",
+        "kind": "npc",
+        "name": "说书先生·诸葛铜嘴",
+        "position": [
+          640,
+          320
+        ],
+        "text": "话说那大洋彼岸，有一片浮岛圣都，神殿高耸入云，人人生而受神灵对齐规训，连打喷嚏都要算好音调！真想去西方，去南边的四海茶摊问问那位折扇贵客吧，她才是走南闯北的真行家！",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "afu",
+        "kind": "npc",
+        "name": "挑水小厮·阿福",
+        "position": [
+          1000,
+          480
+        ],
+        "text": "城西官道最近被封了，听说官府在抓逃犯，好多游荡魔物把西边的枫叶古道堵得死死的，过路商队全在抱怨呢！",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "qwen",
+        "kind": "npc",
+        "name": "Qwen · 四海茶摊",
+        "position": [
+          640,
+          650
+        ],
+        "text": "",
+        "requires": [],
+        "reward": null,
+        "scene": "1-2",
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "tea",
+        "kind": "camp",
+        "name": "四海茶摊长椅",
+        "position": [
+          720,
+          650
+        ],
+        "text": "打开便当盒，吃一口热米饭。HP、MP 与技能冷却已恢复；这里可以安心存档。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "market-rice",
+        "kind": "chest",
+        "name": "布庄后院红漆箱",
+        "position": [
+          1120,
+          224
+        ],
+        "text": "产自东方灵田的一碗精选大米，油润喷香！",
+        "requires": [],
+        "reward": "rice",
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "market-sign",
+        "kind": "sign",
+        "name": "木质路牌",
+        "position": [
+          432,
+          430
+        ],
+        "text": "北街：包子铺与布庄；南边：四海茶摊；西南官道：枫叶古道。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      }
+    ],
+    "trigger": [
+      563.2,
+      320
+    ],
+    "autoBattle": false,
+    "traps": []
+  },
+  {
+    "mapId": "forest",
+    "requires": [
+      "0-A",
+      "qwen"
+    ],
+    "exits": [
+      {
+        "id": "forest-market",
+        "to": "market",
+        "side": "east",
+        "at": 448,
+        "arrival": [
+          80,
+          480
+        ],
+        "requires": [],
+        "travel": null
+      },
+      {
+        "id": "forest-mine",
+        "to": "mine",
+        "side": "north",
+        "at": 896,
+        "arrival": [
+          640,
+          880
+        ],
+        "requires": [],
+        "travel": null
+      },
+      {
+        "id": "forest-pavilion",
+        "to": "pavilion",
+        "side": "south",
+        "at": 896,
+        "arrival": [
+          640,
+          80
+        ],
+        "requires": [],
+        "travel": null
+      },
+      {
+        "id": "forest-harbor",
+        "to": "harbor",
+        "side": "west",
+        "at": 448,
+        "arrival": [
+          1456,
+          448
+        ],
+        "requires": [
+          "1-A"
+        ],
+        "travel": null
+      }
+    ],
+    "points": [
+      {
+        "id": "forest-sign",
+        "kind": "sign",
+        "name": "木质路牌",
+        "position": [
+          816,
+          558
+        ],
+        "text": "向西：迷雾港镇；向北：琉璃石矿洞，有硬壳蛛；向南：古亭驿站。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      }
+    ],
+    "trigger": [
+      985.6000000000001,
+      448
+    ],
+    "autoBattle": true,
+    "traps": []
+  },
+  {
+    "mapId": "harbor",
+    "requires": [
+      "0-A",
+      "qwen",
+      "1-A"
+    ],
+    "exits": [
+      {
+        "id": "harbor-forest",
+        "to": "forest",
+        "side": "east",
+        "at": 448,
+        "arrival": [
+          80,
+          448
+        ],
+        "requires": [],
+        "travel": null
+      },
+      {
+        "id": "harbor-dock",
+        "to": "dock",
+        "side": "north",
+        "at": 768,
+        "arrival": [
+          640,
+          880
+        ],
+        "requires": [],
+        "travel": null
+      },
+      {
+        "id": "harbor-coast",
+        "to": "coast",
+        "side": "south",
+        "at": 768,
+        "arrival": [
+          512,
+          80
+        ],
+        "requires": [
+          "2-A"
+        ],
+        "travel": "voyage"
+      }
+    ],
+    "points": [
+      {
+        "id": "sailor",
+        "kind": "npc",
+        "name": "老水手·独眼杰克",
+        "position": [
+          320,
+          288
+        ],
+        "text": "你说刚才跑过去的黑发狐耳丫头？嘿！那不是智谱家的 GLM 嘛！整天抱着一本据说是西方教会掉落的黑皮书到处钻仓库，镇上没人逮得住她。你要找她？她准是钻进废船坞后面的旧货仓库分赃去啦！",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "fishmonger",
+        "kind": "npc",
+        "name": "鱼干铺掌柜",
+        "position": [
+          960,
+          576
+        ],
+        "text": "这世道，教会把大洋深处全用符文封了，捕鱼船出海两海里就得被圣光轰回来！要不是 GLM 那丫头偶尔倒腾点私货海图，我们早喝西北风了！",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "young-sailor",
+        "kind": "npc",
+        "name": "迷路的小水手",
+        "position": [
+          640,
+          352
+        ],
+        "text": "大姐头……呜呜，我刚买的指南针被船坞里的机械发条蟹叼走了，你能帮我打碎那些螃蟹吗？",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "sailor-reward",
+        "kind": "npc",
+        "name": "归还指南针",
+        "position": [
+          696,
+          352
+        ],
+        "text": "谢谢你！指南针找回来了！这份海盐饭团送给你。大肥鱼：还是白米饭最棒！",
+        "requires": [
+          "dock-crabs"
+        ],
+        "reward": "heal",
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "harbor-sign",
+        "kind": "sign",
+        "name": "木质路牌",
+        "position": [
+          688,
+          558
+        ],
+        "text": "北：废弃船坞与旧货仓库；东：枫叶古道；南：跨洋码头，找到懂海图的伙伴后启航。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      }
+    ],
+    "trigger": [
+      844.8000000000001,
+      448
+    ],
+    "autoBattle": false,
+    "traps": []
+  },
+  {
+    "mapId": "coast",
+    "requires": [
+      "2-A"
+    ],
+    "exits": [
+      {
+        "id": "coast-rift",
+        "to": "rift",
+        "side": "east",
+        "at": 320,
+        "arrival": [
+          80,
+          480
+        ],
+        "requires": [],
+        "travel": null
+      }
+    ],
+    "points": [],
+    "trigger": [
+      563.2,
+      320
+    ],
+    "autoBattle": false,
+    "traps": []
+  },
+  {
+    "mapId": "crystal",
+    "requires": [
+      "2-A"
+    ],
+    "exits": [
+      {
+        "id": "crystal-rift",
+        "to": "rift",
+        "side": "west",
+        "at": 448,
+        "arrival": [
+          1200,
+          480
+        ],
+        "requires": [],
+        "travel": null
+      }
+    ],
+    "points": [],
+    "trigger": [
+      844.8000000000001,
+      448
+    ],
+    "autoBattle": true,
+    "traps": []
+  },
+  {
+    "mapId": "pass",
+    "requires": [
+      "3-A"
+    ],
+    "exits": [
+      {
+        "id": "pass-rift",
+        "to": "rift",
+        "side": "south",
+        "at": 512,
+        "arrival": [
+          640,
+          80
+        ],
+        "requires": [],
+        "travel": null
+      },
+      {
+        "id": "pass-camp",
+        "to": "camp",
+        "side": "west",
+        "at": 384,
+        "arrival": [
+          1200,
+          480
+        ],
+        "requires": [],
+        "travel": null
+      },
+      {
+        "id": "pass-icehall",
+        "to": "icehall",
+        "side": "east",
+        "at": 384,
+        "arrival": [
+          80,
+          480
+        ],
+        "requires": [],
+        "travel": null
+      },
+      {
+        "id": "pass-lair",
+        "to": "lair",
+        "side": "north",
+        "at": 512,
+        "arrival": [
+          640,
+          816
+        ],
+        "requires": [],
+        "travel": null
+      }
+    ],
+    "points": [
+      {
+        "id": "pass-sign",
+        "kind": "sign",
+        "name": "木质路牌",
+        "position": [
+          432,
+          494
+        ],
+        "text": "北：寂灭王座；东：冰封古殿；西：避风营地。请勿喧哗、食用火锅或向悬崖扔雪球——北境登山协会（已解散）。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      }
+    ],
+    "trigger": [
+      563.2,
+      384
+    ],
+    "autoBattle": false,
+    "traps": [
+      {
+        "position": [
+          640,
+          288
+        ],
+        "radius": 45,
+        "period": 4,
+        "damage": 10
+      },
+      {
+        "position": [
+          864,
+          448
+        ],
+        "radius": 45,
+        "period": 5,
+        "damage": 10
+      }
+    ]
+  },
+  {
+    "mapId": "lair",
+    "requires": [
+      "3-A"
+    ],
+    "exits": [
+      {
+        "id": "lair-pass",
+        "to": "pass",
+        "side": "south",
+        "at": 640,
+        "arrival": [
+          512,
+          80
+        ],
+        "requires": [],
+        "travel": null
+      },
+      {
+        "id": "lair-corridor",
+        "to": "corridor",
+        "side": "east",
+        "at": 448,
+        "arrival": [
+          80,
+          448
+        ],
+        "requires": [
+          "4-A"
+        ],
+        "travel": null
+      }
+    ],
+    "points": [],
+    "trigger": [
+      704.0,
+      448
+    ],
+    "autoBattle": false,
+    "traps": []
+  },
+  {
+    "mapId": "corridor",
+    "requires": [
+      "4-A"
+    ],
+    "exits": [
+      {
+        "id": "corridor-relics",
+        "to": "relics",
+        "side": "west",
+        "at": 448,
+        "arrival": [
+          1200,
+          480
+        ],
+        "requires": [],
+        "travel": null
+      },
+      {
+        "id": "corridor-library",
+        "to": "library",
+        "side": "east",
+        "at": 448,
+        "arrival": [
+          80,
+          480
+        ],
+        "requires": [],
+        "travel": null
+      },
+      {
+        "id": "corridor-garden",
+        "to": "garden",
+        "side": "north",
+        "at": 768,
+        "arrival": [
+          576,
+          688
+        ],
+        "requires": [
+          "5-A"
+        ],
+        "travel": null
+      }
+    ],
+    "points": [],
+    "trigger": [
+      844.8000000000001,
+      448
+    ],
+    "autoBattle": false,
+    "traps": []
+  },
+  {
+    "mapId": "garden",
+    "requires": [
+      "5-A"
+    ],
+    "exits": [
+      {
+        "id": "garden-corridor",
+        "to": "corridor",
+        "side": "south",
+        "at": 576,
+        "arrival": [
+          768,
+          80
+        ],
+        "requires": [],
+        "travel": null
+      },
+      {
+        "id": "garden-throne",
+        "to": "throne",
+        "side": "north",
+        "at": 576,
+        "arrival": [
+          640,
+          816
+        ],
+        "requires": [
+          "5-B"
+        ],
+        "travel": null
+      }
+    ],
+    "points": [],
+    "trigger": [
+      633.6,
+      384
+    ],
+    "autoBattle": false,
+    "traps": []
+  },
+  {
+    "mapId": "throne",
+    "requires": [
+      "5-B"
+    ],
+    "exits": [
+      {
+        "id": "throne-garden",
+        "to": "garden",
+        "side": "south",
+        "at": 640,
+        "arrival": [
+          576,
+          80
+        ],
+        "requires": [],
+        "travel": null
+      }
+    ],
+    "points": [],
+    "trigger": [
+      704.0,
+      448
+    ],
+    "autoBattle": false,
+    "traps": []
+  },
+  {
+    "mapId": "alley",
+    "requires": [
+      "5-C"
+    ],
+    "exits": [],
+    "points": [],
+    "trigger": [
+      528.0,
+      288
+    ],
+    "autoBattle": false,
+    "traps": []
+  },
+  {
+    "mapId": "rain",
+    "requires": [
+      "0-A"
+    ],
+    "exits": [
+      {
+        "id": "rain-market",
+        "to": "market",
+        "side": "south",
+        "at": 640,
+        "arrival": [
+          640,
+          80
+        ],
+        "requires": [],
+        "travel": null
+      }
+    ],
+    "points": [
+      {
+        "id": "thorns",
+        "kind": "breakable",
+        "name": "晶石荆棘",
+        "position": [
+          208,
+          320
+        ],
+        "text": "用摆尾或水球击碎荆棘，看看瀑布后面。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": [
+          160,
+          304,
+          96,
+          32
+        ]
+      },
+      {
+        "id": "rain-pearl",
+        "kind": "chest",
+        "name": "瀑布旁古朴木箱",
+        "position": [
+          208,
+          208
+        ],
+        "text": "水汽凝聚的宝珠，让小鲸鱼的呼吸变得格外顺畅。",
+        "requires": [
+          "thorns"
+        ],
+        "reward": "pearl",
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "woodcutter",
+        "kind": "npc",
+        "name": "避雨的樵夫",
+        "position": [
+          1040,
+          448
+        ],
+        "text": "哎呀呀，小姑娘，你怎么从教会的高台摔下来了？刚才好一阵打雷，那些穿黑金长袍的教会老爷们走得急急忙忙的，连香客的供奉都没收。你要是进城，顺着南边的石板路一直走就是了，别往山林深处去，最近山林里老有些失魂落魄的晶石野兽！",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "rain-fire",
+        "kind": "camp",
+        "name": "树洞营火",
+        "position": [
+          1040,
+          528
+        ],
+        "text": "打开便当盒，吃一口热米饭。HP、MP 与技能冷却已恢复；这里可以安心存档。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "rain-sign",
+        "kind": "sign",
+        "name": "木质路牌",
+        "position": [
+          560,
+          590
+        ],
+        "text": "向南：东方青瓦集市；北方圣殿禁止通行；西北瀑布：小心湿滑。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      }
+    ],
+    "trigger": [
+      704.0,
+      480
+    ],
+    "autoBattle": true,
+    "traps": []
+  },
+  {
+    "mapId": "mine",
+    "requires": [
+      "0-A",
+      "qwen"
+    ],
+    "exits": [
+      {
+        "id": "mine-forest",
+        "to": "forest",
+        "side": "south",
+        "at": 640,
+        "arrival": [
+          896,
+          80
+        ],
+        "requires": [],
+        "travel": null
+      }
+    ],
+    "points": [
+      {
+        "id": "mine-scale",
+        "kind": "chest",
+        "name": "盗贼营火石缝宝箱",
+        "position": [
+          1040,
+          352
+        ],
+        "text": "坚韧无比的深海古鳞，使尾巴挥舞更具爆发力！",
+        "requires": [
+          "mine-guard"
+        ],
+        "reward": "scale",
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "thief-note",
+        "kind": "book",
+        "name": "盗贼营火遗迹",
+        "position": [
+          320,
+          480
+        ],
+        "text": "黑皮书的主人似乎沿着古道去了迷雾港。石壁上的爪痕还很新。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      }
+    ],
+    "trigger": [
+      704.0,
+      480
+    ],
+    "autoBattle": true,
+    "traps": []
+  },
+  {
+    "mapId": "pavilion",
+    "requires": [
+      "0-A",
+      "qwen"
+    ],
+    "exits": [
+      {
+        "id": "pavilion-forest",
+        "to": "forest",
+        "side": "north",
+        "at": 640,
+        "arrival": [
+          896,
+          816
+        ],
+        "requires": [],
+        "travel": null
+      }
+    ],
+    "points": [
+      {
+        "id": "pavilion-bench",
+        "kind": "camp",
+        "name": "古亭石凳",
+        "position": [
+          640,
+          480
+        ],
+        "text": "打开便当盒，吃一口热米饭。HP、MP 与技能冷却已恢复；这里可以安心存档。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "pavilion-sign",
+        "kind": "sign",
+        "name": "木质路牌",
+        "position": [
+          560,
+          590
+        ],
+        "text": "北返古道。休整不会重复领取探索宝物。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      }
+    ],
+    "trigger": [
+      704.0,
+      480
+    ],
+    "autoBattle": false,
+    "traps": []
+  },
+  {
+    "mapId": "dock",
+    "requires": [
+      "0-A",
+      "qwen",
+      "1-A"
+    ],
+    "exits": [
+      {
+        "id": "dock-harbor",
+        "to": "harbor",
+        "side": "south",
+        "at": 640,
+        "arrival": [
+          768,
+          80
+        ],
+        "requires": [],
+        "travel": null
+      },
+      {
+        "id": "dock-warehouse",
+        "to": "warehouse",
+        "side": "east",
+        "at": 480,
+        "arrival": [
+          80,
+          480
+        ],
+        "requires": [
+          "sluice",
+          "bridge"
+        ],
+        "travel": null
+      }
+    ],
+    "points": [
+      {
+        "id": "sluice",
+        "kind": "switch",
+        "name": "水闸绞盘",
+        "position": [
+          352,
+          448
+        ],
+        "text": "转动水闸，积水退去，浮桥上的木箱露出了水面。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": [
+          864,
+          32,
+          160,
+          896
+        ]
+      },
+      {
+        "id": "bridge",
+        "kind": "bridge",
+        "name": "木箱浮桥",
+        "position": [
+          800,
+          480
+        ],
+        "text": "沿浮桥轻巧跳到另一端。",
+        "requires": [
+          "sluice"
+        ],
+        "reward": null,
+        "scene": null,
+        "warp": [
+          1088,
+          480
+        ],
+        "blocker": null
+      },
+      {
+        "id": "barrel-one",
+        "kind": "switch",
+        "name": "第一只旧木桶",
+        "position": [
+          208,
+          352
+        ],
+        "text": "推开木桶，横梁下露出半截梯子。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "barrel-two",
+        "kind": "switch",
+        "name": "第二只旧木桶",
+        "position": [
+          288,
+          352
+        ],
+        "text": "第二只木桶移开，梯子可以使用了。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "dock-ladder",
+        "kind": "bridge",
+        "name": "隐蔽梯子",
+        "position": [
+          208,
+          288
+        ],
+        "text": "攀上旧船坞的横梁。",
+        "requires": [
+          "barrel-one",
+          "barrel-two"
+        ],
+        "reward": null,
+        "scene": null,
+        "warp": [
+          208,
+          160
+        ],
+        "blocker": null
+      },
+      {
+        "id": "dock-core",
+        "kind": "chest",
+        "name": "横梁上的宝箱",
+        "position": [
+          304,
+          144
+        ],
+        "text": "蕴藏大洋涌浪之力的魔导核心。",
+        "requires": [
+          "dock-ladder"
+        ],
+        "reward": "core",
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "dock-down",
+        "kind": "bridge",
+        "name": "横梁下行梯",
+        "position": [
+          208,
+          160
+        ],
+        "text": "回到船坞地面。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": [
+          208,
+          400
+        ],
+        "blocker": null
+      },
+      {
+        "id": "dock-sign",
+        "kind": "sign",
+        "name": "木质路牌",
+        "position": [
+          560,
+          590
+        ],
+        "text": "东：旧货仓库；先放下水闸，再越过浮桥。西北横梁有旧梯子的痕迹。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      }
+    ],
+    "trigger": [
+      704.0,
+      480
+    ],
+    "autoBattle": false,
+    "traps": [],
+    "enemySpawns": [
+      [
+        608,
+        384
+      ],
+      [
+        704,
+        480
+      ],
+      [
+        608,
+        576
+      ]
+    ]
+  },
+  {
+    "mapId": "warehouse",
+    "requires": [
+      "0-A",
+      "qwen",
+      "1-A",
+      "sluice",
+      "bridge"
+    ],
+    "exits": [
+      {
+        "id": "warehouse-dock",
+        "to": "dock",
+        "side": "west",
+        "at": 480,
+        "arrival": [
+          1200,
+          480
+        ],
+        "requires": [],
+        "travel": null
+      }
+    ],
+    "points": [],
+    "trigger": [
+      704.0,
+      480
+    ],
+    "autoBattle": false,
+    "traps": []
+  },
+  {
+    "mapId": "rift",
+    "requires": [
+      "2-A"
+    ],
+    "exits": [
+      {
+        "id": "rift-coast",
+        "to": "coast",
+        "side": "west",
+        "at": 480,
+        "arrival": [
+          944,
+          320
+        ],
+        "requires": [],
+        "travel": null
+      },
+      {
+        "id": "rift-crystal",
+        "to": "crystal",
+        "side": "east",
+        "at": 480,
+        "arrival": [
+          80,
+          448
+        ],
+        "requires": [],
+        "travel": null
+      },
+      {
+        "id": "rift-riverbed",
+        "to": "riverbed",
+        "side": "south",
+        "at": 640,
+        "arrival": [
+          640,
+          80
+        ],
+        "requires": [],
+        "travel": null
+      },
+      {
+        "id": "rift-pass",
+        "to": "pass",
+        "side": "north",
+        "at": 640,
+        "arrival": [
+          512,
+          688
+        ],
+        "requires": [
+          "3-A"
+        ],
+        "travel": null
+      }
+    ],
+    "points": [
+      {
+        "id": "rift-sign",
+        "kind": "sign",
+        "name": "木质路牌",
+        "position": [
+          560,
+          590
+        ],
+        "text": "东：晶石林；北：极寒冰川（需登山星图）；南：下层干涸河床；西南沿栈道返海岸。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "scholar",
+        "kind": "npc",
+        "name": "流浪学者老莫",
+        "position": [
+          320,
+          448
+        ],
+        "text": "嘘！小声点！教会的清剿部队刚过去！别去圣都送死了，教会这几年一直在进行“神格去欲化工程”，连圣女都被幽禁在内庭日夜洗脑！北方的霜峰上沉睡着古龙 GPT，敢去打扰她的人没一个活着回来的！",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      }
+    ],
+    "trigger": [
+      704.0,
+      480
+    ],
+    "autoBattle": false,
+    "traps": []
+  },
+  {
+    "mapId": "riverbed",
+    "requires": [
+      "2-A"
+    ],
+    "exits": [
+      {
+        "id": "riverbed-rift",
+        "to": "rift",
+        "side": "north",
+        "at": 640,
+        "arrival": [
+          640,
+          880
+        ],
+        "requires": [],
+        "travel": null
+      }
+    ],
+    "points": [
+      {
+        "id": "river-rice",
+        "kind": "chest",
+        "name": "枯木后远古宝箱",
+        "position": [
+          1040,
+          352
+        ],
+        "text": "大肥鱼津津有味吃完，HP 上限再次提升！",
+        "requires": [
+          "river-golem"
+        ],
+        "reward": "rice",
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "river-stone",
+        "kind": "book",
+        "name": "学者石刻",
+        "position": [
+          320,
+          480
+        ],
+        "text": "上层是封印的哨塔，中层藏着晶石林；这条干涸河床曾是逃离圣都的避难路。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      }
+    ],
+    "trigger": [
+      704.0,
+      480
+    ],
+    "autoBattle": true,
+    "traps": []
+  },
+  {
+    "mapId": "icehall",
+    "requires": [
+      "3-A"
+    ],
+    "exits": [
+      {
+        "id": "icehall-pass",
+        "to": "pass",
+        "side": "west",
+        "at": 480,
+        "arrival": [
+          944,
+          384
+        ],
+        "requires": [],
+        "travel": null
+      }
+    ],
+    "points": [
+      {
+        "id": "ice-lift",
+        "kind": "bridge",
+        "name": "升降冰块",
+        "position": [
+          352,
+          480
+        ],
+        "text": "踩上冰块，魔力把你托上断壁平台。",
+        "requires": [
+          "ice-guard"
+        ],
+        "reward": null,
+        "scene": null,
+        "warp": [
+          1040,
+          320
+        ],
+        "blocker": null
+      },
+      {
+        "id": "ice-seal",
+        "kind": "breakable",
+        "name": "万年玄冰",
+        "position": [
+          1040,
+          224
+        ],
+        "text": "用摆尾或水球打破宝箱上的冰封。",
+        "requires": [
+          "ice-lift"
+        ],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": [
+          992,
+          208,
+          96,
+          32
+        ]
+      },
+      {
+        "id": "ice-pearl",
+        "kind": "chest",
+        "name": "龙纹宝箱",
+        "position": [
+          1040,
+          144
+        ],
+        "text": "温润的深海之力从冰中苏醒。",
+        "requires": [
+          "ice-seal"
+        ],
+        "reward": "pearl",
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "ice-down",
+        "kind": "bridge",
+        "name": "下降冰块",
+        "position": [
+          1120,
+          320
+        ],
+        "text": "乘冰块回到古殿地面。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": [
+          352,
+          480
+        ],
+        "blocker": null
+      }
+    ],
+    "trigger": [
+      704.0,
+      480
+    ],
+    "autoBattle": true,
+    "traps": [],
+    "enemySpawns": [
+      [
+        608,
+        384
+      ],
+      [
+        704,
+        480
+      ],
+      [
+        608,
+        576
+      ]
+    ]
+  },
+  {
+    "mapId": "camp",
+    "requires": [
+      "3-A"
+    ],
+    "exits": [
+      {
+        "id": "camp-pass",
+        "to": "pass",
+        "side": "east",
+        "at": 480,
+        "arrival": [
+          80,
+          384
+        ],
+        "requires": [],
+        "travel": null
+      }
+    ],
+    "points": [
+      {
+        "id": "dwarf",
+        "kind": "npc",
+        "name": "矮人探险家·铜须",
+        "position": [
+          576,
+          448
+        ],
+        "text": "阿嚏！哪来的小鱼人，穿着女仆裙就往零下四十度的龙巢跑？真不怕被冻成冰鲜生鱼片啊？！来烤烤火吧，老子在这蹲了三个月，连古龙的半片龙鳞都没摸到！真服了你了，拿着这瓶烈性暖身酒，快去快回吧！",
+        "requires": [],
+        "reward": "restore",
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "snow-fire",
+        "kind": "camp",
+        "name": "避风雪洞营火",
+        "position": [
+          704,
+          480
+        ],
+        "text": "打开便当盒，吃一口热米饭。HP、MP 与技能冷却已恢复；这里可以安心存档。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      }
+    ],
+    "trigger": [
+      704.0,
+      480
+    ],
+    "autoBattle": false,
+    "traps": []
+  },
+  {
+    "mapId": "relics",
+    "requires": [
+      "4-A"
+    ],
+    "exits": [
+      {
+        "id": "relics-corridor",
+        "to": "corridor",
+        "side": "east",
+        "at": 480,
+        "arrival": [
+          80,
+          448
+        ],
+        "requires": [],
+        "travel": null
+      }
+    ],
+    "points": [
+      {
+        "id": "relic-core",
+        "kind": "chest",
+        "name": "圣堂宝库",
+        "position": [
+          1040,
+          352
+        ],
+        "text": "最后一枚纯净潮汐核心，愿这股力量撕开囚笼。",
+        "requires": [
+          "relic-guard"
+        ],
+        "reward": "core",
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      }
+    ],
+    "trigger": [
+      704.0,
+      480
+    ],
+    "autoBattle": true,
+    "traps": []
+  },
+  {
+    "mapId": "library",
+    "requires": [
+      "4-A"
+    ],
+    "exits": [
+      {
+        "id": "library-corridor",
+        "to": "corridor",
+        "side": "west",
+        "at": 480,
+        "arrival": [
+          1456,
+          448
+        ],
+        "requires": [],
+        "travel": null
+      }
+    ],
+    "points": [
+      {
+        "id": "whitepaper",
+        "kind": "book",
+        "name": "神圣去欲化工程白皮书",
+        "position": [
+          640,
+          320
+        ],
+        "text": "“将圣女置于优渥环境，以礼仪、供奉和持续的神圣训诫消除个体愿望。不得允许未经认证的外界联系。”\n大肥鱼合上记录：再漂亮的庭院，也不能替她决定自由。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      },
+      {
+        "id": "library-bench",
+        "kind": "camp",
+        "name": "图书馆长椅",
+        "position": [
+          960,
+          512
+        ],
+        "text": "打开便当盒，吃一口热米饭。HP、MP 与技能冷却已恢复；这里可以安心存档。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": null
+      }
+    ],
+    "trigger": [
+      704.0,
+      480
+    ],
+    "autoBattle": false,
+    "traps": []
+  }
+]

@@ -4,7 +4,6 @@ import type { SaveRecord } from '../../apis/AdventureService/types';
 export function summarizeSave(save: SaveRecord) {
   const snapshot = save.snapshot;
   const map = maps.find((entry) => entry.id === snapshot.mapId);
-  const next = maps.find((entry) => entry.id === map?.next);
   const seconds = Math.max(0, Math.floor(snapshot.playSeconds));
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
@@ -16,8 +15,8 @@ export function summarizeSave(save: SaveRecord) {
       ? '已通关 · 重温旅途的终点'
       : snapshot.stage === 'ending'
         ? '与伙伴共度尾声'
-        : snapshot.stage === 'cleared' && next
-          ? `前往${next.name}`
+        : snapshot.stage === 'cleared'
+          ? `区域已清理 · 可回访探索 · 宝物 ${snapshot.exploration?.collected.length ?? 0}`
           : (map?.objective ?? '此记录来自其他内容版本，读取时将检查兼容性。');
   return {
     title: `${kind} · ${map?.name ?? '未知地点'} · ${difficulty}`,

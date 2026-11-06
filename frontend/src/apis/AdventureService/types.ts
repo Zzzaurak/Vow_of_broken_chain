@@ -2,7 +2,13 @@ export type Difficulty = 'easy' | 'hard';
 export type Partner = 'glm' | 'gpt' | 'claude';
 export type ProgressStage = 'arrival' | 'ready' | 'cleared' | 'ending' | 'finished';
 export type Id = Readonly<{ value: string }>;
+export interface ExplorationProgress {
+  visited: string[];
+  flags: string[];
+  collected: string[];
+}
 export interface GameSnapshot {
+  exploration?: ExplorationProgress;
   schemaVersion: 1;
   contentVersion: string;
   difficulty: Difficulty;

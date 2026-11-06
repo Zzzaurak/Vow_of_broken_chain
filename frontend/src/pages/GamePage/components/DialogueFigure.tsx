@@ -2,6 +2,32 @@ import { portrait } from '../runtime/assets';
 import type { SpeakerFigure } from '../functions/dialogueCast';
 const names = { pope: 'D 教皇', inquisitor: '教会审判长', deacon: '教会执事', mystery: '神秘声音' };
 export function DialogueFigure({ figure, active }: { figure: SpeakerFigure; active: boolean }) {
+  if (figure === 'villager')
+    return (
+      <svg
+        viewBox="0 0 320 440"
+        role="img"
+        aria-label="当地旅人"
+        className={`h-full max-h-full w-[30%] ${active ? '' : 'brightness-50'}`}
+      >
+        <ellipse cx="160" cy="415" rx="110" ry="15" fill="#081721" />
+        <path
+          d="M99 182 Q160 155 221 182 L262 420 H58Z"
+          fill="#73795e"
+          stroke="#c9ba91"
+          strokeWidth="3"
+        />
+        <path d="M118 80 H202 V167 Q160 199 118 167Z" fill="#c6a480" />
+        <path d="M98 98 Q160 10 222 98 L244 116 H76Z" fill="#7c654a" />
+        <path
+          d="M143 178 L160 216 L177 178 M160 216 V409"
+          fill="none"
+          stroke="#dfcaa0"
+          strokeWidth="7"
+        />
+        <path d="M132 133 H143 M177 133 H188" stroke="#47443a" strokeWidth="4" />
+      </svg>
+    );
   const className = `max-h-full w-[35%] object-contain object-bottom ${active ? '' : 'brightness-50'}`;
   if (figure !== 'pope' && figure !== 'inquisitor' && figure !== 'deacon' && figure !== 'mystery')
     return <img src={portrait(figure)} alt={figure} className={className} />;

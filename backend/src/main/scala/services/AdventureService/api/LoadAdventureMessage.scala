@@ -16,9 +16,10 @@ final case class LoadAdventureMessage(playerId: PlayerId, saveId: SaveId, operat
   def plan(c: Connection): IO[ProgressResponse] = Operations.once(c,playerId,operationId,expectedRevision,this.asJson.noSpaces) {
     for
       record <- GameSaveTable.find(c,saveId,playerId).flatMap(IO.fromOption(_)(ApiError("save_not_found","记录不存在、已轮换或不属于当前玩家。",404)))
-      _ <- Content.validate(record.snapshot)
+      upgraded <- Content.upgrade(record.snapshot)
+      _ <- Content.validate(upgraded)
       revision <- PlayerTable.advance(c,playerId,saveId.value)
-    yield ProgressResponse(revision,record)
+    yield ProgressResponse(revision,record.copy(snapshot = upgraded))
   }
 object LoadAdventureMessage:
   given Decoder[LoadAdventureMessage] = deriveDecoder

@@ -3,7 +3,7 @@ import { chromium } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 const difficulty = process.argv[2] ?? 'easy';
 const keyboard = process.argv.includes('--keyboard');
-const runName = `${difficulty}${keyboard ? '-keyboard' : ''}`;
+const runName = `rpg-${difficulty}${keyboard ? '-keyboard' : ''}`;
 if (!['easy', 'hard'].includes(difficulty))
   throw new Error('Usage: node playthrough/run.mjs easy|hard');
 await mkdir('../.local/playthrough', { recursive: true });
@@ -67,27 +67,99 @@ try {
   for (; tick < 6000; tick++) {
     const observation = await page.evaluate(async () => {
       const { getGameSnap } = await import('/src/pages/GamePage/runtime/store.ts');
-      const { mapById, balance } = await import('/src/pages/GamePage/objects/content.ts');
+      const { mapById, balance, regionById, enemyBehavior } =
+        await import('/src/pages/GamePage/objects/content.ts');
       const { movePosition, distance, normalize, subtract, camera } =
         await import('/src/pages/GamePage/functions/geometry.ts');
+      const { exploration, collisionMap, playerStats, exitAvailable } =
+        await import('/src/pages/GamePage/functions/exploration.ts');
+      const { exitPosition } = await import('/src/pages/GamePage/runtime/explorationDraw.ts');
       const { pursuitDirection } = await import('/src/pages/GamePage/functions/navigation.ts');
       const game = getGameSnap();
       if (!game) return null;
-      const map = mapById(game.snapshot.mapId),
+      const map = collisionMap(game.snapshot),
         p = game.snapshot.position;
       let direction = { x: 0, y: 0 },
         target = null,
         action = null;
       if (game.mode.kind === 'explore') {
-        // Recover at real rest points after combat, then walk towards the next encounter/exit.
-        const destination =
-          map.encounter && game.snapshot.stage !== 'cleared'
-            ? { x: map.width * 32 * 0.32, y: map.height * 16 }
-            : { x: map.width * 32 - 24, y: map.exit[1] };
-        if (distance(p, destination) < 24) action = 'interact';
-        else direction = pursuitDirection(p, destination, map);
-        if (distance(p, { x: map.spawn[0], y: map.spawn[1] }) < 90 && game.snapshot.hp < 100)
+        const progress = exploration(game.snapshot),
+          region = regionById(map.id);
+        const done = (id) =>
+          progress.flags.includes(id) ||
+          progress.collected.includes(id) ||
+          game.snapshot.completed.includes(id);
+        const pointOrder =
+          {
+            rain: ['thorns', 'rain-pearl'],
+            market: ['market-rice', 'qwen'],
+            mine: ['mine-scale'],
+            pavilion: ['pavilion-bench'],
+            harbor: ['sailor', 'young-sailor', ...(done('2-A') ? ['sailor-reward'] : [])],
+            dock: ['sluice', 'barrel-one', 'barrel-two', 'dock-ladder', 'dock-core', 'bridge'],
+            riverbed: ['river-rice'],
+            camp: ['dwarf', 'snow-fire'],
+            icehall: ['ice-lift', 'ice-seal', 'ice-pearl'],
+            relics: ['relic-core'],
+            library: ['whitepaper', 'library-bench'],
+          }[map.id] ?? [];
+        const point = region.points.find((p) => p.id === pointOrder.find((id) => !done(id)));
+        const nextMap = {
+          steps: 'rain',
+          rain: 'market',
+          market: 'forest',
+          forest: !progress.visited.includes('pavilion')
+            ? 'pavilion'
+            : !done('mine-scale')
+              ? 'mine'
+              : 'harbor',
+          pavilion: 'forest',
+          mine: 'forest',
+          harbor: done('2-A') ? 'coast' : 'dock',
+          dock: done('2-A') ? 'harbor' : 'warehouse',
+          warehouse: 'dock',
+          coast: 'rift',
+          rift: !done('river-rice') ? 'riverbed' : !done('3-A') ? 'crystal' : 'pass',
+          riverbed: 'rift',
+          crystal: 'rift',
+          pass: !done('snow-fire') ? 'camp' : !done('ice-pearl') ? 'icehall' : 'lair',
+          camp: 'pass',
+          icehall: 'pass',
+          lair: 'corridor',
+          corridor: !done('relic-core') ? 'relics' : !done('whitepaper') ? 'library' : 'garden',
+          relics: 'corridor',
+          library: 'corridor',
+          garden: 'throne',
+        }[map.id];
+        const gate = region.exits.find((e) => e.to === nextMap);
+        const mustFight = map.encounter && !done(map.encounter);
+        let destination = mustFight
+          ? { x: region.trigger[0], y: region.trigger[1] }
+          : point
+            ? { x: point.position[0], y: point.position[1] }
+            : gate
+              ? exitPosition(map.id, gate)
+              : p;
+        if (point?.kind === 'breakable' && !mustFight) {
+          target = {
+            id: null,
+            position: { x: point.position[0], y: point.position[1] },
+            kind: 'object',
+          };
+          destination = { x: target.position.x, y: target.position.y + 60 };
+          if (distance(p, target.position) < 95) action = 'break';
+        } else if (
+          (mustFight && distance(p, destination) < 150) ||
+          (point && distance(p, destination) < 20)
+        )
           action = 'interact';
+        if (!action) direction = pursuitDirection(p, destination, map);
+        if (game.snapshot.hp < playerStats(game.snapshot).maxHp * 0.8 && !mustFight) {
+          const rest = { x: map.spawn[0], y: map.spawn[1] };
+          target = null;
+          action = distance(p, rest) < 60 ? 'interact' : null;
+          direction = action ? { x: 0, y: 0 } : pursuitDirection(p, rest, map);
+        }
       }
       if (game.mode.kind === 'battle') {
         const alive = game.enemies.filter((e) => e.hp > 0);
@@ -123,13 +195,29 @@ try {
               if (
                 enemy.phase === 'windup' &&
                 enemy.timer < 0.65 &&
-                ['guard', 'beast', 'hound', 'knight', 'gpt'].includes(enemy.kind) &&
+                ['guard', 'beast', 'hound', 'knight', 'gpt'].includes(enemyBehavior(enemy.kind)) &&
                 d < spec.range + 32 &&
                 cone > 0.35
               )
                 cost += 500 + (spec.range + 32 - d);
-              if (enemy.kind === 'knight' && enemy.broken <= 0 && d < 100 && cone > 0.25)
+              if (
+                enemyBehavior(enemy.kind) === 'knight' &&
+                enemy.broken <= 0 &&
+                d < 100 &&
+                cone > 0.25
+              )
                 cost += 80;
+              if (
+                enemy.id === target.id &&
+                enemyBehavior(enemy.kind) === 'knight' &&
+                enemy.phase !== 'chase'
+              ) {
+                const rear = {
+                  x: enemy.position.x - enemy.aim.x * 55,
+                  y: enemy.position.y - enemy.aim.y * 55,
+                };
+                cost += distance(future, rear) * 1.5;
+              }
             }
             for (const hazard of game.hazards) {
               const d = distance(future, hazard.position);
@@ -151,14 +239,20 @@ try {
           };
           direction = choices.sort((a, b) => score(a) - score(b))[0];
           const d = distance(p, target.position);
+          const toward = normalize(subtract(p, target.position));
+          const blocked =
+            enemyBehavior(target.kind) === 'knight' &&
+            target.broken <= 0 &&
+            toward.x * target.aim.x + toward.y * target.aim.y > 0.25;
           if (
+            !blocked &&
             !game.action &&
             game.snapshot.cooldowns.water <= 0 &&
             game.snapshot.mp >= 20 &&
             d < 420
           )
             action = 'water';
-          else if (d < 95) action = 'melee';
+          else if (!blocked && d < 95) action = 'melee';
         }
       }
       return { game, map, direction, target, action, camera: camera(p, map) };
@@ -190,6 +284,7 @@ try {
         mp: game.snapshot.mp,
         completed: game.snapshot.completed,
         unlocked: game.snapshot.unlocked,
+        exploration: game.snapshot.exploration,
       };
       console.log(JSON.stringify(entry));
       events.push(entry);
@@ -234,7 +329,19 @@ try {
     if (direction.y > 0.3) next.push('KeyS');
     if (direction.y < -0.3) next.push('KeyW');
     await movement(next);
-    if (target && keyboard) {
+    if (target && keyboard && target.kind === 'object') {
+      const dx = target.position.x - game.snapshot.position.x,
+        dy = target.position.y - game.snapshot.position.y;
+      await page.keyboard.press(
+        Math.abs(dx) > Math.abs(dy)
+          ? dx > 0
+            ? 'ArrowRight'
+            : 'ArrowLeft'
+          : dy > 0
+            ? 'ArrowDown'
+            : 'ArrowUp',
+      );
+    } else if (target && keyboard) {
       if (game.lockedEnemy !== target.id) await page.keyboard.press('Tab');
     } else if (target) {
       const box = await page.locator('canvas').boundingBox();
@@ -250,7 +357,7 @@ try {
       await page.mouse.down({ button: 'right' });
       await page.mouse.up({ button: 'right' });
     }
-    if (action === 'melee') {
+    if (action === 'melee' || action === 'break') {
       if (keyboard) await page.keyboard.down('KeyJ');
       else await page.mouse.down();
     }

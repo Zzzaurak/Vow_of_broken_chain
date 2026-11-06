@@ -1,4 +1,4 @@
-import { balance } from '../objects/content';
+import { balance, enemyBehavior } from '../objects/content';
 import type { WorldMap } from '../objects/content';
 import { add } from './geometry';
 import { clearPath } from './navigation';
@@ -7,7 +7,7 @@ import type { Enemy, Vec } from '../objects/game';
 export const coneHalfAngle = Math.PI / 3;
 export const hazardWarningSeconds = 1.2;
 export function attackShape(enemy: Enemy, mapId: string) {
-  switch (enemy.kind) {
+  switch (enemyBehavior(enemy.kind)) {
     case 'guard':
     case 'beast':
     case 'hound':

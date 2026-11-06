@@ -1,9 +1,10 @@
+import { exitPosition } from '../../runtime/explorationDraw';
 import { describe, it, expect } from 'vitest';
 import { nearestForwardEnemy, directionVector } from '../targeting';
 import { createGame, beginBattle, crossExit, interact } from '../progression';
 import { stepGame } from '../combat';
 import { emptyInput, type GameState, type Enemy } from '../../objects/game';
-import { maps } from '../../objects/content';
+import { maps, regions } from '../../objects/content';
 import manifest from '../../../../../../content/manifest.json';
 function game(mapId = 'throne'): GameState {
   return createGame({
@@ -98,32 +99,42 @@ describe('direction-independent skills and room exits', () => {
       nearestForwardEnemy([at(100, 101), at(441, 0), at(50, 0, 0)], origin, { x: 1, y: 0 }, 440),
     ).toBeUndefined();
   });
-  it('every non-final room crosses automatically only after clearing its encounter', () => {
-    for (const map of maps.filter((m) => m.next && m.id !== 'throne')) {
-      const state = game(map.id);
-      const exit = {
-        ...state,
-        snapshot: {
-          ...state.snapshot,
-          stage: 'cleared' as const,
-          position: { x: map.width * 32 - 24, y: map.exit[1] },
-        },
-      };
-      expect(interact(exit).snapshot.mapId).toBe(map.id);
-      const result = stepGame(exit, emptyInput, 1 / 60);
-      expect(result.mode.kind === 'cinematic' ? result.mode.scene : result.snapshot.mapId).toBe(
-        map.id === 'harbor' ? 'voyage' : map.next,
-      );
-      expect(
-        crossExit({
-          ...exit,
-          snapshot: { ...exit.snapshot, position: { x: map.width * 32 - 24, y: map.exit[1] + 60 } },
-        }).snapshot.mapId,
-      ).toBe(map.id);
-      if (map.encounter)
-        expect(
-          crossExit({ ...exit, snapshot: { ...exit.snapshot, stage: 'ready' } }).snapshot.mapId,
-        ).toBe(map.id);
-    }
+  it('all authored exits use their own direction and enforce narrative conditions', () => {
+    for (const region of regions)
+      for (const exit of region.exits) {
+        const map = maps.find((m) => m.id === region.mapId)!;
+        const state = game(map.id);
+        const conditions = [
+          ...new Set([
+            ...region.requires,
+            ...exit.requires,
+            ...regions.find((r) => r.mapId === exit.to)!.requires,
+          ]),
+        ];
+        const ready = {
+          ...state,
+          snapshot: {
+            ...state.snapshot,
+            position: exitPosition(map.id, exit),
+            completed: conditions,
+            exploration: { visited: [map.id], flags: conditions, collected: [] },
+          },
+        };
+        const result = crossExit(ready);
+        expect(result.mode.kind === 'cinematic' ? result.mode.scene : result.snapshot.mapId).toBe(
+          exit.travel ?? exit.to,
+        );
+        if (exit.requires.length || regions.find((r) => r.mapId === exit.to)!.requires.length)
+          expect(
+            crossExit({
+              ...ready,
+              snapshot: {
+                ...ready.snapshot,
+                completed: [],
+                exploration: { visited: [map.id], flags: [], collected: [] },
+              },
+            }).snapshot.mapId,
+          ).toBe(map.id);
+      }
   });
 });

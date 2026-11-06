@@ -6,7 +6,8 @@ export interface Vec {
   y: number;
 }
 export type Direction = 'down' | 'up' | 'left' | 'right';
-export type DialogueAfter = 'ready' | 'clear' | 'cg2' | 'epilogue' | 'finished' | 'fight';
+export type DialogueAfter =
+  'ready' | 'clear' | 'cg2' | 'epilogue' | 'finished' | 'fight' | 'explore';
 export type WorldMode =
   | { kind: 'explore' }
   | { kind: 'battle' }
@@ -83,6 +84,8 @@ export interface SupportCast {
   target: Vec;
 }
 export interface GameState {
+  drops: { id: number; position: Vec }[];
+  restTime?: number;
   snapshot: GameSnapshot;
   checkpoint: GameSnapshot;
   mode: Mode;

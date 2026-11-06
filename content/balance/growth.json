@@ -1,0 +1,42 @@
+[
+  {
+    "id": "rice",
+    "name": "饱满灵谷",
+    "hp": 20,
+    "mp": 0,
+    "regen": 0,
+    "melee": 0,
+    "water": 0,
+    "radius": 0
+  },
+  {
+    "id": "pearl",
+    "name": "深海润珠",
+    "hp": 0,
+    "mp": 20,
+    "regen": 0.5,
+    "melee": 0,
+    "water": 0,
+    "radius": 0
+  },
+  {
+    "id": "scale",
+    "name": "鲸纹硬鳞",
+    "hp": 0,
+    "mp": 0,
+    "regen": 0,
+    "melee": 0.15,
+    "water": 0,
+    "radius": 0
+  },
+  {
+    "id": "core",
+    "name": "纯净潮汐核心",
+    "hp": 0,
+    "mp": 0,
+    "regen": 0,
+    "melee": 0,
+    "water": 0.2,
+    "radius": 0.2
+  }
+]

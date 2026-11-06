@@ -89,7 +89,7 @@ describe('deterministic game rules', () => {
     expect(interrupted.enemies[0].phase).toBe('recover');
   });
   it('GLM blinks behind the player, warns before the page bomb and leaves room at walls', () => {
-    const game = battle('harbor');
+    const game = battle('warehouse');
     const release = (x: number) =>
       stepGame(
         {
@@ -178,26 +178,19 @@ describe('deterministic game rules', () => {
     expect(canSave(end)).toBe(false);
     expect(advanceCinematic(end, 20)).toEqual(end);
   });
-  it('harbor theft leads through chase to a safe battle checkpoint without unlocking GLM', () => {
-    let state = createGame({ ...initial, mapId: 'harbor', checkpoint: 'harbor', stage: 'arrival' });
-    for (let i = 0; i < 40 && state.mode.kind === 'dialogue'; i++)
-      state = advanceDialogue(state, true);
-    expect(state.mode).toMatchObject({ kind: 'cinematic', scene: 'harborChase' });
-    const before = state.snapshot;
-    expect(canSave(state)).toBe(false);
-    state = advanceCinematic(state, 3);
-    expect(state.snapshot).toEqual(before);
-    const paused = togglePause(state);
-    expect(advanceCinematic(paused, 10)).toEqual(paused);
-    state = advanceCinematic(togglePause(paused), 4);
+  it('harbor theft opens exploration without granting GLM or forcing the warehouse duel', () => {
+    const state = finishDialogue(
+      createGame({ ...initial, mapId: 'harbor', checkpoint: 'harbor', stage: 'arrival' }),
+    );
     expect(state.mode.kind).toBe('explore');
-    expect(state.snapshot.stage).toBe('ready');
     expect(state.snapshot.unlocked).toEqual([]);
-    expect(state.snapshot.hp).toBe(before.hp);
-    expect(state.snapshot.position).toEqual(before.position);
     expect(canSave(state)).toBe(true);
-    expect(createGame(state.snapshot).mode.kind).toBe('explore');
-    expect(beginBattle(state).enemies.map((enemy) => enemy.kind)).toEqual(['glm']);
+    expect(state.snapshot.exploration?.flags).toContain('harbor:arrival');
+    expect(
+      beginBattle(
+        createGame({ ...initial, mapId: 'warehouse', checkpoint: 'warehouse' }),
+      ).enemies.map((e) => e.kind),
+    ).toEqual(['glm']);
   });
   it('escape finishes the encounter once and enters CG1 without a playable rubble room', () => {
     const state = createGame({
@@ -305,7 +298,7 @@ describe('deterministic game rules', () => {
     expect(state.enemies[0].hp).toBe(82);
   });
   it('GLM crossing surrender threshold enters dialogue, including lethal excess', () => {
-    let state = battle('harbor');
+    let state = battle('warehouse');
     state = {
       ...state,
       enemies: [
@@ -406,7 +399,8 @@ describe('deterministic game rules', () => {
     const state = createGame({ ...initial, position: { x: 1184, y: 384 } });
     const next = interact(state);
     expect(next.snapshot.mapId).toBe('steps');
-    expect(next.mode.kind).toBe('battle');
+    expect(next.mode.kind).toBe('explore');
+    expect(crossExit(next).snapshot.mapId).toBe('steps');
   });
   it('an existing Claude barrier clears a later binding field once, without extending the window every tick', () => {
     let state = battle('throne');
@@ -465,23 +459,43 @@ describe('deterministic game rules', () => {
     expect(next.projectiles).toHaveLength(0);
     expect(next.effects.some((e) => e.kind === 'water')).toBe(true);
   });
-  it('the complete linear story reaches both CGs and credits', () => {
-    let state = createGame({ ...initial, stage: 'arrival' });
-    const visited: string[] = [];
-    for (let rooms = 0; rooms < 12; rooms++) {
-      visited.push(state.snapshot.mapId);
+  it('the authored main route still reaches both CGs without collecting optional growth', () => {
+    let state = finishDialogue(createGame(initial));
+    const route = [
+      'steps',
+      'rain',
+      'market',
+      'forest',
+      'harbor',
+      'dock',
+      'warehouse',
+      'dock',
+      'harbor',
+      'coast',
+      'rift',
+      'crystal',
+      'rift',
+      'pass',
+      'lair',
+      'corridor',
+      'garden',
+      'throne',
+    ];
+    for (let i = 0; i < route.length; i++) {
+      expect(state.snapshot.mapId).toBe(route[i]);
+      const map = mapById(route[i]);
       state = finishDialogue(state);
-      const encounterMap = [
-        'steps',
-        'forest',
-        'harbor',
-        'crystal',
-        'lair',
-        'corridor',
-        'garden',
-        'throne',
-      ].includes(state.snapshot.mapId);
-      if (encounterMap) {
+      if (map.id === 'market') {
+        state = { ...state, snapshot: markFlag(state.snapshot, 'qwen') };
+      }
+      if (map.id === 'dock') {
+        state = { ...state, snapshot: markFlag(markFlag(state.snapshot, 'sluice'), 'bridge') };
+      }
+      if (
+        map.encounter &&
+        !state.snapshot.completed.includes(map.encounter) &&
+        !['rain', 'dock'].includes(map.id)
+      ) {
         state = beginBattle(state);
         for (let wave = 0; wave < 3 && state.mode.kind === 'battle'; wave++) {
           state = {
@@ -496,22 +510,20 @@ describe('deterministic game rules', () => {
         }
         state = finishDialogue(state);
       }
-      if (state.snapshot.mapId === 'alley') {
-        if (!visited.includes('alley')) visited.push('alley');
-        break;
+      if (i + 1 < route.length && state.snapshot.mapId !== route[i + 1]) {
+        const exit = regionById(map.id).exits.find((e) => e.to === route[i + 1])!;
+        state = crossExit({
+          ...state,
+          snapshot: { ...state.snapshot, position: exitPosition(map.id, exit) },
+        });
+        state = finishDialogue(state);
       }
-      // Maps are imported rather than guessing world coordinates.
-      const map = maps.find((m) => m.id === state.snapshot.mapId)!;
-      state = {
-        ...state,
-        snapshot: { ...state.snapshot, position: { x: map.width * 32 - 24, y: map.exit[1] } },
-      };
-      state = crossExit(state);
     }
-    expect(visited).toHaveLength(12);
     expect(state.mode.kind).toBe('credits');
-    expect(state.snapshot.stage).toBe('finished');
     expect(state.snapshot.unlocked).toEqual(['glm', 'gpt', 'claude']);
+    expect(state.snapshot.exploration?.collected).toEqual([]);
   });
 });
-import { maps } from '../../objects/content';
+import { regionById } from '../../objects/content';
+import { exitPosition } from '../../runtime/explorationDraw';
+import { markFlag } from '../exploration';

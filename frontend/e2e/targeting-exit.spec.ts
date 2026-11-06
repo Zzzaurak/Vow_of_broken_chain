@@ -86,9 +86,10 @@ test('real directional input targets GPT and water on every side, exits use walk
         ...p.save.snapshot,
         mapId: 'forest',
         checkpoint: 'forest',
-        position: { x: 1696, y: 448 },
+        position: { x: 96, y: 448 },
         stage: 'cleared',
         completed: ['0-A', '1-A'],
+        exploration: { visited: ['steps', 'market', 'forest'], flags: ['qwen'], collected: [] },
       },
       crypto.randomUUID(),
       p.revision,
@@ -99,7 +100,7 @@ test('real directional input targets GPT and water on every side, exits use walk
   await expect(page.locator('canvas')).toBeVisible();
   await expect(page.getByText('正在准备旅途画面…', { exact: true })).toHaveCount(0);
   await page.screenshot({ path: '../.local/blue-exit.png' });
-  await page.keyboard.down('KeyD');
+  await page.keyboard.down('KeyA');
   await expect
     .poll(() =>
       page.evaluate(async () => {
@@ -108,6 +109,6 @@ test('real directional input targets GPT and water on every side, exits use walk
       }),
     )
     .toBe('harbor');
-  await page.keyboard.up('KeyD');
+  await page.keyboard.up('KeyA');
   await expect(page.getByText('道路封锁', { exact: true })).toHaveCount(0);
 });

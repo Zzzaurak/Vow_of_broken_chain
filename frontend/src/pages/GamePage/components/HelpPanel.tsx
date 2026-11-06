@@ -23,8 +23,13 @@ export function HelpPanel({ onSettings }: { onSettings: () => void }) {
     <div className="space-y-4 text-sm">
       <h3 className="font-serif text-xl text-[#e2cea0]">冒险帮助</h3>
       <p>
-        沿蓝色箭头走入围墙缺口即可前往下一站。在场地内按 {keyLabel(keys.interact)}{' '}
-        开战。在入口休整可回满 HP、MP。战斗与过场结束后可保存。
+        沿蓝色箭头走入围墙缺口即可前往下一站。在场地内按 {keyLabel(keys.interact)} 调查
+        NPC、路牌、营火和机关。野外靠近魔物会进入战斗；Boss
+        在场地内交互开战。岔路可往返，宝箱只领取一次，营地恢复资源和冷却并建立检查点。
+      </p>
+      <p>
+        灵谷提升 HP 上限并回满生命，润珠提升 MP
+        上限和回复速度，硬鳞强化摆尾，潮汐核心强化水球伤害和范围。先探索再推进主线，不必收齐宝物才能通关。浮桥和升降冰台靠近后调查跨越。
       </p>
       <p>
         GPT 会锁定角色朝向前方 90°

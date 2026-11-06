@@ -1,11 +1,27 @@
+import {
+  exploration,
+  hasConditions,
+  playerStats,
+  markFlag,
+  nearestPoint,
+  collectReward,
+  exitAvailable,
+} from './exploration';
 import { cinematics, type CinematicId, type CinematicContinuation } from '../objects/cinematics';
 import type { GameSnapshot, Partner } from '../../../apis/AdventureService/types';
-import { balance, encounters, mapById, sceneById } from '../objects/content';
+import {
+  balance,
+  encounters,
+  mapById,
+  sceneById,
+  regionById,
+  growthItems,
+} from '../objects/content';
 import type { Enemy, GameState, WorldMode } from '../objects/game';
 import { distance } from './geometry';
 export function dialogueMode(
   scene: string,
-  after: 'ready' | 'clear' | 'cg2' | 'epilogue' | 'finished' | 'fight',
+  after: 'ready' | 'clear' | 'cg2' | 'epilogue' | 'finished' | 'fight' | 'explore',
 ): WorldMode {
   return {
     kind: 'dialogue',
@@ -19,8 +35,14 @@ export function dialogueMode(
   };
 }
 export function createGame(snapshot: GameSnapshot): GameState {
-  const s = structuredClone(snapshot);
+  const cloned = structuredClone(snapshot);
+  const e = exploration(cloned);
+  const s = {
+    ...cloned,
+    exploration: { ...e, visited: [...new Set([...e.visited, cloned.mapId])] },
+  };
   const state: GameState = {
+    drops: [],
     snapshot: s,
     checkpoint: structuredClone(s),
     mode: { kind: 'explore' },
@@ -85,8 +107,8 @@ export function finishMap(state: GameState): GameState {
     unlocked,
     supports,
     completed: map.encounter ? [...new Set([...s.completed, map.encounter])] : s.completed,
-    hp: healed ? 100 : s.hp,
-    mp: healed ? 100 : s.mp,
+    hp: healed ? playerStats(s).maxHp : s.hp,
+    mp: healed ? playerStats(s).maxMp : s.mp,
   };
   return checkpoint({
     ...state,
@@ -122,18 +144,25 @@ export function startCinematic(
 function readyAfterDialogue(state: GameState): GameState {
   return checkpoint({
     ...state,
-    snapshot: { ...state.snapshot, stage: 'ready' },
+    snapshot: { ...markFlag(state.snapshot, `${state.snapshot.mapId}:arrival`), stage: 'ready' },
     mode: { kind: 'explore' },
   });
 }
-function enterMap(state: GameState, destination: string): GameState {
+export function enterMap(state: GameState, destination: string, arrival?: number[]): GameState {
   const next = mapById(destination);
   const snapshot: GameSnapshot = {
     ...state.snapshot,
     mapId: next.id,
     checkpoint: next.id,
-    position: { x: next.spawn[0], y: next.spawn[1] },
-    stage: next.id === 'alley' ? 'ending' : 'arrival',
+    position: { x: (arrival ?? next.spawn)[0], y: (arrival ?? next.spawn)[1] },
+    stage:
+      next.id === 'alley'
+        ? 'ending'
+        : next.encounter && state.snapshot.completed.includes(next.encounter)
+          ? 'cleared'
+          : next.before && !exploration(state.snapshot).flags.includes(`${next.id}:arrival`)
+            ? 'arrival'
+            : 'ready',
   };
   return { ...createGame(snapshot), autosave: state.autosave + 1, dirty: true };
 }
@@ -168,16 +197,20 @@ export function advanceDialogue(state: GameState, instant = false): GameState {
     return { ...state, mode: { ...mode, line: mode.line + 1, revealed: 0 } };
   switch (mode.after) {
     case 'ready':
-      if (mode.scene === '2-1') return startCinematic(state, 'harborChase', { kind: 'ready' });
+      if (mode.scene === '2-1') return readyAfterDialogue(state);
       return mode.scene === '5-1'
         ? startCinematic(state, 'breach', { kind: 'ready' })
         : readyAfterDialogue(state);
     case 'clear':
-      return mode.scene === '4-2'
-        ? startCinematic(state, 'healing', { kind: 'clear' })
-        : mode.scene === '5-4'
-          ? startCinematic(state, 'escape', { kind: 'travel', destination: 'alley' })
-          : finishMap(state);
+      return mode.scene === '0-2'
+        ? notify(enterMap(finishMap(state), 'rain'), '圣光将你震落长阶。雨林南侧的泥路通向市集。')
+        : mode.scene === '4-2'
+          ? startCinematic(state, 'healing', { kind: 'clear' })
+          : mode.scene === '5-4'
+            ? startCinematic(state, 'escape', { kind: 'travel', destination: 'alley' })
+            : finishMap(state);
+    case 'explore':
+      return checkpoint({ ...state, mode: { kind: 'explore' } });
     case 'fight':
       return { ...state, mode: { kind: 'battle' } };
     case 'cg2':
@@ -202,8 +235,10 @@ export function spawnWave(state: GameState, wave: number): Enemy[] {
       id: state.serial + i + 1,
       kind,
       position: {
-        x: map.width * 32 * 0.55 + (i % 3) * 100,
-        y: map.height * 16 + (Math.floor(i / 3) * 2 - 1) * 90,
+        x: regionById(map.id).enemySpawns?.[i]?.[0] ?? map.width * 32 * 0.55 + (i % 3) * 100,
+        y:
+          regionById(map.id).enemySpawns?.[i]?.[1] ??
+          map.height * 16 + (Math.floor(i / 3) * 2 - 1) * 90,
       },
       aim: { x: -1, y: 0 },
       hp,
@@ -261,26 +296,83 @@ export function victory(state: GameState): GameState {
 export function interact(state: GameState): GameState {
   if (state.mode.kind !== 'explore') return state;
   const map = mapById(state.snapshot.mapId),
-    pos = state.snapshot.position;
-  if (distance(pos, { x: map.spawn[0], y: map.spawn[1] }) < 95)
+    point = nearestPoint(state.snapshot);
+  if (point) {
+    if (!hasConditions(state.snapshot, point.requires))
+      return notify(state, '先完成附近的机关或守卫，再来调查这里。');
+    if (point.kind === 'breakable')
+      return notify(
+        state,
+        exploration(state.snapshot).flags.includes(point.id)
+          ? '障碍已经清除。'
+          : '用摆尾或水球击碎这处障碍。',
+      );
+    if (point.kind === 'chest' && exploration(state.snapshot).collected.includes(point.id))
+      return notify(state, '宝箱已经开启，宝物的力量仍伴随你。');
+    let snapshot = markFlag(state.snapshot, point.id);
+    if (point.reward) snapshot = collectReward(snapshot, point);
+    if (point.warp) snapshot = { ...snapshot, position: { x: point.warp[0], y: point.warp[1] } };
+    if (point.kind === 'camp' || point.reward === 'restore') {
+      const stats = playerStats(snapshot);
+      return notify(
+        checkpoint({
+          ...state,
+          snapshot: {
+            ...snapshot,
+            hp: stats.maxHp,
+            mp: stats.maxMp,
+            cooldowns: { water: 0, glm: 0, gpt: 0, claude: 0 },
+          },
+          restTime: 2.5,
+        }),
+        point.text,
+      );
+    }
+    if (point.kind === 'chest') {
+      const item = growthItems.find((i) => i.id === point.reward);
+      return notify(
+        checkpoint({ ...state, snapshot }),
+        `获得【${item?.name ?? point.name}】！探索成长已生效。`,
+      );
+    }
+    if (point.warp) return notify(checkpoint({ ...state, snapshot }), point.text);
+    return {
+      ...state,
+      snapshot,
+      dirty: true,
+      mode: dialogueMode(point.scene ?? `point:${point.id}`, 'explore'),
+    };
+  }
+  if (distance(state.snapshot.position, { x: map.spawn[0], y: map.spawn[1] }) < 70) {
+    const stats = playerStats(state.snapshot);
     return notify(
-      { ...state, snapshot: { ...state.snapshot, hp: 100, mp: 100 }, dirty: true },
-      '吃一碗白米饭。HP / MP 已恢复。',
+      checkpoint({
+        ...state,
+        snapshot: {
+          ...state.snapshot,
+          hp: stats.maxHp,
+          mp: stats.maxMp,
+          cooldowns: { water: 0, glm: 0, gpt: 0, claude: 0 },
+        },
+        restTime: 2.5,
+      }),
+      '吃一碗白米饭。全状态恢复，检查点已记录。',
     );
-  if (map.encounter && state.snapshot.stage !== 'cleared' && pos.x > map.width * 32 * 0.28)
+  }
+  const trigger = regionById(map.id).trigger;
+  if (
+    map.encounter &&
+    !state.snapshot.completed.includes(map.encounter) &&
+    distance(state.snapshot.position, { x: trigger[0], y: trigger[1] }) < 350
+  )
     return beginBattle(state);
-  return notify(
-    state,
-    map.encounter && state.snapshot.stage !== 'cleared'
-      ? '向前进入场地，按交互开始战斗。'
-      : '沿蓝色箭头走进围墙缺口，前往下一站。',
-  );
+  return notify(state, '靠近人物、路牌、宝箱或营火调查；沿箭头走进通路可以切换区域。');
 }
 export function retryCheckpoint(state: GameState): GameState {
   const snapshot = {
     ...structuredClone(state.checkpoint),
-    hp: 100,
-    mp: 100,
+    hp: playerStats(state.checkpoint).maxHp,
+    mp: playerStats(state.checkpoint).maxMp,
     cooldowns: { water: 0, glm: 0, gpt: 0, claude: 0 },
   };
   const restored = createGame(snapshot);
@@ -332,16 +424,25 @@ export function advanceDefeat(state: GameState, dt: number): GameState {
 
 export function crossExit(state: GameState): GameState {
   if (state.mode.kind !== 'explore') return state;
-  const map = mapById(state.snapshot.mapId);
-  const position = state.snapshot.position;
-  if (
-    !map.next ||
-    (map.encounter && state.snapshot.stage !== 'cleared') ||
-    position.x < map.width * 32 - 36 ||
-    Math.abs(position.y - (map.exit[1] + 16)) > 40
-  )
-    return state;
-  return map.id === 'harbor'
-    ? startCinematic(state, 'voyage', { kind: 'travel', destination: map.next })
-    : enterMap(state, map.next);
+  const map = mapById(state.snapshot.mapId),
+    p = state.snapshot.position;
+  const exit = regionById(map.id).exits.find((e) => {
+    const vertical = e.side === 'north' || e.side === 'south';
+    return (
+      Math.abs((vertical ? p.x : p.y) - e.at) <= 40 &&
+      (e.side === 'north'
+        ? p.y <= 36
+        : e.side === 'south'
+          ? p.y >= map.height * 32 - 36
+          : e.side === 'west'
+            ? p.x <= 36
+            : p.x >= map.width * 32 - 36)
+    );
+  });
+  if (!exit) return state;
+  if (!exitAvailable(state.snapshot, exit))
+    return notify(state, '这条路暂未开放。先查看路牌与当前任务，完成所需剧情或机关。');
+  return exit.travel
+    ? startCinematic(state, exit.travel, { kind: 'travel', destination: exit.to })
+    : enterMap(state, exit.to, exit.arrival);
 }

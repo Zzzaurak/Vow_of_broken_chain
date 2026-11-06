@@ -39,7 +39,8 @@
         "hound",
         "hound",
         "hound",
-        "hound"
+        "hound",
+        "officer"
       ]
     ],
     "rule": "defeat"
@@ -88,6 +89,70 @@
     "waves": [
       [
         "pope"
+      ]
+    ],
+    "rule": "defeat"
+  },
+  {
+    "id": "rain-wild",
+    "waves": [
+      [
+        "sprout",
+        "sprout",
+        "rabbit"
+      ]
+    ],
+    "rule": "defeat"
+  },
+  {
+    "id": "mine-guard",
+    "waves": [
+      [
+        "spider",
+        "spider",
+        "spider",
+        "spider"
+      ]
+    ],
+    "rule": "defeat"
+  },
+  {
+    "id": "dock-crabs",
+    "waves": [
+      [
+        "crab",
+        "crab",
+        "crab"
+      ]
+    ],
+    "rule": "defeat"
+  },
+  {
+    "id": "river-golem",
+    "waves": [
+      [
+        "golem"
+      ]
+    ],
+    "rule": "defeat"
+  },
+  {
+    "id": "ice-guard",
+    "waves": [
+      [
+        "lizard",
+        "slime",
+        "slime"
+      ]
+    ],
+    "rule": "defeat"
+  },
+  {
+    "id": "relic-guard",
+    "waves": [
+      [
+        "mage",
+        "mage"
       ]
     ],
     "rule": "defeat"
