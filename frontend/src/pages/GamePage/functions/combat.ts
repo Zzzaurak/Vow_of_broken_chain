@@ -1,3 +1,4 @@
+import { directionVector, nearestForwardEnemy } from './targeting';
 import {
   attackShape,
   coneReach,
@@ -27,7 +28,7 @@ import {
   subtract,
   validPosition,
 } from './geometry';
-import { notify, spawnWave, victory, dialogueMode } from './progression';
+import { notify, spawnWave, victory, dialogueMode, crossExit } from './progression';
 const decay = (v: number, dt: number) => Math.max(0, v - dt);
 const isBoss = (kind: EnemyKind) => ['glm', 'gpt', 'claude', 'pope'].includes(kind);
 const cooldowns = (s: GameState, dt: number) =>
@@ -148,9 +149,20 @@ function playerActions(state: GameState, input: FrameInput, dt: number): GameSta
   }
   if (input.support !== null && next.mode.kind === 'battle') {
     const partner = next.snapshot.supports[input.support];
+    const selected =
+      partner === 'gpt'
+        ? nearestForwardEnemy(
+            next.enemies,
+            next.snapshot.position,
+            directionVector[next.direction],
+            balance.player.waterRange,
+          )
+        : undefined;
     if (next.snapshot.mapId === 'garden') next = notify(next, '这一次，只属于大肥鱼与 Claude。');
     else if (!partner) next = notify(next, '这个援助槽还没有伙伴。');
     else if (next.snapshot.cooldowns[partner] > 0) next = notify(next, '伙伴援助尚在冷却。');
+    else if (partner === 'gpt' && !selected)
+      next = notify(next, '前方没有可攻击的敌人，请调整朝向。');
     else
       next = {
         ...next,
@@ -160,8 +172,8 @@ function playerActions(state: GameState, input: FrameInput, dt: number): GameSta
             partner,
             age: 0,
             fired: false,
-            position: add(next.snapshot.position, { x: -1, y: 0 }, 48),
-            target,
+            position: add(next.snapshot.position, directionVector[next.direction], -48),
+            target: selected ? { ...selected.position } : target,
           },
         ],
         snapshot: {
@@ -197,7 +209,7 @@ function playerActions(state: GameState, input: FrameInput, dt: number): GameSta
             {
               id: next.serial + 1,
               position: next.snapshot.position,
-              direction: action.aim,
+              direction: normalize(subtract(action.target, next.snapshot.position)),
               target: action.target,
               speed: balance.player.waterSpeed,
               distance: Math.min(
@@ -249,7 +261,15 @@ function playerActions(state: GameState, input: FrameInput, dt: number): GameSta
                 timer: 1,
                 position: movePosition(
                   e.position,
-                  add({ x: 0, y: 0 }, normalize(subtract(e.position, cast.target)), 55),
+                  add(
+                    { x: 0, y: 0 },
+                    normalize(
+                      distance(e.position, cast.target) > 0
+                        ? subtract(e.position, cast.target)
+                        : subtract(e.position, next.snapshot.position),
+                    ),
+                    55,
+                  ),
                   mapById(next.snapshot.mapId),
                 ),
               }
@@ -281,8 +301,9 @@ function projectilesStep(state: GameState, dt: number): GameState {
             add(p.direction, normalize(subtract(next.snapshot.position, p.position)), dt * 0.8),
           )
         : p.direction;
-      const position = add(p.position, direction, p.speed * dt),
-        remaining = p.distance - p.speed * dt;
+      const travel = Math.min(p.distance, p.speed * dt);
+      const position = add(p.position, direction, travel),
+        remaining = p.distance - travel;
       const blocked = !validPosition(position, mapById(next.snapshot.mapId));
       if (p.enemy && blocked) return next;
       if (p.enemy) {
@@ -291,7 +312,7 @@ function projectilesStep(state: GameState, dt: number): GameState {
       } else if (
         blocked ||
         remaining <= 0 ||
-        next.enemies.some((e) => distance(position, e.position) < 26)
+        next.enemies.some((e) => e.hp > 0 && distance(position, e.position) < 26)
       ) {
         return flash(
           areaDamage(next, position, balance.player.waterRadius, p.damage),
@@ -536,5 +557,5 @@ export function stepGame(state: GameState, input: FrameInput, dt: number): GameS
     if (next.snapshot.hp <= 0)
       return { ...next, mode: { kind: 'failed', elapsed: 0 }, action: null, moving: false };
   }
-  return next;
+  return crossExit(next);
 }

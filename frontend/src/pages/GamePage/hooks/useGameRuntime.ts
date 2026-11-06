@@ -140,6 +140,7 @@ export function useGameRuntime() {
       const game = getGameSnap();
       if (!game || !['explore', 'battle'].includes(game.mode.kind)) return;
       const code = `Mouse${e.button}`;
+      mousemove(e);
       element.focus();
       keydown({
         code,

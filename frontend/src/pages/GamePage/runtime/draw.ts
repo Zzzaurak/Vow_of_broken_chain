@@ -118,7 +118,20 @@ function effect(
           : Math.min(3, Math.floor(age / 0.14));
   const frame = asset.frames[index];
   const [x, y, w, h] = frame.rect;
-  ctx.drawImage(image, x, y, w, h, p.x - size / 2, p.y - size / 2, size, size);
+  // Starfall rises above its ground anchor; centering the full tile moves the
+  // landing ring below the actual damage position.
+  const anchor = id === 'gpt-starfall-fx' ? frame.suggestedAnchor : [w / 2, h / 2];
+  ctx.drawImage(
+    image,
+    x,
+    y,
+    w,
+    h,
+    p.x - (anchor[0] / w) * size,
+    p.y - (anchor[1] / h) * size,
+    size,
+    size,
+  );
 }
 function drawCinematic(
   ctx: CanvasRenderingContext2D,
@@ -377,7 +390,15 @@ export function drawGame(
   }
   for (let y = 0; y < map.height; y++)
     for (let x = 0; x < map.width; x++)
-      if (y === 0 || x === 0 || y === map.height - 1 || x === map.width - 1) {
+      if (
+        (y === 0 || x === 0 || y === map.height - 1 || x === map.width - 1) &&
+        !(
+          map.next &&
+          x === map.width - 1 &&
+          Math.abs(y * 32 - map.exit[1]) <= 32 &&
+          (!map.encounter || state.snapshot.stage === 'cleared')
+        )
+      ) {
         ctx.fillStyle = palette[2];
         ctx.fillRect(x * 32, y * 32, 31, 29);
         ctx.fillStyle = '#08192355';
@@ -411,12 +432,23 @@ export function drawGame(
   ctx.textAlign = 'center';
   ctx.fillText('休整', map.spawn[0], map.spawn[1] + 46);
   const open = !map.encounter || state.snapshot.stage === 'cleared';
-  ctx.fillStyle = open ? '#e6c97d' : '#617171';
-  ctx.fillRect(map.exit[0] - 10, map.exit[1] - 42, 20, 84);
-  ctx.fillText(open ? '前往下一站' : '道路封锁', map.exit[0], map.exit[1] + 60);
+  if (map.next && open) {
+    ctx.fillStyle = '#69cfff';
+    for (let i = 0; i < 3; i++) {
+      const x = map.width * 32 - 100 + i * 24;
+      const y = map.exit[1] + 16;
+      ctx.beginPath();
+      ctx.moveTo(x - 7, y - 10);
+      ctx.lineTo(x + 5, y);
+      ctx.lineTo(x - 7, y + 10);
+      ctx.lineTo(x - 1, y + 10);
+      ctx.lineTo(x + 11, y);
+      ctx.lineTo(x - 1, y - 10);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
   if (state.mode.kind === 'explore' && map.encounter && state.snapshot.stage !== 'cleared') {
-    ctx.fillStyle = '#edd8a877';
-    ctx.fillRect(map.width * 32 * 0.28, map.height * 16 - 50, 3, 100);
     ctx.fillStyle = '#e8d799';
     ctx.fillText('进入场地 · 交互开始', map.width * 32 * 0.4, map.height * 16 - 70);
   }

@@ -22,14 +22,6 @@ export function drawScenery(ctx: CanvasRenderingContext2D, map: WorldMap) {
     rect(x - 4, y - 37, 8, 7, '#f0d88f');
     rect(x - 7, y, 14, 4, '#5a6660');
   };
-  if (map.id === 'steps') {
-    // Broad terraces, with a clear route between the columns.
-    for (let x = 192; x < width - 128; x += 96) {
-      rect(x, mid - 112, 8, 224, '#a6aca080');
-      rect(x + 8, mid - 112, 5, 224, '#1e303b88');
-    }
-    rect(width - 176, mid - 128, 8, 256, '#d0bc7b');
-  }
   if (map.theme === 'temple') {
     if (map.id !== 'garden' && map.id !== 'steps') {
       rect(32, mid - 72, width - 64, 144, '#733e4999');

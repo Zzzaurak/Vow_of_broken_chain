@@ -54,7 +54,7 @@ export function GameHud() {
           {mode === 'battle'
             ? mapById(mapId).objective
             : stage === 'cleared'
-              ? '沿道路前往下一站'
+              ? '沿蓝色箭头走入出口'
               : mapById(mapId).objective}
         </p>
         <p className="mt-2 text-[#91aaa5]">

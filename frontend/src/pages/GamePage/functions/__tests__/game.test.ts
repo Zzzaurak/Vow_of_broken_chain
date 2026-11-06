@@ -3,6 +3,7 @@ import { mapById } from '../../objects/content';
 import { describe, it, expect } from 'vitest';
 import {
   createGame,
+  crossExit,
   beginBattle,
   advanceDialogue,
   advanceDefeat,
@@ -503,9 +504,9 @@ describe('deterministic game rules', () => {
       const map = maps.find((m) => m.id === state.snapshot.mapId)!;
       state = {
         ...state,
-        snapshot: { ...state.snapshot, position: { x: map.exit[0], y: map.exit[1] } },
+        snapshot: { ...state.snapshot, position: { x: map.width * 32 - 24, y: map.exit[1] } },
       };
-      state = interact(state);
+      state = crossExit(state);
     }
     expect(visited).toHaveLength(12);
     expect(state.mode.kind).toBe('credits');

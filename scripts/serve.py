@@ -25,7 +25,7 @@ def main():
         def do_GET(self):
             if self.path == '/health':
                 return self.proxy()
-            if urlsplit(self.path).path in ('/', '/game', '/game/'):
+            if urlsplit(self.path).path in ('/', '/game', '/game/', '/account', '/account/'):
                 self.path = '/index.html'
             super().do_GET()
 

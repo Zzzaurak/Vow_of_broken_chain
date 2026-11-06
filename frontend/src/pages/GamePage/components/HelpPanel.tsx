@@ -23,12 +23,13 @@ export function HelpPanel({ onSettings }: { onSettings: () => void }) {
     <div className="space-y-4 text-sm">
       <h3 className="font-serif text-xl text-[#e2cea0]">冒险帮助</h3>
       <p>
-        向地图出口前进，在场地内按 {keyLabel(keys.interact)} 开战。在入口休整可回满
-        HP、MP。战斗与过场结束后可保存。
+        沿蓝色箭头走入围墙缺口即可前往下一站。在场地内按 {keyLabel(keys.interact)}{' '}
+        开战。在入口休整可回满 HP、MP。战斗与过场结束后可保存。
       </p>
       <p>
-        移动时角色面向行进方向。攻击跟随瞄准或锁定目标。按住 Ctrl（Mac 的
-        Control）快进对白和过场，松开恢复。
+        GPT 会锁定角色朝向前方 90°
+        扇形内最近的敌人，在落点造成范围伤害。无目标时不消耗冷却。移动时角色面向行进方向。攻击跟随瞄准或锁定目标。按住
+        Ctrl（Mac 的 Control）快进对白和过场，松开恢复。
       </p>
       <div className="flex gap-2">
         <Button onClick={onSettings}>更改键位</Button>

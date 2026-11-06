@@ -83,7 +83,7 @@ try {
         const destination =
           map.encounter && game.snapshot.stage !== 'cleared'
             ? { x: map.width * 32 * 0.32, y: map.height * 16 }
-            : { x: map.exit[0], y: map.exit[1] };
+            : { x: map.width * 32 - 24, y: map.exit[1] };
         if (distance(p, destination) < 24) action = 'interact';
         else direction = pursuitDirection(p, destination, map);
         if (distance(p, { x: map.spawn[0], y: map.spawn[1] }) < 90 && game.snapshot.hp < 100)

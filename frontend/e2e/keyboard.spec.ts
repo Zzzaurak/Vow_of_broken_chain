@@ -29,8 +29,11 @@ test('pure keyboard opens settings, changes preset, starts, moves, aims and open
       return m.getGameSnap();
     });
   await expect(page.getByText('正在准备旅途画面…', { exact: true })).toHaveCount(0);
+  // The opening cinematic can finish after assets load; do not send movement before dialogue.
+  await expect.poll(async () => (await state()).mode.kind).toBe('dialogue');
   for (let n = 0; n < 20 && (await state()).mode.kind === 'dialogue'; n++)
     await page.keyboard.press('Enter');
+  await expect.poll(async () => (await state()).mode.kind).toBe('explore');
   const before = (await state()).snapshot.position.x;
   await page.keyboard.down('KeyD');
   await page.waitForTimeout(400);

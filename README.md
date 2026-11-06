@@ -81,3 +81,71 @@ backend/src/main/scala/services/
 在本目录使用 `git status` 查看工作区，使用 `git log --oneline` 查看历史。提交前检查文件范围与 `git diff --cached --check`，按一次明确的内容修改或功能变更创建提交。
 
 `.gitignore` 排除系统文件、依赖、构建产物、本地数据库和常见凭据文件；`.gitattributes` 将图片、PDF 作为二进制素材管理。新命名的真实凭据文件应补充忽略规则。当前仅建立本地仓库，尚未配置远程。
+
+## 环境与技术细节
+
+下表记录当前开发机环境，依赖以锁文件为准。原生 Windows 尚未实机验收。
+
+| 部分 | 当前环境／固定配置 |
+| --- | --- |
+| 系统 | macOS，zsh；启动器使用 POSIX 进程组和文件锁 |
+| Node.js | 24.19.0；npm 使用 frontend/package-lock.json |
+| 前端 | React 19.3.1、TypeScript 5.7.3、Vite 6.4.5、Tailwind 4.3.3、Zustand 5.0.16 |
+| JVM | 本机 OpenJDK 27；Scala 3.3.5、sbt 1.10.7 由 backend 配置固定 |
+| 后端 | Cats Effect 3.6.3、http4s 0.23.30、Circe 0.14.10、PostgreSQL JDBC 42.7.5 |
+| Python | 本机 3.13.15；运行和内容构建脚本使用标准库 |
+| 数据库 | 本机 PostgreSQL 18.6；开发库 oath，测试库 oath_test |
+| 浏览器检查 | Playwright Chromium；在 frontend 执行 npx playwright install chromium 安装测试浏览器 |
+
+前端监听 127.0.0.1:5179，将 /api 代理到 Scala 的 127.0.0.1:8093。Canvas 使用 960×540 逻辑坐标并等比缩放，输入转换回世界坐标。地图地块为 32 像素，物理模拟为固定 60Hz。对白与暂停冻结战斗计时。
+
+数据库连接由 DATABASE_URL、PGUSER、PGPASSWORD 指定，URL 为 JDBC 格式，例如 jdbc:postgresql://127.0.0.1:55439/oath。未设置连接时，启动器初始化项目独立的 .local/postgres，仅监听本机，开发用户为 oath。OATH_PGPORT 可调整该数据库的端口。Scala 的 PORT 可调整 HTTP 端口，但启动器和 Vite 代理约定 8093，变更时需一并修改调用侧。
+
+素材原稿在 material，场景、敌人、剧情与数值在 content。build-assets.py 将白名单素材复制至 frontend/public/assets；build-content.py 从剧本提取对白并校验内容引用和地图可达性。npm dev/build 自动复制素材。Scala 构建把同一份 content 打入资源目录，内容变更后需要重启后端。数据库表在后端启动时初始化。
+
+GPT 援助按大肥鱼当前朝向，在前方 90°、440 像素范围内选择最近存活敌人，在选定位置造成范围伤害。无目标时提示并保留 CD。清场后沿三个蓝色箭头走入三格围墙缺口，会自动前往下一站。
+
+## Windows 移植入口
+
+可以先在 WSL 安装上述工具并沿用项目脚本。原生 Windows 应分别启动数据库、Scala 和前端。当前 run.py 使用 fcntl、os.killpg 和 POSIX 信号，db.sh、check.sh、package.sh 使用 Bash，直接在 PowerShell 运行需要适配。
+
+安装 PostgreSQL 后，创建 oath 用户和由它拥有的 oath、oath_test 两个数据库。不同 PowerShell 终端可以分别运行以下命令。将端口与密码替换为自己的数据库配置。
+
+    # 项目根目录
+    py scripts/build-content.py
+    py scripts/build-assets.py
+
+    # 后端终端，从项目根开始
+    $env:DATABASE_URL = "jdbc:postgresql://127.0.0.1:5432/oath"
+    $env:PGUSER = "oath"
+    $env:PGPASSWORD = "<本机数据库密码>"
+    cd backend
+    sbt run
+
+    # 前端终端，从项目根开始
+    cd frontend
+    npm ci
+    npx vite --host 127.0.0.1 --port 5179 --strictPort
+
+先用 py 生成素材，再直接调用 Vite，可处理 Windows 上 Python 命令仅为 py 的情况。若 python3 可用，也可使用现有 npm scripts。各终端用 Ctrl-C 结束，数据库通过 PostgreSQL 服务管理。
+
+生产构建可在素材生成后分别执行以下命令，Scala 后端应保持运行。
+
+    cd frontend
+    npx tsc --noEmit
+    npx vite build
+    cd ..
+    py scripts/serve.py --port 5179 --api-port 8093
+
+迁移存档使用 PostgreSQL 的 pg_dump／pg_restore，保留玩家与账号数据。每个测试终端明确连接独立 oath_test。密码使用随机盐与 PBKDF2 校验值，数据库中的会话令牌保存摘要。浏览器保存当前会话令牌；.local、数据库目录和含凭据配置均应留在 Git 之外。
+
+## 修改后的验证
+
+    python3 scripts/build-content.py
+    npm --prefix frontend run format:check
+    npm --prefix frontend test
+    npm --prefix frontend run build
+    # 已启动本项目前后端与数据库时
+    ./scripts/check.sh --browser
+
+Windows 可分别执行相应 npm 命令，在后端测试终端将 DATABASE_URL 设置为 oath_test 的 JDBC URL 后执行 sbt test。完整试玩脚本在 frontend 内运行 node playthrough/run.mjs easy --keyboard 或 node playthrough/run.mjs hard，结果保存到忽略的 .local/playthrough。Agent 接手说明见 [AGENTS.md](AGENTS.md)。

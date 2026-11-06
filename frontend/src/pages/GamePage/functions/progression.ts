@@ -269,19 +269,11 @@ export function interact(state: GameState): GameState {
     );
   if (map.encounter && state.snapshot.stage !== 'cleared' && pos.x > map.width * 32 * 0.28)
     return beginBattle(state);
-  if (distance(pos, { x: map.exit[0], y: map.exit[1] }) < 100) {
-    if (map.encounter && state.snapshot.stage !== 'cleared')
-      return notify(state, '先完成当前遭遇。');
-    if (!map.next) return state;
-    return map.id === 'harbor'
-      ? startCinematic(state, 'voyage', { kind: 'travel', destination: map.next })
-      : enterMap(state, map.next);
-  }
   return notify(
     state,
     map.encounter && state.snapshot.stage !== 'cleared'
       ? '向前进入场地，按交互开始战斗。'
-      : '沿道路前进，在金色出口处交互。',
+      : '沿蓝色箭头走进围墙缺口，前往下一站。',
   );
 }
 export function retryCheckpoint(state: GameState): GameState {
@@ -336,4 +328,20 @@ export function advanceReading(state: GameState, dt: number, textSpeed: number):
 export function advanceDefeat(state: GameState, dt: number): GameState {
   if (state.mode.kind !== 'failed' || state.mode.elapsed >= 0.9) return state;
   return { ...state, mode: { ...state.mode, elapsed: Math.min(0.9, state.mode.elapsed + dt) } };
+}
+
+export function crossExit(state: GameState): GameState {
+  if (state.mode.kind !== 'explore') return state;
+  const map = mapById(state.snapshot.mapId);
+  const position = state.snapshot.position;
+  if (
+    !map.next ||
+    (map.encounter && state.snapshot.stage !== 'cleared') ||
+    position.x < map.width * 32 - 36 ||
+    Math.abs(position.y - (map.exit[1] + 16)) > 40
+  )
+    return state;
+  return map.id === 'harbor'
+    ? startCinematic(state, 'voyage', { kind: 'travel', destination: map.next })
+    : enterMap(state, map.next);
 }
