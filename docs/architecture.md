@@ -35,7 +35,7 @@
 
 列表读取也锁定同一玩家行，使 revision、continue_save、冒险和记录来自同一分支；锁保持到路由事务结束，避免多标签写入穿插在多次查询之间。
 
-Load 同样增加 revision，使之前启动的保存请求失效。游戏页 usePersistence 已实现请求代次隔离、串行保存、失败保留重试请求；仍需专项并发浏览器测试。
+Load 同样增加 revision，使之前启动的保存请求失效。游戏页 usePersistence 已实现请求代次隔离、串行保存、失败保留重试请求；浏览器用例验证旧响应延迟、提交后断线、回档和跨标签冲突恢复。
 
 ## 内容
 
@@ -61,8 +61,15 @@ GamePage 入口显示 WorldCanvas、GameHud、DialoguePanel、PausePanel 业务�
 | 规则 28–29 | Endpoint、PersistenceSuite | 原测试仅覆盖越权读取，不能证明伪造身份和越权保存被拒绝；补足边界证据 | 客户端 playerId 被可信 ID 覆盖；无效令牌返回 401；外来玩家保存失败 |
 | 规则 54、工程可读性 | Adventure API 与 Table、前端同名请求类 | 清理编译器确认未用的导入及新建冒险中的空 IO 步骤 | Scala unused-import 编译检查、TypeScript noUnusedLocals／noUnusedParameters 均通过 |
 
-数据库测试现为 12 项，前端单元测试 32 项通过。JDBC 行读取发生在 IO.blocking 内，SQL 和行映射保持 Table 私有，资源与事务由 system 管理；扫描禁用词仅用作定位，最终结论结合逐文件阅读。
+JDBC 行读取发生在 IO.blocking 内，SQL 和行映射保持 Table 私有，资源与事务由 system 管理；扫描禁用词仅用作定位，最终结论结合逐文件阅读。
 
-前端本轮已审查 api／apis、两个页面入口、StartPage 请求流程、GamePage 存档协调、Zustand 封装及 Tailwind 基础样式；页面纯计算目录未发现读取全局快照或 hook。其余渲染、音频、输入与设置模块仍需完整人工审查，不把本轮静态检查或测试通过当作全项目规范验收完成。
+前端按 React 清单复核了以下边界。
+
+| 课程规则 | 对应实现与检查 |
+| --- | --- |
+| 19、60 | 游戏模式与暂停前的模式使用判别联合。存档以阶段值区分剧情与可恢复检查点，设置界面临时选项就近维护。 |
+| 28–33、48–53 | 公共传输添加令牌，请求类显式发送字段。messages.test.ts 检查稳定消息名、无输入及错误路径。五个公开消息及页面对应关系见根 README。 |
+| 39–47 | 页面入口组合具体业务区域。Canvas 绘制和即时输入归 GamePage，跨页共享的设置、音频和存档摘要归 features。场景计算接收显式参数，React 组件按选择器订阅。 |
+| 54–59 | 页面和菜单使用 Tailwind，公共 CSS 仅定义主题与基础样式。战斗动画与像素绘制由 Canvas 承担；进度条等运行时尺寸由实际数据计算。类型检查、格式与生产构建包含在检查脚本中。 |
 
 音频边界审查补充：AudioLifecycle 负责用户手势、窗口焦点和可见性监听；engine 保持私有 AudioContext／节点／计时器，外部只调用明确操作。音乐暂停与窗口失焦分别建模，避免每帧 setSoundtrack 覆盖失焦状态。焦点／静音经 master 增益淡出，暂停经 music 增益淡出，音效通道仍支持菜单试听；资源销毁清理计时器和 AudioContext。真实 WebAudio 幅度检查与模拟时钟测试证明门控路径，实际听音仍为单独验收项。

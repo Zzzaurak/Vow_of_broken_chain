@@ -1,10 +1,18 @@
 # 断链之誓
 
-以 AI 娘为角色的中世纪奇幻冒险游戏，作为前后端课程项目制作。当前正在实现：标题页、Canvas 探索战斗、对白与真实数据库存读档已接入，两难度完整流程已有真实操作通关证据；演出细节与完整交付仍在验收，设置与改键已接入。详见 [实施状态](docs/implementation-status.md)。
+一款以 AI 娘为角色的单人奇幻冒险。玩家扮演大肥鱼，从东方长阶出发救回 Claude，沿途结识伙伴，在十二张像素地图中探索、战斗和读对白。进度通过 Scala 服务保存到 PostgreSQL，支持刷新继续、手动选档与回到检查点。
+
+从项目根目录执行：
+
+```bash
+python3 scripts/run.py
+```
+
+打开 [本地游戏](http://127.0.0.1:5179/)。运行环境与构建版启动方式见[运行与交付](docs/running.md)。
 
 ## 内容导航
 
-- [验收记录](docs/acceptance.md)：企划 16 项的当前证据与尚未完成项。
+- [验收记录](docs/acceptance.md)：企划 16 项与对应的通关、规则及存档证据。
 - [开发 Plan](docs/development-plan.md)：业务边界、12 张地图、8 个遭遇及分阶段验收。
 - [运行与交付](docs/running.md)：一键启动、构建版演示、检查脚本与源码打包。
 - [素材来源](docs/assets.md)：运行清单、生成记录、原创音频与许可说明。
@@ -20,21 +28,31 @@
 
 ## 运行与实现
 
-采用 React＋TypeScript＋Tailwind 前端、Scala 3 后端与 PostgreSQL。启动及测试命令见 [实施状态](docs/implementation-status.md)，当前目录与 API 审查导航见 [架构说明](docs/architecture.md)。
+前端采用 React、TypeScript、Tailwind 与 Canvas 2D。后端在同一 Scala 进程中运行两个逻辑业务服务，使用 Cats Effect、http4s、Circe 和 PostgreSQL。
 
-实际页面：`frontend/src/pages/StartPage`（`/`）、`GamePage`（`/game`）。业务请求类位于 `frontend/src/apis/PlayerService` 与 `AdventureService`；公共传输放 `frontend/src/api`。
+```text
+frontend/src/
+├── pages/StartPage/      /      标题、选择难度、继续与选档
+├── pages/GamePage/       /game  地图、战斗、对白、菜单与结局
+├── features/                    两页共用的设置、音频与存档摘要
+├── api/                         公共传输、令牌、路由名
+└── apis/                        PlayerService 和 AdventureService 的请求类
 
-后端位于 `backend/src/main/scala/services`：`system` 管理基础设施，`PlayerService` 管理匿名身份，`AdventureService` 管理冒险和存档。角色、地图、遭遇与剧情是 `content/` 中的版本化内容，不做无业务必要的独立网络服务。
-
-```bash
-./scripts/db.sh
-# 终端一
-cd backend && sbt run
-# 终端二（项目根开始）
-cd frontend && npm ci && npm run dev
+backend/src/main/scala/services/
+├── PlayerService/               匿名玩家与会话，管理玩家版本和继续指针
+├── AdventureService/            冒险、快照、存档轮换与请求去重
+└── system/                      进程启动、HTTP 路由基础设施与 JDBC 事务
 ```
 
-打开 http://127.0.0.1:5179/ 。数据库位于项目 `.local/postgres`，默认端口 55439；后端 8093，仅本机访问。不要将本地匿名身份令牌、数据库或 `.local` 目录打包分享。
+两个业务服务各自包含 api、routes、objects、tables 和 utils。system/database 管理连接与事务。角色、地图、敌人、遭遇和剧情采用共享的版本化内容配置。内容目录、表的归属与课程审查说明见[工程架构](docs/architecture.md)。
+
+| 页面操作 | 服务 | 前后端同名消息 | 结果 |
+| --- | --- | --- | --- |
+| 首次访问标题页 | PlayerService | CreateAnonymousPlayerMessage | 匿名身份 |
+| 新冒险 | AdventureService | StartAdventureMessage | 局内初始快照及版本 |
+| 标题或游戏内选档 | AdventureService | ListSavesMessage | 该玩家各冒险、存档列表与继续指针 |
+| 继续或读取旧档 | AdventureService | LoadAdventureMessage | 恢复的快照与新版本 |
+| 手动或自动保存 | AdventureService | SaveProgressMessage | 已提交的记录与新版本 |
 
 ## Git 管理
 
