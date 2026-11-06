@@ -23,6 +23,7 @@ export function usePersistence() {
   const counter = useGame((g) => g?.autosave ?? 0),
     lastAuto = useRef(0);
   const generation = useRef(0);
+  const listRequest = useRef(0);
   useEffect(() => {
     const beforeUnload = (event: BeforeUnloadEvent) => {
       if (!getGameSnap()?.dirty && !pending.current) return;
@@ -33,6 +34,7 @@ export function usePersistence() {
     window.addEventListener('beforeunload', beforeUnload);
     return () => {
       generation.current++;
+      listRequest.current++;
       window.removeEventListener('beforeunload', beforeUnload);
     };
   }, []);
@@ -94,11 +96,19 @@ export function usePersistence() {
     lastAuto.current = counter;
     save('auto');
   }, [counter, status.kind]);
+  async function readList(ticket: number) {
+    const result = await new ListSavesMessage().send();
+    if (ticket === listRequest.current) {
+      setList((previous) => (previous && previous.revision > result.revision ? previous : result));
+    }
+    return result;
+  }
   async function refreshList() {
+    const ticket = ++listRequest.current;
     try {
-      const result = await new ListSavesMessage().send();
-      setList(result);
+      await readList(ticket);
     } catch (e) {
+      if (ticket !== listRequest.current) return;
       setStatus({ kind: 'error', text: e instanceof Error ? e.message : '无法读取存档列表' });
     }
   }
@@ -116,9 +126,8 @@ export function usePersistence() {
     setStatus({ kind: 'busy', text: '正在核对服务器进度…' });
     let latest: SaveListResponse;
     try {
-      latest = await new ListSavesMessage().send();
+      latest = await readList(++listRequest.current);
       if (epoch !== generation.current) return;
-      setList(latest);
     } catch (error) {
       if (epoch === generation.current)
         setStatus({
@@ -145,12 +154,14 @@ export function usePersistence() {
   async function manual(slot: number) {
     if (busy.current || pending.current) return;
     busy.current = true;
+    const epoch = generation.current;
     setStatus({ kind: 'busy', text: '正在核对存档槽…' });
     let latest: SaveListResponse;
     try {
-      latest = await new ListSavesMessage().send();
-      setList(latest);
+      latest = await readList(++listRequest.current);
+      if (epoch !== generation.current) return;
     } catch (error) {
+      if (epoch !== generation.current) return;
       setStatus({
         kind: 'error',
         text: error instanceof Error ? error.message : '无法核对存档槽，未执行覆盖。',
