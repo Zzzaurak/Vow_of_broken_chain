@@ -1,4 +1,10 @@
-import { attackShape, coneReach, coneHalfAngle, hazardWarningSeconds } from './enemyAttack';
+import {
+  attackShape,
+  coneReach,
+  coneHalfAngle,
+  hazardWarningSeconds,
+  runeLanding,
+} from './enemyAttack';
 import { clearPath, pursuitDirection } from './navigation';
 import { balance, encounters, mapById } from '../objects/content';
 import type { EnemyKind } from '../objects/content';
@@ -49,6 +55,11 @@ function damageEnemy(enemy: Enemy, amount: number, source: Vec, pierce = false):
   if (enemy.kind === 'claude') return enemy;
   return { ...enemy, hp: Math.max(0, enemy.hp - amount) };
 }
+function interruptMage(enemy: Enemy): Enemy {
+  return enemy.kind === 'mage' && enemy.phase === 'windup'
+    ? { ...enemy, phase: 'recover', timer: balance.enemies.mage.recovery }
+    : enemy;
+}
 function areaDamage(
   state: GameState,
   point: Vec,
@@ -60,7 +71,7 @@ function areaDamage(
     ...state,
     enemies: state.enemies.map((e) =>
       distance(e.position, point) < radius
-        ? damageEnemy(e, damage, state.snapshot.position, pierce)
+        ? damageEnemy(interruptMage(e), damage, state.snapshot.position, pierce)
         : e,
     ),
   };
@@ -207,7 +218,7 @@ function playerActions(state: GameState, input: FrameInput, dt: number): GameSta
         ...next,
         enemies: next.enemies.map((e) =>
           distance(e.position, next.snapshot.position) < balance.supports.glm.radius
-            ? { ...e, slowed: isBoss(e.kind) ? 1 : 3 }
+            ? { ...interruptMage(e), slowed: isBoss(e.kind) ? 1 : 3 }
             : e,
         ),
       };
@@ -330,7 +341,7 @@ function enemyStep(state: GameState, dt: number): GameState {
             ),
           };
       } else if (enemy.phase === 'windup' && enemy.timer <= 0) {
-        const shape = attackShape(enemy);
+        const shape = attackShape(enemy, map.id);
         if (shape === 'cone') {
           const aimed = normalize(subtract(next.snapshot.position, enemy.position));
           const inCone = aimed.x * enemy.aim.x + aimed.y * enemy.aim.y > Math.cos(coneHalfAngle);
@@ -346,11 +357,25 @@ function enemyStep(state: GameState, dt: number): GameState {
               position: movePosition(enemy.position, add({ x: 0, y: 0 }, enemy.aim, 65), map),
             };
         } else if (shape === 'ground') {
+          if (enemy.kind === 'glm') {
+            const position = runeLanding(next.snapshot.position, next.aim, enemy.position, map);
+            enemy = {
+              ...enemy,
+              position,
+              aim: normalize(subtract(next.snapshot.position, position)),
+            };
+          }
           const kind: Hazard['kind'] =
-            enemy.kind === 'claude' ? 'petal' : enemy.kind === 'pope' ? 'bind' : 'blast';
-          const radius = kind === 'bind' ? 145 : enemy.kind === 'gpt' ? 95 : 70;
+            enemy.kind === 'glm'
+              ? 'page'
+              : enemy.kind === 'claude'
+                ? 'petal'
+                : enemy.kind === 'pope' || enemy.kind === 'mage'
+                  ? 'bind'
+                  : 'blast';
+          const radius = enemy.kind === 'pope' ? 145 : enemy.kind === 'gpt' ? 95 : 70;
           const points =
-            kind === 'bind'
+            enemy.kind === 'pope'
               ? [next.snapshot.position, { x: map.width * 16, y: map.height * 16 }]
               : [next.snapshot.position];
           next = {
@@ -363,22 +388,13 @@ function enemyStep(state: GameState, dt: number): GameState {
                 position: { ...position },
                 radius,
                 timer: 0,
-                duration: kind === 'blast' ? 0.25 : 3,
+                duration: kind === 'blast' || kind === 'page' ? 0.25 : 3,
                 damage: spec.damage,
                 kind,
                 fired: false,
               })),
             ],
           };
-          if (enemy.kind === 'glm')
-            enemy = {
-              ...enemy,
-              position: movePosition(
-                enemy.position,
-                { x: enemy.attack % 2 ? 110 : -110, y: enemy.attack % 2 ? -60 : 60 },
-                map,
-              ),
-            };
         } else {
           const projectile: Projectile = {
             id: next.serial + 1,
@@ -389,7 +405,7 @@ function enemyStep(state: GameState, dt: number): GameState {
             distance: 700,
             damage: spec.damage,
             enemy: true,
-            homing: enemy.attack % 2 === 1,
+            homing: enemy.kind === 'pope' && enemy.attack % 2 === 1,
           };
           next = {
             ...next,

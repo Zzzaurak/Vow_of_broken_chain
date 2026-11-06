@@ -436,6 +436,17 @@ export function drawGame(
     ctx.beginPath();
     ctx.arc(h.position.x, h.position.y, h.radius, 0, Math.PI * 2);
     ctx.stroke();
+    if (h.kind === 'page') {
+      const progress = Math.min(1, h.timer / hazardWarningSeconds);
+      ctx.save();
+      ctx.translate(h.position.x, h.position.y - 48 * (1 - progress));
+      ctx.rotate(progress * Math.PI);
+      ctx.fillStyle = '#f7e6bb';
+      ctx.fillRect(-8, -11, 16, 22);
+      ctx.fillStyle = '#704877';
+      for (const row of [-6, -1, 4]) ctx.fillRect(-5, row, 10, 2);
+      ctx.restore();
+    }
     if (h.kind === 'petal') {
       ctx.fillStyle = h.timer < hazardWarningSeconds ? '#f0ce77' : '#ffe791';
       for (let i = 0; i < 10; i++) {
@@ -457,7 +468,7 @@ export function drawGame(
   for (const enemy of state.enemies) {
     if (enemy.hp <= 0) continue;
     if (enemy.phase === 'windup') {
-      const shape = attackShape(enemy);
+      const shape = attackShape(enemy, map.id);
       ctx.save();
       ctx.translate(enemy.position.x, enemy.position.y);
       ctx.rotate(Math.atan2(enemy.aim.y, enemy.aim.x));

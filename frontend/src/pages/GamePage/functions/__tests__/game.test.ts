@@ -52,6 +52,65 @@ function finishDialogue(game: GameState): GameState {
   return next;
 }
 describe('deterministic game rules', () => {
+  it('forest mages fire light bolts, corridor mages mark a binding circle and water interrupts casting', () => {
+    const release = (mapId: string, water: boolean) => {
+      const game = battle(mapId);
+      const position = { x: 500, y: 420 };
+      return stepGame(
+        {
+          ...game,
+          snapshot: { ...game.snapshot, position: { x: 400, y: 420 } },
+          enemies: [{ ...game.enemies[0], kind: 'mage', position, phase: 'windup', timer: 0 }],
+          projectiles: water
+            ? [
+                {
+                  id: 99,
+                  position,
+                  direction: { x: 1, y: 0 },
+                  target: position,
+                  speed: 1,
+                  distance: 20,
+                  damage: 2,
+                  enemy: false,
+                  homing: false,
+                },
+              ]
+            : [],
+        },
+        emptyInput,
+        1 / 60,
+      );
+    };
+    expect(release('forest', false).projectiles[0]).toMatchObject({ enemy: true, homing: false });
+    expect(release('corridor', false).hazards.map((h) => h.kind)).toEqual(['bind']);
+    const interrupted = release('forest', true);
+    expect(interrupted.projectiles).toEqual([]);
+    expect(interrupted.enemies[0].phase).toBe('recover');
+  });
+  it('GLM blinks behind the player, warns before the page bomb and leaves room at walls', () => {
+    const game = battle('harbor');
+    const release = (x: number) =>
+      stepGame(
+        {
+          ...game,
+          snapshot: { ...game.snapshot, position: { x, y: 450 } },
+          enemies: game.enemies.map((enemy) => ({ ...enemy, phase: 'windup', timer: 0 })),
+        },
+        { ...emptyInput, aim: { x: 1, y: 0 } },
+        1 / 60,
+      );
+    const open = release(400);
+    expect(open.enemies[0]).toMatchObject({ position: { x: 320, y: 450 }, phase: 'recover' });
+    expect(open.hazards[0]).toMatchObject({
+      kind: 'page',
+      position: { x: 400, y: 450 },
+      fired: false,
+    });
+    expect(open.snapshot.hp).toBe(100);
+    const edge = release(24);
+    expect(edge.enemies[0].position.x).toBeCloseTo(24);
+    expect(Math.abs(edge.enemies[0].position.y - 450)).toBeCloseTo(80);
+  });
   it('dragon breath hits the marked edge while starfall warns at the chosen ground position', () => {
     const release = (x: number, attack: number) => {
       const game = battle('lair');

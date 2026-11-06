@@ -58,7 +58,7 @@ export interface Hazard {
   timer: number;
   duration: number;
   damage: number;
-  kind: 'blast' | 'bind' | 'petal';
+  kind: 'blast' | 'page' | 'bind' | 'petal';
   fired: boolean;
 }
 export interface VisualEffect {

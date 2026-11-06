@@ -28,10 +28,11 @@ async function movement(next) {
     }
 }
 async function choose(label) {
-  if (!keyboard) return page.getByRole('button', { name: label }).click();
+  const button = page.getByRole('button', { name: label, exact: typeof label === 'string' });
+  await button.waitFor();
+  if (!keyboard) return button.click();
   for (let i = 0; i < 50; i++) {
-    const focused = await page.evaluate(() => document.activeElement?.textContent?.trim() ?? '');
-    if (typeof label === 'string' ? focused === label : label.test(focused)) {
+    if (await button.evaluate((node) => node === document.activeElement && !node.disabled)) {
       await page.keyboard.press('Enter');
       return;
     }
