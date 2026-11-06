@@ -50,6 +50,7 @@ object Content:
       resources = List(snapshot.hp, snapshot.mp, snapshot.playSeconds, snapshot.position.x,
         snapshot.position.y, snapshot.cooldowns.water, snapshot.cooldowns.glm,
         snapshot.cooldowns.gpt, snapshot.cooldowns.claude)
+      endingStage = snapshot.stage == ProgressStage.ending || snapshot.stage == ProgressStage.finished
       valid = snapshot.checkpoint == current.checkpoint &&
         resources.forall(value => value.isFinite && value >= 0) &&
         snapshot.hp > 0 && snapshot.hp <= 100 && snapshot.mp <= 100 &&
@@ -60,7 +61,7 @@ object Content:
         snapshot.supports.forall(snapshot.unlocked.contains) &&
         snapshot.completed.toSet == expectedEncounters && snapshot.completed.distinct == snapshot.completed &&
         (!current.finalPreparation || snapshot.supports.headOption.contains(Partner.claude)) &&
-        ((snapshot.stage != ProgressStage.ending && snapshot.stage != ProgressStage.finished) || current.next.isEmpty) &&
+        (endingStage == current.next.isEmpty) &&
         snapshot.cooldowns.water <= 4 && snapshot.cooldowns.glm <= 10 &&
         snapshot.cooldowns.gpt <= 18 && snapshot.cooldowns.claude <= 16
       _ <- IO.raiseUnless(valid)(ApiError("invalid_snapshot", "存档内容、资源或剧情阶段不一致，未覆盖已有记录。"))

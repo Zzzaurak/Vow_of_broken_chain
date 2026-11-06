@@ -162,7 +162,9 @@ class PersistenceSuite extends CatsEffectSuite:
       initial <- Content.initial(Difficulty.easy)
       _ <- List(Difficulty.easy,Difficulty.hard).traverse_ { difficulty =>
         catalog.zipWithIndex.traverse_ { (map,index) =>
-          List(ProgressStage.arrival,ProgressStage.ready,ProgressStage.cleared).traverse_ { stage =>
+          val stages = if map.next.isEmpty then List(ProgressStage.ending,ProgressStage.finished)
+            else List(ProgressStage.arrival,ProgressStage.ready,ProgressStage.cleared)
+          stages.traverse_ { stage =>
             val finished = catalog.take(index + (if stage == ProgressStage.cleared then 1 else 0))
             val unlocked = finished.flatMap(_.unlock)
             val supports = if map.finalPreparation then List(Partner.claude,Partner.gpt) else unlocked.take(2)
@@ -173,6 +175,18 @@ class PersistenceSuite extends CatsEffectSuite:
         }
       }
     yield ()
+  }
+
+  test("the epilogue rejects an exploration checkpoint that has no onward exit") {
+    for
+      catalog <- Content.maps
+      initial <- Content.initial(Difficulty.easy)
+      ending <- IO.fromOption(catalog.lastOption)(new IllegalStateException("Missing epilogue"))
+      snapshot = initial.copy(mapId=ending.id,checkpoint=ending.checkpoint,
+        completed=catalog.flatMap(_.encounter),unlocked=catalog.flatMap(_.unlock),
+        supports=List(Partner.claude,Partner.gpt),stage=ProgressStage.ready)
+      result <- Content.validate(snapshot).attempt
+    yield assertEquals(result.swap.toOption.collect { case e: ApiError => e.code },Some("invalid_snapshot"))
   }
 
   test("final preparation requires Claude in the first slot and future content returns an explicit compatibility error") {
