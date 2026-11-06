@@ -154,6 +154,64 @@ function drawCinematic(
     ctx.fillStyle = '#f1d794';
     for (let y = 100; y < 410; y += 32) ctx.fillRect(472, y, 24, 4);
     particles('#d8c37a', false);
+  } else if (scene === 'harborChase') {
+    // A self-contained stage: camera scroll is visual only and cannot move the save point.
+    const run = Math.min(t, 4.5),
+      scroll = run * 95;
+    ctx.fillStyle = '#244e5a';
+    ctx.fillRect(0, 64, 960, 384);
+    ctx.fillStyle = '#8e7854';
+    ctx.fillRect(0, 200, 960, 200);
+    for (let i = -1; i < 25; i++) {
+      const x = i * 64 - (scroll % 64);
+      ctx.fillStyle = '#5b5142';
+      ctx.fillRect(x, 200, 3, 200);
+      ctx.fillStyle = '#ad9565';
+      ctx.fillRect(x + 8, 211, 36, 2);
+      ctx.fillRect(x + 20, 382, 30, 2);
+    }
+    for (let i = 0; i < 6; i++) {
+      const x = i * 225 - scroll + 90;
+      ctx.fillStyle = '#443d32';
+      ctx.fillRect(x, 180, 18, 45);
+      ctx.fillRect(x + 90, 380, 18, 45);
+      ctx.strokeStyle = '#baab7b';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x + 9, 190);
+      ctx.quadraticCurveTo(x + 120, 223, x + 234, 190);
+      ctx.stroke();
+      ctx.fillStyle = '#695139';
+      ctx.fillRect(x + 55, 225, 48, 42);
+      ctx.strokeStyle = '#b29160';
+      ctx.strokeRect(x + 59, 229, 40, 34);
+    }
+    const settle = Math.min(1, Math.max(0, (t - 4.5) / 1.5));
+    const fishX = 260 + settle * 160;
+    const foxX = 570 + settle * 45;
+    const sway = Math.sin(run * 3) * 24 * (1 - settle);
+    const landing = t < 1 ? -55 * (1 - t) : 0;
+    const bob = Math.abs(Math.sin(t * 10)) * 5 * (1 - settle);
+    actor('deepseek', fishX, 340 + sway - bob, t < 6 ? 'walk' : 'idle', 94);
+    drawActor(
+      ctx,
+      images,
+      'glm',
+      { x: foxX, y: 330 - sway + landing - bob },
+      t < 4.5 ? 'right' : 'left',
+      'idle',
+      t,
+      96,
+    );
+    // The stolen rice bag stays visibly attached to GLM until the subsequent surrender scene.
+    ctx.fillStyle = '#c2a16b';
+    ctx.fillRect(foxX + 28, 285 - sway + landing - bob, 24, 28);
+    ctx.strokeStyle = '#ead49a';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(foxX + 34, 276 - sway + landing - bob, 12, 12);
+    ctx.fillStyle = '#c4d9d33d';
+    for (let i = 0; i < 8; i++)
+      ctx.fillRect((i * 157 - t * 12 + 960) % 960, 105 + (i % 3) * 34, 120, 7);
   } else if (scene === 'voyage') {
     const x = 280 + Math.min(t, 7) * 45,
       y = 300 + Math.sin(t * 2) * 5;

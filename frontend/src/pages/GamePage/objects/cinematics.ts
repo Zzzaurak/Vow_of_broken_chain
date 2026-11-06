@@ -4,6 +4,14 @@ export const cinematics = {
     title: '长阶之别',
     captions: ['圣光屏障从天而降，将两人隔开。', '大肥鱼被震退，向日葵花瓣落在雨中的长阶。'],
   },
+  harborChase: {
+    duration: 7,
+    title: '追上那只狐狸',
+    captions: [
+      'GLM 拎着行囊跃下屋檐，在木箱与缆绳间穿行。',
+      '大肥鱼紧追不舍，将怪盗逼到开阔的码头。',
+    ],
+  },
   voyage: {
     duration: 7,
     title: '横渡风暴',

@@ -71,6 +71,27 @@ describe('deterministic game rules', () => {
     expect(canSave(end)).toBe(false);
     expect(advanceCinematic(end, 20)).toEqual(end);
   });
+  it('harbor theft leads through chase to a safe battle checkpoint without unlocking GLM', () => {
+    let state = createGame({ ...initial, mapId: 'harbor', checkpoint: 'harbor', stage: 'arrival' });
+    for (let i = 0; i < 40 && state.mode.kind === 'dialogue'; i++)
+      state = advanceDialogue(state, true);
+    expect(state.mode).toMatchObject({ kind: 'cinematic', scene: 'harborChase' });
+    const before = state.snapshot;
+    expect(canSave(state)).toBe(false);
+    state = advanceCinematic(state, 3);
+    expect(state.snapshot).toEqual(before);
+    const paused = togglePause(state);
+    expect(advanceCinematic(paused, 10)).toEqual(paused);
+    state = advanceCinematic(togglePause(paused), 4);
+    expect(state.mode.kind).toBe('explore');
+    expect(state.snapshot.stage).toBe('ready');
+    expect(state.snapshot.unlocked).toEqual([]);
+    expect(state.snapshot.hp).toBe(before.hp);
+    expect(state.snapshot.position).toEqual(before.position);
+    expect(canSave(state)).toBe(true);
+    expect(createGame(state.snapshot).mode.kind).toBe('explore');
+    expect(beginBattle(state).enemies.map((enemy) => enemy.kind)).toEqual(['glm']);
+  });
   it('escape finishes the encounter once and enters CG1 without a playable rubble room', () => {
     const state = createGame({
       ...initial,

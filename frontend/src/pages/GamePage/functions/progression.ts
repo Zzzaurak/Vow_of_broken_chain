@@ -168,6 +168,7 @@ export function advanceDialogue(state: GameState, instant = false): GameState {
     return { ...state, mode: { ...mode, line: mode.line + 1, revealed: 0 } };
   switch (mode.after) {
     case 'ready':
+      if (mode.scene === '2-1') return startCinematic(state, 'harborChase', { kind: 'ready' });
       return mode.scene === '5-1'
         ? startCinematic(state, 'breach', { kind: 'ready' })
         : readyAfterDialogue(state);
