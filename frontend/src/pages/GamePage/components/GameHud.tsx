@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/react/shallow';
 import { useGame } from '../runtime/store';
 import { mapById } from '../objects/content';
 import { actionLabel, useSettings } from '../../../features/settings/store';
@@ -9,13 +10,14 @@ export function GameHud() {
     stage = useGame((g) => g?.snapshot.stage);
   const water = useGame((g) => Math.ceil(g?.snapshot.cooldowns.water ?? 0));
   const supports = useGame((g) => g?.snapshot.supports);
-  const cds = useGame((g) =>
-    [g?.snapshot.cooldowns.glm, g?.snapshot.cooldowns.gpt, g?.snapshot.cooldowns.claude]
-      .map((x) => Math.ceil(x ?? 0))
-      .join(','),
+  const cds = useGame(
+    useShallow((g) => ({
+      glm: Math.ceil(g?.snapshot.cooldowns.glm ?? 0),
+      gpt: Math.ceil(g?.snapshot.cooldowns.gpt ?? 0),
+      claude: Math.ceil(g?.snapshot.cooldowns.claude ?? 0),
+    })),
   );
   useSettings();
-  const cd = cds.split(',').map(Number);
   return (
     <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-4 bg-gradient-to-b from-[#07161e]/90 to-transparent p-5">
       <div className="w-52">
@@ -31,16 +33,19 @@ export function GameHud() {
         <div className="mt-1 h-1.5 bg-black/50">
           <div className="h-full bg-[#79bfcd]" style={{ width: `${mp}%` }} />
         </div>
-        <div className="mt-3 flex gap-2 text-xs">
+        <div className="mt-3 flex w-max gap-2 text-xs">
           <span className="border border-white/20 bg-black/30 px-2 py-1">
             {actionLabel('water')} 水球 {water || '就绪'}
           </span>
-          {supports?.map((p, i) => (
-            <span key={p} className="border border-white/20 bg-black/30 px-2 py-1">
-              {actionLabel(i === 0 ? 'support1' : 'support2')} {p.toUpperCase()}{' '}
-              {cd[['glm', 'gpt', 'claude'].indexOf(p)] || '✓'}
-            </span>
-          ))}
+          {([0, 1] as const).map((slot) => {
+            const partner = supports?.[slot];
+            return (
+              <span key={slot} className="border border-white/20 bg-black/30 px-2 py-1">
+                {actionLabel(slot === 0 ? 'support1' : 'support2')}{' '}
+                {partner ? `${partner.toUpperCase()} ${cds[partner] || '✓'}` : '未解锁'}
+              </span>
+            );
+          })}
         </div>
       </div>
       <div className="text-right text-xs">

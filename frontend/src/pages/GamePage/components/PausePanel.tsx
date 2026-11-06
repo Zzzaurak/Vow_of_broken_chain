@@ -162,7 +162,14 @@ export function PausePanel({ persistence }: { persistence: ReturnType<typeof use
             <Button onClick={() => void persistence.refreshList()}>刷新记录</Button>
           </div>
         )}
-        {tab === 'settings' && <SettingsPanel />}
+        {tab === 'settings' && (
+          <>
+            <p className="mb-3 text-sm text-[#d8c690]">
+              本次冒险难度 · {game.snapshot.difficulty === 'hard' ? '困难' : '简单'}
+            </p>
+            <SettingsPanel />
+          </>
+        )}
         <p
           role="status"
           className={`mt-5 text-xs ${persistence.status.kind === 'error' ? 'text-rose-200' : 'text-[#8aa8a0]'}`}

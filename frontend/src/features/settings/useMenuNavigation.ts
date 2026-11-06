@@ -14,7 +14,13 @@ export function useMenuNavigation(
         root.querySelectorAll<HTMLElement>(
           'button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),[tabindex="0"]',
         ),
-      ).filter((el) => el.getClientRects().length > 0);
+      ).filter((el) => {
+        const collapsed = el.closest('details:not([open])');
+        return (
+          el.getClientRects().length > 0 &&
+          (!collapsed || collapsed.querySelector(':scope > summary') === el)
+        );
+      });
     const focusFirst = () => {
       if (!root.contains(document.activeElement)) controls()[0]?.focus({ preventScroll: true });
     };

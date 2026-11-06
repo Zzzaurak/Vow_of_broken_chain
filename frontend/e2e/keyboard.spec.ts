@@ -42,7 +42,15 @@ test('pure keyboard opens settings, changes preset, starts, moves, aims and open
   await expect(page.getByRole('heading', { name: '旅途中歇' })).toBeVisible();
   await navigateTo(page, '设置');
   await page.keyboard.press('Enter');
+  await expect(page.getByText('本次冒险难度 · 简单')).toBeVisible();
   await expect(page.getByLabel('控制方案')).toBeVisible();
+  // Closed key bindings must not trap arrow navigation on invisible controls.
+  const size = page.getByLabel('正文字号');
+  for (let i = 0; i < 25 && !(await size.evaluate((el) => el === document.activeElement)); i++)
+    await page.keyboard.press('ArrowDown');
+  await expect(size).toBeFocused();
+  await page.keyboard.press('ArrowRight');
+  await expect(size).toHaveValue('21');
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: '继续游戏' })).toBeVisible();
   await navigateTo(page, '继续游戏');
