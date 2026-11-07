@@ -1,3 +1,4 @@
+import { drawProp, drawDecor } from './props';
 import { drawCampfire } from './villager';
 import { regionById } from '../objects/content';
 import { drawWildlife } from './wildlife';
@@ -240,18 +241,7 @@ function drawCinematic(
   } else if (scene === 'voyage') {
     const x = 280 + Math.min(t, 7) * 45,
       y = 300 + Math.sin(t * 2) * 5;
-    ctx.fillStyle = '#513e33';
-    ctx.fillRect(x - 80, y, 160, 32);
-    ctx.fillRect(x - 60, y + 32, 120, 12);
-    ctx.fillStyle = '#ba9663';
-    ctx.fillRect(x - 72, y + 4, 144, 6);
-    ctx.fillRect(x + 12, y - 128, 5, 128);
-    ctx.fillStyle = '#d7caaa';
-    ctx.beginPath();
-    ctx.moveTo(x + 17, y - 124);
-    ctx.lineTo(x + 80, y - 32);
-    ctx.lineTo(x + 17, y - 32);
-    ctx.fill();
+    drawDecor(ctx, images, 3, x, y + 44, 220);
     actor('deepseek', x - 35, y + 8, 'idle', 74);
     actor('glm', x + 35, y + 8, 'idle', 74);
     ctx.fillStyle = '#a0c9ca77';
@@ -363,15 +353,19 @@ export function drawGame(
     ctx.drawImage(terrain, left, top, right - left, bottom - top, x, y, w, h);
   }
   const floor =
-    map.theme === 'forest'
-      ? 0
-      : map.theme === 'town'
-        ? 1
-        : map.theme === 'coast'
-          ? 2
-          : map.theme === 'snow'
-            ? 3
-            : 4;
+    map.id === 'mine'
+      ? 4
+      : map.id === 'riverbed' || map.id === 'rift'
+        ? 2
+        : map.theme === 'forest'
+          ? 0
+          : map.theme === 'town'
+            ? 1
+            : map.theme === 'coast'
+              ? 2
+              : map.theme === 'snow'
+                ? 3
+                : 4;
   for (let y = 0; y < map.height; y += 2)
     for (let x = 0; x < map.width; x += 2) {
       tile(floor, x * 32, y * 32, 64, 64);
@@ -392,11 +386,14 @@ export function drawGame(
     );
   }
   for (const [x, y, w, h] of map.obstacles) {
-    ctx.fillStyle = '#06152180';
-    ctx.fillRect(x + 6, y + 8, w, h);
+    if (map.id === 'library') {
+      drawProp(ctx, images, 8, x + w / 2, y + h, w);
+      continue;
+    }
+
     tile(
       map.theme === 'forest'
-        ? map.id === 'crystal'
+        ? map.id === 'crystal' || map.id === 'mine'
           ? 9
           : 8
         : map.theme === 'town'
@@ -406,14 +403,14 @@ export function drawGame(
             : map.theme === 'temple'
               ? 12
               : 10,
-      x + (w - Math.max(w, h)) / 2,
-      y + h - Math.max(w, h),
-      Math.max(w, h),
-      Math.max(w, h),
+      x,
+      y,
+      w,
+      h,
     );
   }
-  drawScenery(ctx, map);
-  drawRegionScenery(ctx, state);
+  drawScenery(ctx, map, images);
+  drawRegionScenery(ctx, state, images);
   if (!regionById(map.id).points.some((p) => p.kind === 'camp'))
     drawCampfire(ctx, images, { x: map.spawn[0], y: map.spawn[1] });
   drawExploration(ctx, state, images, (id, position) =>
@@ -524,7 +521,7 @@ export function drawGame(
         0,
         enemy.kind === 'gpt' ? 110 : 80,
       );
-    else if (!drawWildlife(ctx, enemy, state.simulationTime)) {
+    else if (!drawWildlife(ctx, images, enemy, state.simulationTime)) {
       const frame = enemyAtlas.frames.find((f) => f.id === enemyBehavior(enemy.kind)),
         image = images.get('/assets/enemies/enemies-atlas.png');
       if (frame && image) {
@@ -601,7 +598,7 @@ export function drawGame(
     ctx.lineTo(p.x + state.aim.x * 42, p.y + state.aim.y * 42);
     ctx.stroke();
   }
-  drawRest(ctx, state);
+  drawRest(ctx, state, images);
   for (const cast of state.casts) {
     const suffix =
       cast.partner === 'glm'
