@@ -12,11 +12,13 @@ def write(path, value):
 def main():
     script = (ROOT / 'material/script.md').read_text()
     scenes = []
-    for match in re.finditer(r'^### 场景 ([0-9]+-[0-9]+)：([^\n]+)\n(.*?)(?=^### |^## |\Z)', script, re.M | re.S):
+    for match in re.finditer(r'^#{3,4} 场景 ([0-9]+-(?:[0-9]+|C[0-9]+))：([^\n]+)\n(.*?)(?=^### |^## |^#### 场景 |\Z)', script, re.M | re.S):
         scene_id, title, body = match.groups()
+        title = title.replace('（进入CG前的抒情过渡）', '')
         speaker = '旁白'
         lines = []
         for line in body.splitlines():
+            line = re.sub(r'^\s*(?:- )?', '', line)
             who = re.match(r'^\*\*([^*]+)\*\*：', line)
             if who:
                 speaker = who.group(1)
@@ -24,7 +26,7 @@ def main():
             if text.startswith('“') and text.endswith('”'):
                 lines.append({'speaker': speaker, 'text': text[1:-1]})
         scenes.append({'id': scene_id, 'title': title, 'lines': lines})
-    assert {'0-1','0-2','1-2','2-1','2-2','3-1','3-2','4-1','4-2','5-1','5-2','5-3','5-4','6-1','6-2','6-3'} <= {scene['id'] for scene in scenes}
+    assert {'0-1','0-2','1-2','2-1','2-2','3-1','3-2','4-1','4-2','5-1','5-2','5-3','5-4','5-5','4-C1','4-C2','6-1','6-2','6-3'} <= {scene['id'] for scene in scenes}
     assert all(scene['lines'] for scene in scenes)
     # Battle calls reuse authored lines, rather than inventing conflicting dialogue.
     garden = next(scene for scene in scenes if scene['id'] == '5-2')

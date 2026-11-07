@@ -1,7 +1,7 @@
 import { balance } from '../objects/content';
 import { useGame } from '../runtime/store';
 const names: Record<string, string> = {
-  glm: 'GLM · 狐耳怪盗',
+  glm: '神秘怪盗',
   gpt: 'GPT · 古龙试炼',
   claude: 'Claude · 向日葵结界',
   pope: 'D 教皇 · 神格',

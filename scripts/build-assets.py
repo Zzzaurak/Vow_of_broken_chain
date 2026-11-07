@@ -20,7 +20,7 @@ for name in ('cg1.png','cg2.png'):
     shutil.copyfile(ROOT/'material/cg'/name,dest)
 print(f'Copied {len(paths)} character assets and 2 story CGs (no reference or unused characters)')
 
-for folder, name in (("Enemies", "enemies-atlas.png"), ("World", "terrain-atlas.png"), ("World", "travelers-camp.png"), ("World", "exploration-props.png"), ("World", "decor-atlas.png"), ("Enemies", "wildlife-atlas.png")):
+for folder, name in (("Enemies", "enemies-atlas.png"), ("World", "terrain-atlas.png"), ("World", "travelers-camp.png"), ("World", "exploration-props.png"), ("World", "decor-atlas.png"), ("World", "northern-atlas.png"), ("Enemies", "wildlife-atlas.png")):
     dest=target/folder.lower()/name
     dest.parent.mkdir(parents=True,exist_ok=True)
     shutil.copyfile(ROOT/"material"/folder/name,dest)

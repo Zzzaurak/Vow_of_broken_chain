@@ -532,7 +532,7 @@
     "checkpoint": "harbor",
     "unlock": null,
     "finalPreparation": false,
-    "objective": "向老水手打听 GLM 的去向，探索船坞与旧仓库",
+    "objective": "向老水手打听怪盗的去向，探索船坞与旧仓库",
     "chapter": "第二章 · 港镇薄雾"
   },
   {
@@ -2058,7 +2058,7 @@
     "checkpoint": "warehouse",
     "unlock": "glm",
     "finalPreparation": false,
-    "objective": "找到 GLM，夺回行囊与暗流海图",
+    "objective": "将神秘怪盗逼至认输，追回行囊",
     "chapter": "第二章 · 追踪怪盗"
   },
   {
@@ -2768,5 +2768,153 @@
     "finalPreparation": false,
     "objective": "留意岔路、路牌与旅人，探索后继续旅途",
     "chapter": "终章 · 并肩之誓"
+  },
+  {
+    "id": "snowline",
+    "name": "雪线针叶林",
+    "width": 40,
+    "height": 28,
+    "theme": "snow",
+    "spawn": [
+      96,
+      448
+    ],
+    "exit": [
+      1184,
+      448
+    ],
+    "next": "outpost",
+    "obstacles": [
+      [
+        256,
+        160,
+        64,
+        64
+      ],
+      [
+        256,
+        640,
+        64,
+        64
+      ],
+      [
+        448,
+        160,
+        64,
+        64
+      ],
+      [
+        448,
+        640,
+        64,
+        64
+      ],
+      [
+        768,
+        160,
+        64,
+        64
+      ],
+      [
+        768,
+        640,
+        64,
+        64
+      ],
+      [
+        960,
+        160,
+        64,
+        64
+      ],
+      [
+        960,
+        640,
+        64,
+        64
+      ]
+    ],
+    "before": "4-C1",
+    "encounter": null,
+    "after": null,
+    "checkpoint": "snowline",
+    "unlock": null,
+    "finalPreparation": false,
+    "objective": "击碎圣光图腾，解除通往前哨的光网",
+    "chapter": "第四章 · 决战前夕"
+  },
+  {
+    "id": "outpost",
+    "name": "西陆荒原前哨",
+    "width": 40,
+    "height": 28,
+    "theme": "forest",
+    "spawn": [
+      96,
+      448
+    ],
+    "exit": [
+      1184,
+      448
+    ],
+    "next": "corridor",
+    "obstacles": [
+      [
+        256,
+        160,
+        64,
+        64
+      ],
+      [
+        256,
+        640,
+        64,
+        64
+      ],
+      [
+        448,
+        160,
+        64,
+        64
+      ],
+      [
+        448,
+        640,
+        64,
+        64
+      ],
+      [
+        768,
+        160,
+        64,
+        64
+      ],
+      [
+        768,
+        640,
+        64,
+        64
+      ],
+      [
+        960,
+        160,
+        64,
+        64
+      ],
+      [
+        960,
+        640,
+        64,
+        64
+      ]
+    ],
+    "before": null,
+    "encounter": null,
+    "after": null,
+    "checkpoint": "outpost",
+    "unlock": null,
+    "finalPreparation": false,
+    "objective": "在篝火旁分食白米饭，整备后迎接破晓",
+    "chapter": "第四章 · 决战前夕"
   }
 ]

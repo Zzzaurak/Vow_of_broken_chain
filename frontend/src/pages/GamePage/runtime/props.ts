@@ -52,3 +52,14 @@ export function drawDecor(
 ) {
   drawAtlasSprite(ctx, images, '/assets/world/decor-atlas.png', 4, 2, index, { x, y }, size);
 }
+
+export function drawNorthern(
+  ctx: CanvasRenderingContext2D,
+  images: Images,
+  index: number,
+  x: number,
+  y: number,
+  size: number,
+) {
+  drawAtlasSprite(ctx, images, '/assets/world/northern-atlas.png', 2, 2, index, { x, y }, size);
+}

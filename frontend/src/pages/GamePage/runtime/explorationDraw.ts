@@ -1,4 +1,4 @@
-import { drawProp, drawDecor } from './props';
+import { drawProp, drawDecor, drawNorthern } from './props';
 import type { Images } from './assets';
 import { drawVillager, drawCampfire } from './villager';
 import type { GameState, Vec } from '../objects/game';
@@ -80,6 +80,8 @@ export function drawExploration(
       else drawVillager(ctx, images, p.id, { x, y });
     } else if (p.kind === 'camp') {
       drawCampfire(ctx, images, { x, y });
+    } else if (p.id === 'light-totem') {
+      drawNorthern(ctx, images, 2, x, y + 32, 64);
     } else {
       const index =
         p.kind === 'chest'

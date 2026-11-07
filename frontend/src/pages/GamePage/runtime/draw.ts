@@ -1,4 +1,4 @@
-import { drawProp, drawDecor } from './props';
+import { drawProp, drawDecor, drawNorthern } from './props';
 import { drawCampfire } from './villager';
 import { regionById } from '../objects/content';
 import { drawWildlife } from './wildlife';
@@ -330,7 +330,37 @@ export function drawGame(
     return;
   }
   if (state.mode.kind === 'cinematic') {
+    ctx.save();
+    if (state.mode.scene === 'escape' && preferences.shake) {
+      const t = state.mode.elapsed;
+      ctx.translate(Math.sin(t * 43) * 4, Math.cos(t * 37) * 3);
+    }
     drawCinematic(ctx, state, images, preferences.reduceFlash);
+    if (state.mode.scene === 'escape' && !preferences.reduceFlash) {
+      ctx.fillStyle = `rgba(235,209,139,${Math.max(0, Math.sin(state.mode.elapsed * 4)) * 0.12})`;
+      ctx.fillRect(0, 0, 960, 540);
+    }
+    ctx.restore();
+    return;
+  }
+  const reading = state.mode.kind === 'paused' ? state.mode.previous : state.mode;
+  if (reading.kind === 'dialogue' && reading.scene === '5-5') {
+    const sky = ctx.createLinearGradient(0, 0, 0, 350);
+    sky.addColorStop(0, '#8ac2d1');
+    sky.addColorStop(1, '#e8e1be');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, 960, 540);
+    ctx.fillStyle = '#528d9b';
+    ctx.fillRect(0, 220, 960, 320);
+    ctx.fillStyle = '#56765a';
+    ctx.beginPath();
+    ctx.moveTo(0, 265);
+    ctx.quadraticCurveTo(370, 220, 960, 340);
+    ctx.lineTo(960, 540);
+    ctx.lineTo(0, 540);
+    ctx.fill();
+    drawActor(ctx, images, 'gpt', { x: 660, y: 300 }, 'down', 'idle', 0, 100);
+    drawActor(ctx, images, 'glm', { x: 760, y: 315 }, 'down', 'idle', 0, 70);
     return;
   }
   const map = mapById(state.snapshot.mapId),
@@ -386,6 +416,10 @@ export function drawGame(
     );
   }
   for (const [x, y, w, h] of map.obstacles) {
+    if (map.id === 'snowline') {
+      drawNorthern(ctx, images, 0, x + w / 2, y + h, w);
+      continue;
+    }
     if (map.id === 'library') {
       drawProp(ctx, images, 8, x + w / 2, y + h, w);
       continue;
@@ -399,7 +433,9 @@ export function drawGame(
         : map.theme === 'town'
           ? 13
           : map.theme === 'snow'
-            ? 11
+            ? map.id === 'snowline'
+              ? 8
+              : 11
             : map.theme === 'temple'
               ? 12
               : 10,
@@ -510,7 +546,9 @@ export function drawGame(
     if (enemy.hp <= 0) continue;
     const p = enemy.position;
     circle(ctx, { x: p.x, y: p.y - 3 }, 19, '#07131860');
-    if (['glm', 'gpt', 'claude'].includes(enemy.kind))
+    if (['glm', 'gpt', 'claude'].includes(enemy.kind)) {
+      ctx.save();
+      if (enemy.kind === 'glm') ctx.filter = 'brightness(0.18)';
       drawActor(
         ctx,
         images,
@@ -521,7 +559,8 @@ export function drawGame(
         0,
         enemy.kind === 'gpt' ? 110 : 80,
       );
-    else if (!drawWildlife(ctx, images, enemy, state.simulationTime)) {
+      ctx.restore();
+    } else if (!drawWildlife(ctx, images, enemy, state.simulationTime)) {
       const frame = enemyAtlas.frames.find((f) => f.id === enemyBehavior(enemy.kind)),
         image = images.get('/assets/enemies/enemies-atlas.png');
       if (frame && image) {

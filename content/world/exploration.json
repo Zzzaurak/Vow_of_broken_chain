@@ -309,7 +309,7 @@
           320,
           288
         ],
-        "text": "你说刚才跑过去的黑发狐耳丫头？嘿！那不是智谱家的 GLM 嘛！整天抱着一本据说是西方教会掉落的黑皮书到处钻仓库，镇上没人逮得住她。你要找她？她准是钻进废船坞后面的旧货仓库分赃去啦！",
+        "text": "你说刚才抱着个大黑书一闪而过的敏捷影子？嘿！镇上除了那位整天抱着旧典籍神出鬼没的狐耳怪盗，还能有谁？平时手脚虽快，但从不伤人。你要找她？准是钻进废船坞后面的旧货仓库分赃去啦！",
         "requires": [],
         "reward": null,
         "scene": null,
@@ -324,7 +324,7 @@
           960,
           576
         ],
-        "text": "这世道，教会把大洋深处全用符文封了，捕鱼船出海两海里就得被圣光轰回来！要不是 GLM 那丫头偶尔倒腾点私货海图，我们早喝西北风了！",
+        "text": "这世道，教会把大洋深处全用符文封了，捕鱼船出海两海里就得被圣光轰回来！要不是那神秘狐影偶尔倒腾点私货海图，我们早喝西北风了！",
         "requires": [],
         "reward": null,
         "scene": null,
@@ -557,8 +557,8 @@
         "travel": null
       },
       {
-        "id": "lair-corridor",
-        "to": "corridor",
+        "id": "lair-snowline",
+        "to": "snowline",
         "side": "east",
         "at": 448,
         "arrival": [
@@ -621,6 +621,18 @@
         "requires": [
           "5-A"
         ],
+        "travel": null
+      },
+      {
+        "id": "corridor-outpost",
+        "to": "outpost",
+        "side": "south",
+        "at": 768,
+        "arrival": [
+          1184,
+          448
+        ],
+        "requires": [],
         "travel": null
       }
     ],
@@ -1607,6 +1619,125 @@
     "trigger": [
       704.0,
       480
+    ],
+    "autoBattle": false,
+    "traps": []
+  },
+  {
+    "mapId": "snowline",
+    "requires": [
+      "4-A"
+    ],
+    "exits": [
+      {
+        "id": "snowline-lair",
+        "to": "lair",
+        "side": "west",
+        "at": 448,
+        "arrival": [
+          1200,
+          448
+        ],
+        "requires": [],
+        "travel": null
+      },
+      {
+        "id": "snowline-outpost",
+        "to": "outpost",
+        "side": "east",
+        "at": 448,
+        "arrival": [
+          80,
+          448
+        ],
+        "requires": [
+          "light-totem"
+        ],
+        "travel": null
+      }
+    ],
+    "points": [
+      {
+        "id": "light-totem",
+        "kind": "breakable",
+        "name": "圣光图腾",
+        "position": [
+          704,
+          448
+        ],
+        "text": "光网消散了，通向前哨的道路已经开启。",
+        "requires": [],
+        "reward": null,
+        "scene": null,
+        "warp": null,
+        "blocker": [
+          672,
+          416,
+          64,
+          64
+        ]
+      }
+    ],
+    "trigger": [
+      704,
+      448
+    ],
+    "autoBattle": false,
+    "traps": []
+  },
+  {
+    "mapId": "outpost",
+    "requires": [
+      "4-A"
+    ],
+    "exits": [
+      {
+        "id": "outpost-snowline",
+        "to": "snowline",
+        "side": "west",
+        "at": 448,
+        "arrival": [
+          1200,
+          448
+        ],
+        "requires": [],
+        "travel": null
+      },
+      {
+        "id": "outpost-corridor",
+        "to": "corridor",
+        "side": "east",
+        "at": 448,
+        "arrival": [
+          80,
+          448
+        ],
+        "requires": [
+          "outpost-fire"
+        ],
+        "travel": null
+      }
+    ],
+    "points": [
+      {
+        "id": "outpost-fire",
+        "kind": "camp",
+        "name": "决战前夕·荒原营火",
+        "position": [
+          704,
+          448
+        ],
+        "text": "与伙伴分食白米饭。全状态恢复，决战前检查点已记录。",
+        "requires": [],
+        "reward": null,
+        "scene": "4-C2",
+        "warp": null,
+        "blocker": null
+      }
+    ],
+    "trigger": [
+      704,
+      448
     ],
     "autoBattle": false,
     "traps": []

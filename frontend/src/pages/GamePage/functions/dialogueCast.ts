@@ -12,6 +12,8 @@ const speakers: Record<string, SpeakerFigure> = {
   教会审判长: 'inquisitor',
   教会执事: 'deacon',
   神秘声音: 'mystery',
+  神秘黑影: 'mystery',
+  神秘怪盗: 'mystery',
 };
 export function dialogueCast(lines: DialogueLine[], index: number) {
   const figure = (speaker: string): SpeakerFigure | null =>

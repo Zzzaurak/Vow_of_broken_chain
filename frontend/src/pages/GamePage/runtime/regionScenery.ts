@@ -2,12 +2,28 @@ import type { GameState } from '../objects/game';
 import type { Images } from './assets';
 import { mapById } from '../objects/content';
 import { exploration } from '../functions/exploration';
-import { drawProp } from './props';
+import { drawProp, drawNorthern } from './props';
 export function drawRegionScenery(ctx: CanvasRenderingContext2D, state: GameState, images: Images) {
   const map = mapById(state.snapshot.mapId),
     flags = exploration(state.snapshot).flags;
   const prop = (index: number, x: number, y: number, size: number) =>
     drawProp(ctx, images, index, x, y, size);
+  if (map.id === 'outpost') {
+    drawNorthern(ctx, images, 1, 448, 340, 144);
+    drawNorthern(ctx, images, 3, 950, 200, 220);
+  }
+  if (map.id === 'snowline' && !flags.includes('light-totem')) {
+    ctx.save();
+    ctx.strokeStyle = '#e9d696aa';
+    ctx.lineWidth = 2;
+    for (let offset = -48; offset <= 48; offset += 16) {
+      ctx.beginPath();
+      ctx.moveTo(1224, 448 + offset);
+      ctx.lineTo(1260, 448 + offset + 24);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
   if (map.id === 'rain') {
     prop(11, 176, 192, 192);
     prop(12, 1008, 304, 144);

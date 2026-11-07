@@ -192,7 +192,7 @@ describe('deterministic game rules', () => {
       ).enemies.map((e) => e.kind),
     ).toEqual(['glm']);
   });
-  it('escape finishes the encounter once and enters CG1 without a playable rubble room', () => {
+  it('escape finishes the encounter once and enters the cliff conversation without a playable rubble room', () => {
     const state = createGame({
       ...initial,
       mapId: 'throne',
@@ -205,7 +205,7 @@ describe('deterministic game rules', () => {
     expect(end.snapshot.mapId).toBe('alley');
     expect(end.snapshot.completed).toEqual(['5-C']);
     expect(end.snapshot.supports).toEqual(['claude', 'gpt']);
-    expect(end.mode).toMatchObject({ kind: 'dialogue', scene: '6-1' });
+    expect(end.mode).toMatchObject({ kind: 'dialogue', scene: '5-5' });
     expect(canSave(end)).toBe(false);
     expect(advanceCinematic(end, 8)).toEqual(end);
   });
@@ -477,6 +477,8 @@ describe('deterministic game rules', () => {
       'rift',
       'pass',
       'lair',
+      'snowline',
+      'outpost',
       'corridor',
       'garden',
       'throne',
@@ -487,6 +489,15 @@ describe('deterministic game rules', () => {
       state = finishDialogue(state);
       if (map.id === 'market') {
         state = { ...state, snapshot: markFlag(state.snapshot, 'qwen') };
+      }
+      if (map.id === 'snowline' || map.id === 'outpost') {
+        state = {
+          ...state,
+          snapshot: markFlag(
+            state.snapshot,
+            map.id === 'snowline' ? 'light-totem' : 'outpost-fire',
+          ),
+        };
       }
       if (map.id === 'dock') {
         state = { ...state, snapshot: markFlag(markFlag(state.snapshot, 'sluice'), 'bridge') };

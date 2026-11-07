@@ -2,6 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { dialogueCast } from '../dialogueCast';
 import { dialogue } from '../../objects/content';
 describe('dialogue cast', () => {
+  it('conceals the thief until her authored introduction', () => {
+    const scene = dialogue.find((s) => s.id === '2-1')!;
+    scene.lines.forEach((line, index) => {
+      if (line.speaker === '神秘黑影')
+        expect(dialogueCast(scene.lines, index).active).toBe('mystery');
+      expect(dialogueCast(scene.lines, index).right).not.toBe('glm');
+    });
+    const camp = dialogue.find((s) => s.id === '4-C2')!;
+    expect(camp.lines.map((l) => l.speaker)).toEqual(['大肥鱼', 'GPT', 'GPT', '大肥鱼']);
+  });
   it('recognizes every authored speaker including the church and mysterious voice', () => {
     for (const scene of dialogue)
       scene.lines.forEach((line, index) => {

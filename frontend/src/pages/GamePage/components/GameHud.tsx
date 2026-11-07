@@ -8,8 +8,7 @@ export function GameHud() {
   const hp = useGame((g) => Math.ceil(g?.snapshot.hp ?? 100)),
     mp = useGame((g) => Math.floor(g?.snapshot.mp ?? 100));
   const mapId = useGame((g) => g?.snapshot.mapId ?? 'steps'),
-    mode = useGame((g) => g?.mode.kind),
-    stage = useGame((g) => g?.snapshot.stage);
+    mode = useGame((g) => g?.mode.kind);
   const water = useGame((g) => Math.ceil(g?.snapshot.cooldowns.water ?? 0));
   const supports = useGame((g) => g?.snapshot.supports);
   const cds = useGame(
@@ -43,45 +42,58 @@ export function GameHud() {
   });
   useSettings();
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-4 bg-gradient-to-b from-[#07161e]/90 to-transparent p-5">
-      <div className="w-52">
-        <div className="mb-2 flex justify-between text-xs text-[#d9d7c1]">
-          <span>大肥鱼</span>
+    <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-4 bg-gradient-to-b from-[#0a1c24]/95 via-[#0a1c24]/80 to-transparent p-4">
+      <div className="w-60 shrink-0">
+        <div className="mb-2 flex justify-between font-serif text-sm tracking-widest text-[#e8dcc4]">
+          <span className="font-bold">大肥鱼</span>
           <span>
-            HP {hp}/{stats.maxHp} · MP {mp}/{stats.maxMp}
+            {hp}/{stats.maxHp} HP · {mp}/{stats.maxMp} MP
           </span>
         </div>
-        <div className="h-2 bg-black/50">
-          <div className="h-full bg-[#d18d76]" style={{ width: `${(hp / stats.maxHp) * 100}%` }} />
+        <div className="h-3 rounded-sm border border-[#3e5a64]/50 bg-[#0a1c24]/80 p-0.5">
+          <div
+            className="h-full bg-gradient-to-r from-[#c06548] to-[#d18d76]"
+            style={{ width: `${(hp / stats.maxHp) * 100}%` }}
+          />
         </div>
-        <div className="mt-1 h-1.5 bg-black/50">
-          <div className="h-full bg-[#79bfcd]" style={{ width: `${(mp / stats.maxMp) * 100}%` }} />
+        <div className="mt-1.5 h-2 rounded-sm border border-[#3e5a64]/50 bg-[#0a1c24]/80 p-0.5">
+          <div
+            className="h-full bg-gradient-to-r from-[#4a8a97] to-[#79bfcd]"
+            style={{ width: `${(mp / stats.maxMp) * 100}%` }}
+          />
         </div>
-        <div className="mt-3 flex w-max gap-2 text-xs">
-          <span className="border border-white/20 bg-black/30 px-2 py-1">
+        <div className="mt-3 flex flex-wrap gap-2 text-xs uppercase tracking-wider">
+          <span className="rounded border border-[#4a8a97]/40 bg-[#0a1c24]/90 px-2 py-1 text-[#d8c690]">
             {actionLabel('water')} 水球 {water || '就绪'}
           </span>
           {([0, 1] as const).map((slot) => {
             const partner = supports?.[slot];
             return (
-              <span key={slot} className="border border-white/20 bg-black/30 px-2 py-1">
+              <span
+                key={slot}
+                className="rounded border border-[#d8c690]/30 bg-[#0a1c24]/90 px-2 py-1 text-[#d8c690]"
+              >
                 {actionLabel(slot === 0 ? 'support1' : 'support2')}{' '}
-                {partner ? `${partner.toUpperCase()} ${cds[partner] || '✓'}` : '未解锁'}
+                {partner ? `${partner.toUpperCase()} ${cds[partner] || '就绪'}` : '未解锁'}
               </span>
             );
           })}
         </div>
       </div>
-      <div className="text-right text-xs">
-        <p className="font-serif text-lg text-[#e4d5ae]">{mapById(mapId).name}</p>
-        <p className="mt-1 text-[#b7c9c4]">
+      <div className="max-w-[42%] text-right">
+        <p className="font-serif text-xl tracking-tight text-[#e4d5ae] drop-shadow-md">
+          {mapById(mapId).name}
+        </p>
+        <p className="mt-1.5 font-sans text-xs text-[#a3b9b4]">
           {mode === 'battle' ? mapById(mapId).objective : objective}
         </p>
         {canStartBattle && (
-          <p className="mt-2 text-[#e6cb8b]">{actionLabel('interact')} 交互进入战斗</p>
+          <p className="mt-2 animate-pulse font-bold text-[#f7e6b0]">
+            {actionLabel('interact')} 交互进入战斗
+          </p>
         )}
         <ExplorationHud />
-        <p className="mt-2 text-[#91aaa5]">
+        <p className="mt-4 font-mono text-[10px] uppercase text-[#a3b9b4]">
           {actionLabel('pause')} 暂停 · {actionLabel('interact')} 交互
         </p>
       </div>

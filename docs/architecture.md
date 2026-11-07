@@ -81,6 +81,8 @@ JDBC 行读取发生在 IO.blocking 内，SQL 和行映射保持 Table 私有，
 
 ## 区域探索与存档
 
-当前 23 个区域的几何与内容连接分别位于 maps.json、exploration.json。地图数组不表示推进顺序。区域、出口、机关和宝物通过稳定 ID 和前置条件连接；GamePage 的 exploration 纯函数推导碰撞、可通行状态与成长，私有运行态 store 保存当前快照和动画。
+当前 25 个区域的几何与内容连接分别位于 maps.json、exploration.json。地图数组不表示推进顺序。区域、出口、机关和宝物通过稳定 ID 和前置条件连接；GamePage 的 exploration 纯函数推导碰撞、可通行状态与成长，私有运行态 store 保存当前快照和动画。
 
 安全快照扩展 ExplorationProgress（visited／flags／collected）。数据库继续保存原有 JSONB 快照，不新增独立角色或地图服务。AdventureService 内的 RegionDefinition、MapExit、ExplorationPoint、GrowthItem 是内容模型，各自文件中提供 Circe 编解码器。LoadAdventureMessage 在同一事务中先升级旧内容快照、再校验、最后更新继续指针与版本；旧存档行不被迁移过程覆盖。
+
+新版剧本接入：4-C1 在雪线针叶林首次到达播放；击破圣光图腾打开前哨出口。4-C2 由前哨营火首次调查触发，恢复资源并在对白结束后自动保存。5-5 在逃亡过场后、CG1 前播放，沿用 ending 安全快照，重载从悬崖对白开始。新增区域不修改旧区域碰撞或旧存档必需条件，保留 2.0.0 内容兼容。

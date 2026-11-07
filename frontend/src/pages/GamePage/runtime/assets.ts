@@ -16,6 +16,7 @@ export async function loadImages(): Promise<Images> {
     '/assets/world/travelers-camp.png',
     '/assets/world/exploration-props.png',
     '/assets/world/decor-atlas.png',
+    '/assets/world/northern-atlas.png',
     '/assets/enemies/wildlife-atlas.png',
     '/assets/cg/cg1.png',
     '/assets/cg/cg2.png',

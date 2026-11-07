@@ -83,29 +83,29 @@ export function DialoguePanel() {
         </div>
       )}
       {!mode.hidden && (!cg || mode.elapsed >= 1.5) && (
-        <div className="relative min-h-[28%] border-t border-[#c8b47a]/50 bg-[#0c1c24]/95 px-8 py-4">
-          <div className="mb-3 flex items-center justify-between">
-            <span className="font-serif text-lg tracking-widest text-[#e7ce8b]">
+        <div className="relative max-h-[55%] overflow-y-auto min-h-[28%] border-t border-[#3e5a64] bg-gradient-to-b from-[#0a1c24]/95 to-[#050f14]/98 px-6 py-3 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+          <div className="mb-2 flex items-center justify-between border-b border-[#3e5a64]/50 pb-2">
+            <span className="font-serif text-xl tracking-widest text-[#e8dcc4] drop-shadow-md">
               {line.speaker}
             </span>
-            <span className="text-[10px] tracking-widest text-[#75938f]">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-[#6a8781]">
               {scene.title} · {mode.line + 1}/{scene.lines.length}
             </span>
           </div>
           <button
-            className="min-h-16 w-full text-left font-serif leading-relaxed text-[#e5e6da]"
+            className="min-h-16 w-full text-left font-serif leading-relaxed text-[#e5e6da] drop-shadow-sm transition-opacity hover:opacity-90"
             style={{ fontSize: settings.textSize }}
             onClick={() => updateGame((g) => advanceDialogue(g))}
           >
             {line.text.slice(0, Math.floor(mode.revealed))}
-            <span className="ml-2 text-sm text-[#d6bf82]">
-              {mode.revealed >= line.text.length ? '▾' : '▏'}
-            </span>
+            {mode.revealed >= line.text.length && (
+              <span className="ml-2 animate-pulse text-[#d8c690]">▾</span>
+            )}
           </button>
-          <div className="mt-2 flex justify-between text-[11px] text-[#8aa39e]">
+          <div className="mt-2 flex flex-wrap gap-2 justify-between font-mono text-[10px] uppercase text-[#a3b9b4]">
             <span>{actionLabel('confirm')} / 空格 补全或继续 · 按住 Ctrl 快进</span>
             <span>
-              {actionLabel('hide')} 隐藏画面 · {actionLabel('history')} 本段记录
+              {actionLabel('hide')} 隐藏 · {actionLabel('history')} 记录
             </span>
           </div>
         </div>

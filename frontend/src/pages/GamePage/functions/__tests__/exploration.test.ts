@@ -42,6 +42,31 @@ function use(state: GameState, id: string) {
   return next;
 }
 describe('authored RPG exploration', () => {
+  it('restores resources and reads the pre-battle camp scene once', () => {
+    let s = game('outpost');
+    s = {
+      ...s,
+      snapshot: {
+        ...s.snapshot,
+        completed: ['0-A', '1-A', '2-A', '3-A', '4-A'],
+        position: { x: 704, y: 448 },
+      },
+    };
+    s = interact(s);
+    expect(s.mode).toMatchObject({ kind: 'dialogue', scene: '4-C2' });
+    expect(s.snapshot.hp).toBe(100);
+    expect(s.snapshot.mp).toBe(100);
+    expect(s.autosave).toBeGreaterThan(0);
+    while (s.mode.kind === 'dialogue') s = advanceDialogue(s, true);
+    expect(interact(s).mode.kind).toBe('explore');
+  });
+  it('plays the cliff conversation before the ending illustrations', () => {
+    let s = createGame({ ...game('alley').snapshot, stage: 'ending' });
+    expect(s.mode).toMatchObject({ kind: 'dialogue', scene: '5-5' });
+    for (let i = 0; i < 30 && s.mode.kind === 'dialogue' && s.mode.scene === '5-5'; i++)
+      s = advanceDialogue(s, true);
+    expect(s.mode).toMatchObject({ kind: 'dialogue', scene: '6-1' });
+  });
   it('different branch orders retain unique rewards and revisit state', () => {
     const explore = (order: string[]) => order.reduce((s, id) => use(s, id), game());
     for (const order of [
@@ -171,7 +196,7 @@ describe('authored RPG exploration', () => {
     expect(run(false, true).enemies[0].hp).toBe(46);
   });
   it('all regions have unique gates, real side branches, and no reward requires itself', () => {
-    expect(regions).toHaveLength(23);
+    expect(regions).toHaveLength(25);
     expect(regions.filter((r) => r.exits.length >= 3).length).toBeGreaterThanOrEqual(5);
     for (const r of regions) {
       expect(new Set(r.exits.map((e) => e.side)).size).toBe(r.exits.length);

@@ -73,7 +73,7 @@ export function createGame(snapshot: GameSnapshot): GameState {
   };
   const map = mapById(s.mapId);
   if (s.stage === 'finished') return { ...state, mode: { kind: 'credits' } };
-  if (s.stage === 'ending') return { ...state, mode: dialogueMode('6-1', 'cg2') };
+  if (s.stage === 'ending') return { ...state, mode: dialogueMode('5-5', 'cg2') };
   if (s.stage === 'arrival' && map.before)
     return { ...state, mode: dialogueMode(map.before, 'ready') };
   return state;
@@ -214,7 +214,9 @@ export function advanceDialogue(state: GameState, instant = false): GameState {
     case 'fight':
       return { ...state, mode: { kind: 'battle' } };
     case 'cg2':
-      return { ...state, mode: dialogueMode('6-2', 'epilogue') };
+      return mode.scene === '5-5'
+        ? { ...state, mode: dialogueMode('6-1', 'cg2') }
+        : { ...state, mode: dialogueMode('6-2', 'epilogue') };
     case 'epilogue':
       return { ...state, mode: dialogueMode('6-3', 'finished') };
     case 'finished':
@@ -324,6 +326,10 @@ export function interact(state: GameState): GameState {
             cooldowns: { water: 0, glm: 0, gpt: 0, claude: 0 },
           },
           restTime: 2.5,
+          mode:
+            point.scene && !exploration(state.snapshot).flags.includes(point.id)
+              ? dialogueMode(point.scene, 'explore')
+              : state.mode,
         }),
         point.text,
       );
