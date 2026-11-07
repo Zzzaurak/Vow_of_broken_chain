@@ -343,7 +343,10 @@ export function interact(state: GameState): GameState {
       mode: dialogueMode(point.scene ?? `point:${point.id}`, 'explore'),
     };
   }
-  if (distance(state.snapshot.position, { x: map.spawn[0], y: map.spawn[1] }) < 70) {
+  if (
+    !regionById(map.id).points.some((p) => p.kind === 'camp') &&
+    distance(state.snapshot.position, { x: map.spawn[0], y: map.spawn[1] }) < 70
+  ) {
     const stats = playerStats(state.snapshot);
     return notify(
       checkpoint({

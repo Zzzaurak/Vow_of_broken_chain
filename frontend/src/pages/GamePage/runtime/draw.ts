@@ -1,7 +1,9 @@
+import { drawCampfire } from './villager';
+import { regionById } from '../objects/content';
 import { drawWildlife } from './wildlife';
 import { drawRegionScenery } from './regionScenery';
 import { regionPaths } from './regionPaths';
-import { drawExploration, isExitTile, drawRest } from './explorationDraw';
+import { drawExploration, drawRest } from './explorationDraw';
 import {
   attackShape,
   coneReach,
@@ -389,17 +391,6 @@ export function drawGame(
       32,
     );
   }
-  for (let y = 0; y < map.height; y++)
-    for (let x = 0; x < map.width; x++)
-      if (
-        (y === 0 || x === 0 || y === map.height - 1 || x === map.width - 1) &&
-        !isExitTile(state, x, y)
-      ) {
-        ctx.fillStyle = palette[2];
-        ctx.fillRect(x * 32, y * 32, 31, 29);
-        ctx.fillStyle = '#08192355';
-        ctx.fillRect(x * 32, y * 32 + 23, 31, 6);
-      }
   for (const [x, y, w, h] of map.obstacles) {
     ctx.fillStyle = '#06152180';
     ctx.fillRect(x + 6, y + 8, w, h);
@@ -415,20 +406,17 @@ export function drawGame(
             : map.theme === 'temple'
               ? 12
               : 10,
-      x,
-      y,
-      w,
-      h,
+      x + (w - Math.max(w, h)) / 2,
+      y + h - Math.max(w, h),
+      Math.max(w, h),
+      Math.max(w, h),
     );
   }
   drawScenery(ctx, map);
   drawRegionScenery(ctx, state);
-  circle(ctx, { x: map.spawn[0], y: map.spawn[1] }, 30, '#e8d79928');
-  ctx.fillStyle = '#e8d799';
-  ctx.font = '12px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('休整', map.spawn[0], map.spawn[1] + 46);
-  drawExploration(ctx, state, (id, position) =>
+  if (!regionById(map.id).points.some((p) => p.kind === 'camp'))
+    drawCampfire(ctx, images, { x: map.spawn[0], y: map.spawn[1] });
+  drawExploration(ctx, state, images, (id, position) =>
     drawActor(ctx, images, id, position, 'down', 'idle', 0),
   );
   for (const h of state.hazards) {

@@ -1,4 +1,5 @@
-import { drawVillager } from './villager';
+import type { Images } from './assets';
+import { drawVillager, drawCampfire } from './villager';
 import type { GameState, Vec } from '../objects/game';
 import { regionById, mapById, type MapExit } from '../objects/content';
 import { exploration, exitAvailable, hasConditions, nearestPoint } from '../functions/exploration';
@@ -30,6 +31,7 @@ export function isExitTile(state: GameState, x: number, y: number) {
 export function drawExploration(
   ctx: CanvasRenderingContext2D,
   state: GameState,
+  images: Images,
   actor: (id: string, p: Vec) => void,
 ) {
   const s = state.snapshot,
@@ -75,15 +77,13 @@ export function drawExploration(
     rect(x - 17, y - 3, 34, 8, '#07131866');
     if (p.kind === 'npc') {
       if (p.id === 'qwen') actor('qwen', { x, y });
-      else drawVillager(ctx, p.id, { x, y });
+      else drawVillager(ctx, images, p.id, { x, y });
     } else if (p.kind === 'chest') {
       rect(x - 19, y - 25, 38, 25, collected ? '#554a3d' : '#9d6035');
       rect(x - 19, y - 25, 38, 6, collected ? '#382f29' : '#d6ad60');
       rect(x - 3, y - 19, 6, 10, collected ? '#605e54' : '#f5d99a');
     } else if (p.kind === 'camp') {
-      rect(x - 22, y - 8, 44, 10, '#614934');
-      rect(x - 13, y - 24, 26, 17, '#d7793b');
-      rect(x - 6, y - 33, 12, 22, '#f2c46e');
+      drawCampfire(ctx, images, { x, y });
     } else if (p.kind === 'breakable') {
       rect(x - 22, y - 30, 44, 29, p.id === 'ice-seal' ? '#88b8cb' : '#6b8d70');
       rect(x - 13, y - 43, 9, 40, '#b0c9c4');

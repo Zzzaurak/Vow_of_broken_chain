@@ -155,7 +155,8 @@ try {
           action = 'interact';
         if (!action) direction = pursuitDirection(p, destination, map);
         if (game.snapshot.hp < playerStats(game.snapshot).maxHp * 0.8 && !mustFight) {
-          const rest = { x: map.spawn[0], y: map.spawn[1] };
+          const fire = region.points.find((point) => point.kind === 'camp');
+          const rest = { x: fire?.position[0] ?? map.spawn[0], y: fire?.position[1] ?? map.spawn[1] };
           target = null;
           action = distance(p, rest) < 60 ? 'interact' : null;
           direction = action ? { x: 0, y: 0 } : pursuitDirection(p, rest, map);

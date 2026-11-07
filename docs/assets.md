@@ -21,3 +21,10 @@ build-assets.py 按白名单将运行素材复制到 frontend/public/assets，�
 ## 探索区域新增绘制
 
 `runtime/regionScenery.ts` 与 `regionPaths.ts` 按内容配置绘制连通道路、瀑布、矿脉、船坞水位、裂谷断层、冰台和书架；`explorationDraw.ts` 绘制机关、宝箱、路牌、营火和吃饭反馈。`villager.ts` 使用原创像素模板与配色区分生活 NPC，`wildlife.ts` 原创绘制树精、野兔、硬壳蛛、发条蟹、晶石巨像、翼蜥、史莱姆和督战官。以上为代码生成的像素画，没有引入下载素材；怪物外观和复用的战斗行为分别维护。
+
+
+## NPC 与篝火精细化
+
+生活 NPC 与篝火现使用 `material/World/travelers-camp.png`，生成记录见同目录 `travelers-camp-generation.md`。每格等比例显示。环境图集物件按底边对齐、正方形比例显示，避免由宽扁碰撞框压缩树木与石柱。地图外沿浅色方块已移除，交互开战提示显示在 HUD。
+
+所有固定休整点显示为篝火。已有篝火的区域使用内容配置中的篝火，其余区域在原恢复位置显示篝火。有配置篝火时，原出生点恢复交互关闭。

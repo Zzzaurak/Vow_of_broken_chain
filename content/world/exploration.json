@@ -121,7 +121,7 @@
       {
         "id": "tea",
         "kind": "camp",
-        "name": "四海茶摊长椅",
+        "name": "篝火",
         "position": [
           720,
           650
@@ -789,7 +789,7 @@
       {
         "id": "rain-fire",
         "kind": "camp",
-        "name": "树洞营火",
+        "name": "篝火",
         "position": [
           1040,
           528
@@ -909,7 +909,7 @@
       {
         "id": "pavilion-bench",
         "kind": "camp",
-        "name": "古亭石凳",
+        "name": "篝火",
         "position": [
           640,
           480
@@ -1488,7 +1488,7 @@
       {
         "id": "snow-fire",
         "kind": "camp",
-        "name": "避风雪洞营火",
+        "name": "篝火",
         "position": [
           704,
           480
@@ -1591,7 +1591,7 @@
       {
         "id": "library-bench",
         "kind": "camp",
-        "name": "图书馆长椅",
+        "name": "篝火",
         "position": [
           960,
           512

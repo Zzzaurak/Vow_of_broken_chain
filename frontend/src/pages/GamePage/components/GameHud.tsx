@@ -2,7 +2,7 @@ import { playerStats, explorationObjective } from '../functions/exploration';
 import { ExplorationHud } from './ExplorationHud';
 import { useShallow } from 'zustand/react/shallow';
 import { useGame } from '../runtime/store';
-import { mapById } from '../objects/content';
+import { mapById, regionById } from '../objects/content';
 import { actionLabel, useSettings } from '../../../features/settings/store';
 export function GameHud() {
   const hp = useGame((g) => Math.ceil(g?.snapshot.hp ?? 100)),
@@ -27,6 +27,20 @@ export function GameHud() {
     ),
   );
   const objective = useGame((g) => (g ? explorationObjective(g.snapshot) : ''));
+  const canStartBattle = useGame((g) => {
+    if (!g || g.mode.kind !== 'explore') return false;
+    const map = mapById(g.snapshot.mapId),
+      region = regionById(map.id);
+    return (
+      !!map.encounter &&
+      !g.snapshot.completed.includes(map.encounter) &&
+      !region.autoBattle &&
+      Math.hypot(
+        g.snapshot.position.x - region.trigger[0],
+        g.snapshot.position.y - region.trigger[1],
+      ) < 350
+    );
+  });
   useSettings();
   return (
     <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-4 bg-gradient-to-b from-[#07161e]/90 to-transparent p-5">
@@ -63,6 +77,9 @@ export function GameHud() {
         <p className="mt-1 text-[#b7c9c4]">
           {mode === 'battle' ? mapById(mapId).objective : objective}
         </p>
+        {canStartBattle && (
+          <p className="mt-2 text-[#e6cb8b]">{actionLabel('interact')} 交互进入战斗</p>
+        )}
         <ExplorationHud />
         <p className="mt-2 text-[#91aaa5]">
           {actionLabel('pause')} 暂停 · {actionLabel('interact')} 交互

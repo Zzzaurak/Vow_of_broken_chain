@@ -13,6 +13,7 @@ export async function loadImages(): Promise<Images> {
   urls.push(
     '/assets/enemies/enemies-atlas.png',
     '/assets/world/terrain-atlas.png',
+    '/assets/world/travelers-camp.png',
     '/assets/cg/cg1.png',
     '/assets/cg/cg2.png',
   );
