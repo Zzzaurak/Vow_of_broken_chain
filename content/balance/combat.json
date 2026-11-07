@@ -87,7 +87,7 @@
     },
     "gpt": {
       "hp": 500,
-      "shield": 160,
+      "shield": 320,
       "damage": 20,
       "speed": 60,
       "range": 360,
