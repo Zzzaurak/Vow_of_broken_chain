@@ -17,3 +17,7 @@ object AccountTable:
 
   def username(c: Connection, id: PlayerId): IO[Option[String]] =
     Database.query(c, nameSql, List(id.value))(_.getString(1)).map(_.headOption)
+
+  private val adminSql = "SELECT is_admin FROM player_accounts WHERE player_id=?"
+  def isAdministrator(c: Connection, id: PlayerId): IO[Boolean] =
+    Database.query(c, adminSql, List(id.value))(_.getBoolean(1)).map(_.headOption.getOrElse(false))

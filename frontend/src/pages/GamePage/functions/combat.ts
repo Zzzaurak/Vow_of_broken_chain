@@ -45,7 +45,14 @@ function shellReflects(enemy: Enemy, source: Vec): boolean {
     toward.x * enemy.aim.x + toward.y * enemy.aim.y > 0.25
   );
 }
-function damageEnemy(enemy: Enemy, amount: number, source: Vec, pierce = false): Enemy {
+function damageEnemy(
+  enemy: Enemy,
+  amount: number,
+  source: Vec,
+  pierce = false,
+  oneHit = false,
+): Enemy {
+  if (oneHit) return { ...enemy, shield: 0, hp: enemy.kind === 'claude' ? enemy.hp : 0 };
   const front = normalize(subtract(source, enemy.position));
   if (
     enemyBehavior(enemy.kind) === 'knight' &&
@@ -88,7 +95,13 @@ function areaDamage(
     ...next,
     enemies: state.enemies.map((e) =>
       distance(e.position, point) < radius
-        ? damageEnemy(interruptMage(e), damage, state.snapshot.position, pierce)
+        ? damageEnemy(
+            interruptMage(e),
+            damage,
+            state.snapshot.position,
+            pierce,
+            !!state.administrator?.authorized && state.administrator.oneHit,
+          )
         : e,
     ),
   };
@@ -106,6 +119,7 @@ function flash(
   };
 }
 export function hitPlayer(state: GameState, baseDamage: number, continuous = false): GameState {
+  if (state.administrator?.authorized && state.administrator.invincible) return state;
   if (state.invulnerable > 0 && !continuous) return state;
   const damage =
     baseDamage *
@@ -223,7 +237,13 @@ function playerActions(state: GameState, input: FrameInput, dt: number): GameSta
               unit = normalize(v);
             return length(v) < balance.player.meleeRange &&
               unit.x * action.aim.x + unit.y * action.aim.y > -0.1
-              ? damageEnemy(e, playerStats(next.snapshot).melee, next.snapshot.position)
+              ? damageEnemy(
+                  e,
+                  playerStats(next.snapshot).melee,
+                  next.snapshot.position,
+                  false,
+                  !!next.administrator?.authorized && next.administrator.oneHit,
+                )
               : e;
           }),
         };

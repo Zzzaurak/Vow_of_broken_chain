@@ -1,3 +1,4 @@
+import { AdministratorControls } from './AdministratorControls';
 import { ExplorationJournal } from './ExplorationJournal';
 import { SaveRecordButton } from '../../../features/saves/SaveRecordButton';
 import { useState, useRef, useCallback } from 'react';
@@ -76,6 +77,7 @@ export function PausePanel({ persistence }: { persistence: ReturnType<typeof use
         {tab === 'help' && <HelpPanel onSettings={() => setTab('settings')} />}
         {tab === 'main' && (
           <div className="space-y-3">
+            <AdministratorControls />
             {game.mode.kind === 'paused' && (
               <Button className="w-full" onClick={() => updateGame(togglePause)}>
                 继续游戏

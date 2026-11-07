@@ -26,6 +26,7 @@
 | PlayerService | RegisterAccountMessage | registeraccount | 用户名 |
 | PlayerService | LoginMessage | login | 新令牌 |
 | PlayerService | LogoutMessage | logout | 会话撤销结果 |
+| PlayerService | GetAdministratorMessage | getadministrator | 管理员布尔标记 |
 | AdventureService | StartAdventureMessage | startadventure | ProgressResponse |
 | AdventureService | ListSavesMessage | listsaves | SaveListResponse |
 | AdventureService | LoadAdventureMessage | loadadventure | ProgressResponse |
@@ -86,3 +87,5 @@ JDBC 行读取发生在 IO.blocking 内，SQL 和行映射保持 Table 私有，
 安全快照扩展 ExplorationProgress（visited／flags／collected）。数据库继续保存原有 JSONB 快照，不新增独立角色或地图服务。AdventureService 内的 RegionDefinition、MapExit、ExplorationPoint、GrowthItem 是内容模型，各自文件中提供 Circe 编解码器。LoadAdventureMessage 在同一事务中先升级旧内容快照、再校验、最后更新继续指针与版本；旧存档行不被迁移过程覆盖。
 
 新版剧本接入：4-C1 在雪线针叶林首次到达播放；击破圣光图腾打开前哨出口。4-C2 由前哨营火首次调查触发，恢复资源并在对白结束后自动保存。5-5 在逃亡过场后、CG1 前播放，沿用 ending 安全快照，重载从悬崖对白开始。新增区域不修改旧区域碰撞或旧存档必需条件，保留 2.0.0 内容兼容。
+
+管理员链路：GamePage → GetAdministratorMessage 请求类 → 后端同名消息 → AccountTable.isAdministrator。身份由现有认证路由注入，忽略客户端伪造 playerId；注册不接收角色字段。管理员控制只影响本地运行态，GameSnapshot 与保存协议不变。音乐文件通过 MediaElementSource 接入现有 music GainNode，保持统一静音、暂停和失焦边界；停止时清理媒体源与音频节点。

@@ -343,26 +343,6 @@ export function drawGame(
     ctx.restore();
     return;
   }
-  const reading = state.mode.kind === 'paused' ? state.mode.previous : state.mode;
-  if (reading.kind === 'dialogue' && reading.scene === '5-5') {
-    const sky = ctx.createLinearGradient(0, 0, 0, 350);
-    sky.addColorStop(0, '#8ac2d1');
-    sky.addColorStop(1, '#e8e1be');
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, 960, 540);
-    ctx.fillStyle = '#528d9b';
-    ctx.fillRect(0, 220, 960, 320);
-    ctx.fillStyle = '#56765a';
-    ctx.beginPath();
-    ctx.moveTo(0, 265);
-    ctx.quadraticCurveTo(370, 220, 960, 340);
-    ctx.lineTo(960, 540);
-    ctx.lineTo(0, 540);
-    ctx.fill();
-    drawActor(ctx, images, 'gpt', { x: 660, y: 300 }, 'down', 'idle', 0, 100);
-    drawActor(ctx, images, 'glm', { x: 760, y: 315 }, 'down', 'idle', 0, 70);
-    return;
-  }
   const map = mapById(state.snapshot.mapId),
     view = camera(state.snapshot.position, map),
     palette = palettes[map.theme] ?? palettes.temple;

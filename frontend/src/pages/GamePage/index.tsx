@@ -1,3 +1,4 @@
+import { GetAdministratorMessage } from '../../apis/PlayerService/GetAdministratorMessage';
 import { CinematicPanel } from './components/CinematicPanel';
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
@@ -19,7 +20,21 @@ export function GamePage() {
   useEffect(() => {
     const progress = getProgressSnap();
     if (progress) setGame(createGame(progress.save.snapshot));
-    return () => setGame(null);
+    let active = true;
+    void new GetAdministratorMessage()
+      .send()
+      .then((authorized) => {
+        if (active)
+          updateGame((g) => ({
+            ...g,
+            administrator: { authorized, invincible: false, oneHit: false },
+          }));
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+      setGame(null);
+    };
   }, []);
   if (!ready)
     return (

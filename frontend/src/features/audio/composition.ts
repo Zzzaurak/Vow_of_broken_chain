@@ -26,9 +26,9 @@ export const frequency = (midi: number) => 440 * 2 ** ((midi - 69) / 12);
 export function scoreFor(map: string, battle: boolean): Score {
   return battle
     ? 'battle'
-    : map === 'lair' || map === 'pass'
+    : ['lair', 'pass', 'snowline', 'icehall', 'camp'].includes(map)
       ? 'frost'
-      : map === 'alley' || map === 'garden'
+      : ['alley', 'garden', 'outpost'].includes(map)
         ? 'reunion'
         : 'journey';
 }

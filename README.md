@@ -69,6 +69,7 @@ backend/src/main/scala/services/
 | 注册当前玩家 | PlayerService | RegisterAccountMessage | 注册的用户名 |
 | 登录账号 | PlayerService | LoginMessage | 新会话令牌 |
 | 退出账号 | PlayerService | LogoutMessage | 撤销当前会话 |
+| 游戏内管理员开关 | PlayerService | GetAdministratorMessage | 后端认证的管理员标记 |
 | 新冒险 | AdventureService | StartAdventureMessage | 局内初始快照及版本 |
 | 标题或游戏内选档 | AdventureService | ListSavesMessage | 该玩家各冒险、存档列表与继续指针 |
 | 继续或读取旧档 | AdventureService | LoadAdventureMessage | 恢复的快照与新版本 |
@@ -169,3 +170,11 @@ Windows 可分别执行相应 npm 命令，在后端测试终端将 DATABASE_URL
 技术入口：maps.json 管理几何与主线遭遇；world/exploration.json 管理连接图与调查点；balance/growth.json 管理成长；GamePage/functions/exploration.ts 负责条件、动态碰撞和成长计算，progression.ts 负责交互与旅行。后端 Content.validate 按前置条件、记录来源和实际成长上限验证，不再要求完成数组中所有前置地图。原两个服务与 API 不变。
 
 读取 1.1.0 存档时按旧主线转换必要标记，港镇旧 Boss 存档移到仓库，不赠送可选成长道具。原数据库记录保持原样，后续保存才写入 2.0.0。具体设计和实现验收范围见 [探索改造计划](docs/exploration-plan.md)。
+
+## 本地管理员与音乐
+
+管理员登录后，在游戏暂停菜单的「旅途」页勾选「无敌」「秒杀」。无敌免疫伤害，秒杀在攻击命中时生效并保留分波与 Boss 剧情。开关默认关闭，仅保存在本次运行态，不写入存档；伤害结算为浏览器本地模拟，不作为多人对战反作弊边界。普通注册不赋予管理员身份。
+
+本机账号凭据保存在忽略的 `.local/admin-account.json`，不打包、不提交。需要在新的本地开发库创建时，先启动后端，再运行 `python3 scripts/provision-admin.py`；已有同名账号且没有本地凭据时拒绝覆盖。管理员属性存于 `player_accounts.is_admin`，旧数据库启动时补齐默认 false 的列。
+
+BGM 原为四组手写音符的 WebAudio 合成音乐。现优先播放 `material/Music` 的四首腾讯云 MiniMax 生成纯音乐，探索、战斗、北境、重逢分别切换。音量、静音、暂停与失焦控制继续有效，加载失败时保留原合成音乐回退。提示词与来源见音乐 manifest；运行游戏不调用腾讯云。

@@ -334,3 +334,19 @@ class PersistenceSuite extends CatsEffectSuite:
       assertEquals(loaded.save.snapshot.exploration.collected,Nil)
       assertEquals(original.map(_.snapshot.contentVersion),Some("1.1.0"))
   }
+
+  test("administrator lookup uses authenticated identity and ordinary accounts stay ordinary") {
+    for
+      admin <- player
+      ordinary <- player
+      _ <- tx(c => RegisterAccountMessage(admin, "admin_" + admin.value.take(8), "local-admin-test-password").plan(c))
+      _ <- tx(c => Database.execute(c, "UPDATE player_accounts SET is_admin=TRUE WHERE player_id=?", List(admin.value)))
+      endpoint = Endpoint.register[services.PlayerService.api.GetAdministratorMessage,Boolean]("PlayerService")
+      granted <- tx(c => endpoint.run(Json.obj(),c,Some(admin)))
+      forged <- tx(c => endpoint.run(Json.obj("playerId" -> admin.asJson),c,Some(ordinary)))
+      missing <- tx(c => endpoint.run(Json.obj(),c,None)).attempt
+    yield
+      assertEquals(granted,Json.True)
+      assertEquals(forged,Json.False)
+      assert(missing.isLeft)
+  }

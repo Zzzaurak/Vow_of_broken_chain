@@ -1,6 +1,8 @@
+import { createRecordedMusic } from './recordedMusic';
 import { getSettingsSnap } from '../settings/store';
 import { compositions, frequency, type Score } from './composition';
 let context: AudioContext | null = null;
+let recorded: ReturnType<typeof createRecordedMusic> | null = null;
 let master: GainNode | null = null,
   music: GainNode | null = null,
   effects: GainNode | null = null;
@@ -40,7 +42,7 @@ function tick() {
   if (!context) return;
   const composition = compositions[score],
     duration = 60 / composition.tempo / 2;
-  if (!paused && focused && context.state === 'running') {
+  if (!paused && focused && context.state === 'running' && !recorded?.isPlaying()) {
     const melody = composition.melody[beat % composition.melody.length];
     tone(melody, duration * 0.85, 0.09, 'music');
     if (beat % 4 === 0) {
@@ -59,6 +61,9 @@ export function refreshAudioVolume() {
   master?.gain.setTargetAtTime(settings.muted || !focused ? 0 : settings.master, now, 0.035);
   music?.gain.setTargetAtTime(paused ? 0 : settings.music, now, 0.035);
   effects?.gain.setTargetAtTime(settings.effects, now, 0.035);
+  recorded?.setPlaying(
+    !paused && focused && !settings.muted && settings.master > 0 && settings.music > 0,
+  );
 }
 export async function enableAudio() {
   try {
@@ -70,10 +75,12 @@ export async function enableAudio() {
       music.connect(master);
       effects.connect(master);
       master.connect(context.destination);
+      if (typeof Audio !== 'undefined') recorded = createRecordedMusic(context, music, score);
       refreshAudioVolume();
       tick();
     }
     if (context.state === 'suspended') await context.resume();
+    refreshAudioVolume();
   } catch {
     /* Audio availability never blocks gameplay. The browser may disallow playback. */
   }
@@ -82,6 +89,7 @@ export function setSoundtrack(next: Score, isPaused = false) {
   if (score !== next) {
     score = next;
     beat = 0;
+    recorded?.setTrack(next);
   }
   if (paused !== isPaused) {
     paused = isPaused;
@@ -121,6 +129,8 @@ export function previewAudio() {
 export function stopAudio() {
   if (timer) clearTimeout(timer);
   timer = null;
+  recorded?.stop();
+  recorded = null;
   const old = context;
   context = null;
   master = null;

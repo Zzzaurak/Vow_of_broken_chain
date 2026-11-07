@@ -42,7 +42,12 @@ export function GameHud() {
   });
   useSettings();
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-4 bg-gradient-to-b from-[#0a1c24]/95 via-[#0a1c24]/80 to-transparent p-4">
+    <div className="pointer-events-none absolute inset-x-0 top-0 isolate flex items-start justify-between gap-4 p-4">
+      <div
+        aria-hidden="true"
+        data-hud-gradient
+        className="absolute inset-x-0 top-0 -z-10 h-[10%] bg-gradient-to-b from-[#0a1c24]/95 to-transparent"
+      />
       <div className="w-60 shrink-0">
         <div className="mb-2 flex justify-between font-serif text-sm tracking-widest text-[#e8dcc4]">
           <span className="font-bold">大肥鱼</span>

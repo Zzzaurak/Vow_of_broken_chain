@@ -53,6 +53,34 @@ function finishDialogue(game: GameState): GameState {
   return next;
 }
 describe('deterministic game rules', () => {
+  it('administrator invincibility blocks normal, continuous and reflected damage only when authorized', () => {
+    const g = { ...battle(), administrator: { authorized: true, invincible: true, oneHit: false } };
+    expect(hitPlayer(g, 999).snapshot.hp).toBe(100);
+    expect(hitPlayer(g, 999, true).snapshot.hp).toBe(100);
+    expect(
+      hitPlayer({ ...g, administrator: { ...g.administrator, authorized: false } }, 999).snapshot
+        .hp,
+    ).toBe(0);
+  });
+  it('administrator melee breaks a boss shield and preserves the victory transition', () => {
+    let g = battle('lair');
+    g = {
+      ...g,
+      administrator: { authorized: true, invincible: true, oneHit: true },
+      snapshot: { ...g.snapshot, position: { x: 500, y: 400 } },
+      enemies: g.enemies.map((e) => ({ ...e, position: { x: 540, y: 400 } })),
+      action: {
+        kind: 'melee',
+        age: 0.1,
+        fired: false,
+        aim: { x: 1, y: 0 },
+        target: { x: 540, y: 400 },
+      },
+    };
+    g = stepGame(g, emptyInput, 0.05);
+    expect(g.mode).toMatchObject({ kind: 'cinematic', scene: 'trialFall' });
+    expect(g.snapshot.stage).not.toBe('finished');
+  });
   it('forest mages fire light bolts, corridor mages mark a binding circle and water interrupts casting', () => {
     const release = (mapId: string, water: boolean) => {
       const game = battle(mapId);

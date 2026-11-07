@@ -84,6 +84,7 @@ export interface SupportCast {
   target: Vec;
 }
 export interface GameState {
+  administrator?: { authorized: boolean; invincible: boolean; oneHit: boolean };
   drops: { id: number; position: Vec }[];
   restTime?: number;
   snapshot: GameSnapshot;

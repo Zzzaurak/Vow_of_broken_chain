@@ -24,3 +24,9 @@ for folder, name in (("Enemies", "enemies-atlas.png"), ("World", "terrain-atlas.
     dest=target/folder.lower()/name
     dest.parent.mkdir(parents=True,exist_ok=True)
     shutil.copyfile(ROOT/"material"/folder/name,dest)
+
+# Music is generated offline; no cloud credentials or API calls ship to the browser.
+for source_music in sorted((ROOT/'material/Music').glob('*.mp3')):
+    destination=target/'music'/source_music.name
+    destination.parent.mkdir(parents=True,exist_ok=True)
+    shutil.copyfile(source_music,destination)

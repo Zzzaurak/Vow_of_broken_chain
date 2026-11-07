@@ -9,7 +9,8 @@
 | 普通敌人与教皇图集 | 制作期间通过 image_gen 生成 | material/Enemies/generation.md 记录提示词；manifest.json 记录取帧与透明边界 |
 | 环境地块与物件 | 制作期间通过 image_gen 生成 | material/World/generation.md 记录提示词；运行时使用统一 4×4 图集 |
 | 地图细节 | 项目原创 Canvas 像素绘制 | scenery.ts 绘制花朵、米饭、灯、纹样；碰撞统一来自 maps.json |
-| 音乐与音效 | 项目原创程序合成 | composition.ts 记录四组确定音符；engine.ts 使用 WebAudio 振荡器与包络，不依赖远程音频或第三方曲目 |
+| 背景音乐 | 腾讯云 TokenHub / minimax-music-v3.0 | material/Music 中四首纯音乐；生成提示词、模型与音频元数据见 manifest.json，本地打包播放 |
+| 音效与音乐回退 | 项目原创程序合成 | composition.ts 的四组手写音符由 WebAudio 合成；文件音乐尚未就绪时回退，音效继续使用振荡器 |
 | 界面图标 | lucide-react 依赖 | 保留依赖许可证与包信息 |
 
 build-assets.py 按白名单将运行素材复制到 frontend/public/assets，构建前自动执行。原始图片和生成记录保留在 material，不由复制脚本修改。背景漫画、PDF、制作参考图和未使用角色不打包为运行资源。
@@ -38,3 +39,5 @@ build-assets.py 按白名单将运行素材复制到 frontend/public/assets，�
 验证包括 58 项规则测试、17 项真实数据库测试、全 23 地图浏览器截图与边界检查、真实键盘绕树、探索存档、篝火恢复和教学开战。截图使用固定状态定位，完整主线通关记录见先前探索版验收。
 
 新增北境转场素材 `material/World/northern-atlas.png`：内置 image_gen 生成的透明 2×2 图集，雪松、帐篷、图腾、教堂远景按同一等分裁切规则读取。提示词与来源保存在 `material/World/northern-generation.md`。雪松和图腾分别按静态障碍与 blocker 的占地绘制，帐篷及远景仅作环境装饰。
+
+音乐生成通过课程 tencent-tokenhub 技能调用。`scripts/generate-music.py` 从私有 JSON 读取凭据，不把密钥或临时下载地址写入前端。生成一次后按 manifest 跳过已完成曲目。首次 192000 码率被接口明确拒绝，改用官方示例的 256000 后成功生成四首。实际时长由模型决定，不等于提示词中的约一分钟。
