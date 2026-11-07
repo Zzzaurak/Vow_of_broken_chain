@@ -25,6 +25,14 @@ export function attackShape(enemy: Enemy, mapId: string) {
 }
 export const coneReach = (enemy: Enemy) => balance.enemies[enemy.kind].range + 20;
 
+/** Keep the warning intact; lengthen the binding mage's complete cast cycle by 50%. */
+export function attackRecoverySeconds(enemy: Enemy, mapId: string): number {
+  const spec = balance.enemies[enemy.kind];
+  return enemyBehavior(enemy.kind) === 'mage' && attackShape(enemy, mapId) === 'ground'
+    ? (spec.windup + spec.recovery) * balance.enemies.mage.binding.intervalMultiplier - spec.windup
+    : spec.recovery;
+}
+
 /** Prefer the player's back, then their flanks when pressed against scenery. */
 export function runeLanding(player: Vec, aim: Vec, origin: Vec, map: WorldMap): Vec {
   const back = Math.atan2(-aim.y, -aim.x);

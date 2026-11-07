@@ -110,8 +110,17 @@ describe('deterministic game rules', () => {
         1 / 60,
       );
     };
-    expect(release('forest', false).projectiles[0]).toMatchObject({ enemy: true, homing: false });
-    expect(release('corridor', false).hazards.map((h) => h.kind)).toEqual(['bind']);
+    const forest = release('forest', false);
+    expect(forest.projectiles[0]).toMatchObject({ enemy: true, homing: false });
+    expect(forest.enemies[0].timer).toBeCloseTo(1.4);
+    const corridor = release('corridor', false);
+    expect(corridor.hazards[0]).toMatchObject({ kind: 'bind', duration: 1.5 });
+    expect(corridor.enemies[0].timer).toBeCloseTo(2.7);
+    let afterCircle = corridor;
+    for (let frame = 0; frame < 162; frame++)
+      afterCircle = stepGame(afterCircle, emptyInput, 1 / 60);
+    expect(afterCircle.hazards).toHaveLength(0);
+    expect(afterCircle.enemies[0].attack).toBe(1);
     const interrupted = release('forest', true);
     expect(interrupted.projectiles).toEqual([]);
     expect(interrupted.enemies[0].phase).toBe('recover');
@@ -291,7 +300,7 @@ describe('deterministic game rules', () => {
     for (let i = 0; i < 20; i++) state = stepGame(state, emptyInput, 0.01);
     expect(state.projectiles.filter((p) => !p.enemy)).toHaveLength(1);
     expect(state.snapshot.mp).toBeCloseTo(80.4);
-    expect(state.snapshot.cooldowns.water).toBeCloseTo(3.8);
+    expect(state.snapshot.cooldowns.water).toBeCloseTo(1.8);
   });
   it('dialogue and pause freeze MP, CD and simulated time', () => {
     const state = createGame({
@@ -324,6 +333,73 @@ describe('deterministic game rules', () => {
     expect(state.enemies[0].hp).toBe(82);
     for (let n = 0; n < 10; n++) state = stepGame(state, emptyInput, 0.016);
     expect(state.enemies[0].hp).toBe(82);
+  });
+  it('melee hits an overlapping enemy and reaches farther horizontally than vertically', () => {
+    const state = battle();
+    const origin = { x: 500, y: 384 };
+    const hit = (x: number, y: number) =>
+      stepGame(
+        {
+          ...state,
+          snapshot: { ...state.snapshot, position: origin },
+          enemies: [
+            {
+              ...state.enemies[0],
+              position: { x, y },
+              phase: 'recover',
+              timer: 10,
+            },
+          ],
+          action: {
+            kind: 'melee',
+            age: 0.1,
+            fired: false,
+            aim: { x: 0, y: -1 },
+            target: { x: origin.x, y: origin.y - 40 },
+          },
+        },
+        emptyInput,
+        1 / 60,
+      ).enemies[0].hp;
+    expect(hit(500, 384)).toBe(18);
+    expect(hit(595, 380)).toBe(18);
+    expect(hit(500, 289)).toBe(36);
+    expect(hit(500, 410)).toBe(36);
+  });
+  it('water triggers on a horizontal graze and splashes sideways beyond its vertical radius', () => {
+    const state = battle();
+    const next = stepGame(
+      {
+        ...state,
+        enemies: state.enemies.map((e, i) => ({
+          ...e,
+          position: [
+            { x: 530, y: 384 },
+            { x: 607, y: 384 },
+            { x: 500, y: 491 },
+          ][i],
+          phase: 'recover',
+          timer: 10,
+        })),
+        projectiles: [
+          {
+            id: 99,
+            position: { x: 500, y: 382 },
+            direction: { x: 0, y: 1 },
+            target: { x: 500, y: 482 },
+            distance: 100,
+            speed: 120,
+            damage: 32,
+            enemy: false,
+            homing: false,
+          },
+        ],
+      },
+      emptyInput,
+      1 / 60,
+    );
+    expect(next.projectiles).toHaveLength(0);
+    expect(next.enemies.map((e) => e.hp)).toEqual([4, 4, 36]);
   });
   it('GLM crossing surrender threshold enters dialogue, including lethal excess', () => {
     let state = battle('warehouse');

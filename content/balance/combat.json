@@ -6,9 +6,10 @@
     "meleeDamage": 18,
     "meleeRange": 80,
     "meleeInterval": 0.55,
+    "attackWidthMultiplier": 1.25,
     "waterDamage": 32,
     "waterCost": 20,
-    "waterCooldown": 4,
+    "waterCooldown": 2,
     "waterSpeed": 380,
     "waterRange": 440,
     "waterRadius": 90,
@@ -70,7 +71,11 @@
       "speed": 55,
       "range": 320,
       "windup": 1.2,
-      "recovery": 1.4
+      "recovery": 1.4,
+      "binding": {
+        "intervalMultiplier": 1.5,
+        "duration": 1.5
+      }
     },
     "glm": {
       "hp": 180,

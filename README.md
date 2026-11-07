@@ -104,6 +104,8 @@ backend/src/main/scala/services/
 
 素材原稿在 material，场景、敌人、剧情与数值在 content。build-assets.py 将白名单素材复制至 frontend/public/assets；build-content.py 从剧本提取对白并校验内容引用和地图可达性。npm dev/build 自动复制素材。Scala 构建把同一份 content 打入资源目录，内容变更后需要重启后端。数据库表在后端启动时初始化。
 
+技能、敌人基础数值和法阵参数在 [combat.json](content/balance/combat.json)。技能释放、命中和敌人行动在 [combat.ts](frontend/src/pages/GamePage/functions/combat.ts)，招式类型与施法间隔在 [enemyAttack.ts](frontend/src/pages/GamePage/functions/enemyAttack.ts)，各关的敌人与波次在 [encounters.json](content/encounters/encounters.json)。
+
 GPT 援助按大肥鱼当前朝向，在前方 90°、440 像素范围内选择最近存活敌人，在选定位置造成范围伤害。无目标时提示并保留 CD。沿蓝色箭头走入围墙缺口切换区域；各区域支持多方向连接与回访，灰色箭头表示需要剧情线索或机关。
 
 ## Windows 移植入口

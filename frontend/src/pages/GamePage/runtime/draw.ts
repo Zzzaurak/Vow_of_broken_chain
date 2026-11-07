@@ -24,9 +24,9 @@ const palettes: Record<string, string[]> = {
   coast: ['#385c63', '#43686c', '#6b8a82', '#d4c5a0'],
   snow: ['#566e7b', '#617e89', '#9bb8bd', '#d2dcd7'],
 };
-function circle(ctx: CanvasRenderingContext2D, p: Vec, r: number, color: string) {
+function circle(ctx: CanvasRenderingContext2D, p: Vec, r: number, color: string, width = 1) {
   ctx.beginPath();
-  ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+  ctx.ellipse(p.x, p.y, r * width, r, 0, 0, Math.PI * 2);
   ctx.fillStyle = color;
   ctx.fill();
 }
@@ -128,15 +128,16 @@ function effect(
   // Starfall rises above its ground anchor; centering the full tile moves the
   // landing ring below the actual damage position.
   const anchor = id === 'gpt-starfall-fx' ? frame.suggestedAnchor : [w / 2, h / 2];
+  const width = clip === 'impact' ? size * balance.player.attackWidthMultiplier : size;
   ctx.drawImage(
     image,
     x,
     y,
     w,
     h,
-    p.x - (anchor[0] / w) * size,
+    p.x - (anchor[0] / w) * width,
     p.y - (anchor[1] / h) * size,
-    size,
+    width,
     size,
   );
 }
@@ -638,7 +639,7 @@ export function drawGame(
   }
   for (const e of state.effects) {
     if (e.kind === 'melee') {
-      circle(ctx, e.position, 35, '#a7dbe444');
+      circle(ctx, e.position, 35, '#a7dbe444', balance.player.attackWidthMultiplier);
       continue;
     }
     const id =
