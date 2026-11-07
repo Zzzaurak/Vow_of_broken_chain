@@ -84,11 +84,15 @@
 
 8. **浏览器用例依赖 PATH 上的 `psql`**：`frontend/e2e/administrator.spec.ts:18` 用 `execFileSync('psql', ['-h','127.0.0.1','-p','55439','-U','oath','-d','oath', …])` 把测试账号提权。跑 e2e 的终端必须有 `psql` 在 PATH（本机已加入用户 PATH）。不写明时表现为 `spawnSync psql ENOENT`。
 
+9. **同一个项目目录不能同时跑 `sbt run` 和 `sbt test`**：后端实例在跑时执行 `sbt test`，实测报
+   `ServerAlreadyBootingException: Could not create lock for \\.\pipe\sbt-load…_lock, error 5`
+   —— sbt 的 boot server 在 Windows 上走命名管道，被在跑的实例占住。停掉在跑的实例后，`sbt test` 正常（19/19）。这会影响「后端已运行时执行 check」的验证流程，Windows 侧脚本应在跑 `sbt test` 前先停掉游戏后端（或为测试用独立的 sbt boot 目录）。
+
 ### 3.3 P2：已知但暂不阻断
 
-9. npm 11.16 默认拦截安装脚本（`allow-scripts`），`esbuild@0.25.12` 的 postinstall 被跳过。实测 `node_modules/@esbuild/win32-x64/esbuild.exe` 已在、`npx esbuild --version` 正常、`vite build` 通过，暂不影响；建议在文档写清或用 npm 配置显式放行，避免换机时误判。
-10. `scripts/provision-admin.py:20` 的 `os.chmod(file, 0o600)` 在 Windows 上不等价于 POSIX 权限（NTFS ACL），不阻断；确需限制应改用 ACL。
-11. 版本对照：Mac 记录 OpenJDK 27 / Node 24.19.0，本机 JDK 21 / Node 24.14.1。README 环境表建议拆成「macOS / Windows」两列。
+10. npm 11.16 默认拦截安装脚本（`allow-scripts`），`esbuild@0.25.12` 的 postinstall 被跳过。实测 `node_modules/@esbuild/win32-x64/esbuild.exe` 已在、`npx esbuild --version` 正常、`vite build` 通过，暂不影响；建议在文档写清或用 npm 配置显式放行，避免换机时误判。
+11. `scripts/provision-admin.py:20` 的 `os.chmod(file, 0o600)` 在 Windows 上不等价于 POSIX 权限（NTFS ACL），不阻断；确需限制应改用 ACL。
+12. 版本对照：Mac 记录 OpenJDK 27 / Node 24.19.0，本机 JDK 21 / Node 24.14.1。README 环境表建议拆成「macOS / Windows」两列。
 
 ## 四、与平台无关的既存缺陷（会被 check 拦住）
 
