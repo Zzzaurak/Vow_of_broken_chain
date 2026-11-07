@@ -8,8 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "predev": "python3 ../scripts/build-assets.py",
-    "prebuild": "python3 ../scripts/build-assets.py",
+    "predev": "node ../scripts/py.mjs ../scripts/build-assets.py",
+    "prebuild": "node ../scripts/py.mjs ../scripts/build-assets.py",
     "format": "prettier --write src e2e *.ts *.json",
     "format:check": "prettier --check src e2e *.ts *.json"
   },

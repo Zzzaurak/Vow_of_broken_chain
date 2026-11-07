@@ -85,14 +85,14 @@ backend/src/main/scala/services/
 
 ## 环境与技术细节
 
-下表记录当前开发机环境，依赖以锁文件为准。原生 Windows 尚未实机验收。
+下表记录当前开发机环境，依赖以锁文件为准。macOS 与原生 Windows 均已实机验收，两个平台共用同一份启动器；Windows 的环境与改造结论见 [Windows 运行](docs/windows-port-plan.md)。
 
 | 部分 | 当前环境／固定配置 |
 | --- | --- |
-| 系统 | macOS，zsh；启动器使用 POSIX 进程组和文件锁 |
+| 系统 | macOS（zsh）与原生 Windows 11；启动器按平台选择文件锁与进程组终止方式 |
 | Node.js | 24.19.0；npm 使用 frontend/package-lock.json |
 | 前端 | React 19.3.1、TypeScript 5.7.3、Vite 6.4.5、Tailwind 4.3.3、Zustand 5.0.16 |
-| JVM | 本机 OpenJDK 27；Scala 3.3.5、sbt 1.10.7 由 backend 配置固定 |
+| JVM | macOS 本机 OpenJDK 27，Windows 验收用 Temurin 21；Scala 3.3.5、sbt 1.10.7 由 backend 配置固定 |
 | 后端 | Cats Effect 3.6.3、http4s 0.23.30、Circe 0.14.10、PostgreSQL JDBC 42.7.5 |
 | Python | 本机 3.13.15；运行和内容构建脚本使用标准库 |
 | 数据库 | 本机 PostgreSQL 18.6；开发库 oath，测试库 oath_test |
@@ -110,27 +110,17 @@ GPT 援助按大肥鱼当前朝向，在前方 90°、440 像素范围内选择�
 
 ## Windows 移植入口
 
-可以先在 WSL 安装上述工具并沿用项目脚本。原生 Windows 应分别启动数据库、Scala 和前端。当前 run.py 使用 fcntl、os.killpg 和 POSIX 信号，db.sh、check.sh、package.sh 使用 Bash，直接在 PowerShell 运行需要适配。
+原生 Windows 与 macOS 共用同一份启动器：`scripts/run.py` 按平台选择文件锁（flock／msvcrt）和进程组终止方式（killpg／taskkill），数据库管理在 `scripts/db.py`，`db.sh` 只是它的 POSIX 入口。装好 JDK、sbt 与 PostgreSQL 命令行工具（initdb、pg_ctl、pg_isready、psql、createdb）并加入 PATH 后，在项目根执行：
 
-安装 PostgreSQL 后，创建 oath 用户和由它拥有的 oath、oath_test 两个数据库。不同 PowerShell 终端可以分别运行以下命令。将端口与密码替换为自己的数据库配置。
+    py scripts/run.py
 
-    # 项目根目录
-    py scripts/build-content.py
-    py scripts/build-assets.py
+首次运行会初始化项目独立的 .local/postgres（127.0.0.1:55439，用户 oath，库 oath / oath_test），并在缺少依赖时执行 npm ci。`status`、`stop`、`restart` 与 `--built` 的用法和 macOS 相同。Windows 上的 `python3` 是应用商店占位符，所以 npm 的 predev／prebuild 经 `scripts/py.mjs` 解析可用解释器，不再写死命令名。
 
-    # 后端终端，从项目根开始
-    $env:DATABASE_URL = "jdbc:postgresql://127.0.0.1:5432/oath"
-    $env:PGUSER = "oath"
-    $env:PGPASSWORD = "<本机数据库密码>"
-    cd backend
-    sbt run
+中文区域 Windows 的默认编码是 GBK，启动器与 npm 脚本会为子进程设置 PYTHONUTF8=1；手工直接运行 scripts 下的 Python 脚本时，建议先设置该变量。
 
-    # 前端终端，从项目根开始
-    cd frontend
-    npm ci
-    npx vite --host 127.0.0.1 --port 5179 --strictPort
+需要分开终端时，可分别运行 `py scripts/db.py`、在 backend 执行 `sbt run`、在 frontend 执行 `npm run dev`。改用系统 PostgreSQL 服务而非项目集群时，设置 DATABASE_URL、PGUSER、PGPASSWORD 指向自己的实例，并自行创建 oath 与 oath_test。各终端用 Ctrl-C 结束。
 
-先用 py 生成素材，再直接调用 Vite，可处理 Windows 上 Python 命令仅为 py 的情况。若 python3 可用，也可使用现有 npm scripts。各终端用 Ctrl-C 结束，数据库通过 PostgreSQL 服务管理。
+校验与打包的 Bash 脚本尚未适配 Windows：`scripts/check.sh` 与 `scripts/package.sh` 需按本文「修改后的验证」逐条执行对应命令。
 
 生产构建可在素材生成后分别执行以下命令，Scala 后端应保持运行。
 

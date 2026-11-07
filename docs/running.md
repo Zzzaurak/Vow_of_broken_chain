@@ -2,11 +2,11 @@
 
 ## 环境
 
-需要 Node.js／npm、JDK、sbt、Python 3、PostgreSQL 命令行工具（initdb、pg_ctl、psql、createdb）。Scala 与前端依赖版本分别由 build.sbt、package-lock.json 固定。首次联网安装依赖后，可在本地运行；游戏不调用云模型 API。
+需要 Node.js／npm、JDK、sbt、Python 3、PostgreSQL 命令行工具（initdb、pg_ctl、pg_isready、psql、createdb）。Scala 与前端依赖版本分别由 build.sbt、package-lock.json 固定。首次联网安装依赖后，可在本地运行；游戏不调用云模型 API。
 
-从项目根运行 `python3 scripts/run.py`。脚本检查 5179／8093 端口，初始化本项目独立数据库（仅在未指定 DATABASE_URL 时），按需 npm ci，校验内容并启动前后端。打开 http://127.0.0.1:5179 。Ctrl-C 仅结束本次脚本启动的进程组，不查找或杀掉其他项目服务；数据库保留运行及数据。后端日志写入 `.local/api.log`。
+从项目根运行 `python3 scripts/run.py`（Windows 上用 `py scripts/run.py`，同一份脚本，按平台选择文件锁与进程组终止方式）。脚本检查 5179／8093 端口，初始化本项目独立数据库（仅在未指定 DATABASE_URL 时），按需 npm ci，校验内容并启动前后端。打开 http://127.0.0.1:5179 。Ctrl-C 仅结束本次脚本启动的进程组，不查找或杀掉其他项目服务；数据库保留运行及数据。后端日志写入 `.local/api.log`。
 
-当前启动器支持 `status`、`stop`、`restart`。从另一个终端在项目根运行 `python3 scripts/run.py stop` 即可结束本实例，或用 `python3 scripts/run.py restart` 重新启动；直接再次运行只显示访问地址。手动启动的旧实例可在原终端按 Ctrl-C。原终端已经关闭时，先用 `lsof -nP -iTCP:5179 -iTCP:8093 -sTCP:LISTEN` 查看 PID，再用 `lsof -a -p PID -d cwd` 核对项目路径，确认归属后用 `kill -TERM PID` 结束对应服务。可继续使用原来的三个终端命令：
+当前启动器支持 `status`、`stop`、`restart`。从另一个终端在项目根运行 `python3 scripts/run.py stop` 即可结束本实例，或用 `python3 scripts/run.py restart` 重新启动；直接再次运行只显示访问地址。手动启动的旧实例可在原终端按 Ctrl-C。原终端已经关闭时，先用 `lsof -nP -iTCP:5179 -iTCP:8093 -sTCP:LISTEN` 查看 PID，再用 `lsof -a -p PID -d cwd` 核对项目路径，确认归属后用 `kill -TERM PID` 结束对应服务。Windows 上的对应做法是 `Get-NetTCPConnection -LocalPort 5179,8093 -State Listen` 取 PID，用 `Get-CimInstance Win32_Process -Filter "ProcessId=<pid>"` 核对命令行，再用 `taskkill /PID <pid> /T /F` 结束。可继续使用原来的三个终端命令：
 
 ```bash
 ./scripts/db.sh
@@ -16,7 +16,7 @@ cd backend && sbt run
 cd frontend && npm ci && npm run dev
 ```
 
-PostgreSQL 默认监听 127.0.0.1:55439，项目数据库为 oath 与 oath_test，数据目录为 `.local/postgres`。可通过 OATH_PGPORT 设置本项目端口；脚本不接管其他数据库。需要外部数据库时设置 DATABASE_URL（JDBC URL），按现有 Database 配置提供凭据。勿将配置、令牌或数据库放进提交。
+PostgreSQL 默认监听 127.0.0.1:55439，项目数据库为 oath 与 oath_test，数据目录为 `.local/postgres`。可通过 OATH_PGPORT 设置本项目端口；脚本不接管其他数据库。Windows 上不注册系统服务，`scripts/db.py` 以脱离当前控制台的方式启动该集群，避免父终端退出时连带结束数据库。需要外部数据库时设置 DATABASE_URL（JDBC URL），按现有 Database 配置提供凭据。勿将配置、令牌或数据库放进提交。
 
 ## 构建版演示
 
