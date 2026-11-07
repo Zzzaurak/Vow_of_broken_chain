@@ -33,6 +33,12 @@ export function drawRegionScenery(ctx: CanvasRenderingContext2D, state: GameStat
   if (map.id === 'dock') {
     const terrain = images.get('/assets/world/terrain-atlas.png');
     if (terrain) {
+      const cell = terrain.width / 4;
+      for (let y = 96; y < 224; y += 32)
+        for (let x = 128; x < 512; x += 32)
+          ctx.drawImage(terrain, 2 * cell, cell, cell, cell, x, y, 32, 32);
+    }
+    if (terrain) {
       const index = flags.includes('sluice') ? 2 : 14;
       const cell = terrain.width / 4;
       ctx.save();

@@ -73,6 +73,15 @@ def main():
             for dx,dy in ((1,0),(-1,0),(0,1),(0,-1)):
                 other=(cell[0]+dx,cell[1]+dy)
                 if other not in seen and valid(other):seen.add(other);pending.append(other)
+        # Ladders and lifts connect otherwise disconnected walking components.
+        for cell in pending:
+            for point in region_catalog[m['id']]['points']:
+                if point['warp'] and tuple(int(v//32) for v in point['position']) == cell:
+                    other=tuple(int(v//32) for v in point['warp'])
+                    if other not in seen and valid(other): seen.add(other);pending.append(other)
+            for dx,dy in ((1,0),(-1,0),(0,1),(0,-1)):
+                other=(cell[0]+dx,cell[1]+dy)
+                if other not in seen and valid(other):seen.add(other);pending.append(other)
         assert goal in seen, f"Unreachable exit: {m['id']}"
         if m['encounter']:
             encounter=next(e for e in encounters if e['id']==m['encounter'])

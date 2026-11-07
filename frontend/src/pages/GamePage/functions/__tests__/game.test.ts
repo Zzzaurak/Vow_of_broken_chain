@@ -528,7 +528,7 @@ describe('deterministic game rules', () => {
         };
       }
       if (map.id === 'dock') {
-        state = { ...state, snapshot: markFlag(markFlag(state.snapshot, 'sluice'), 'bridge') };
+        state = { ...state, snapshot: markFlag(state.snapshot, 'sluice') };
       }
       if (
         map.encounter &&

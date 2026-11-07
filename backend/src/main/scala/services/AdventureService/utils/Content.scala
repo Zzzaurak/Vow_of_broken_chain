@@ -21,7 +21,14 @@ object Content:
     resource[List[RegionDefinition]]("/content/world/exploration.json")
 
   private[AdventureService] def upgrade(snapshot: GameSnapshot): IO[GameSnapshot] =
-    if snapshot.contentVersion != "1.1.0" then IO.pure(snapshot)
+    if snapshot.contentVersion == "2.0.0" then for
+      manifest <- resource[ContentManifest]("/content/manifest.json")
+      catalog <- maps
+      current <- IO.fromOption(catalog.find(_.id == snapshot.mapId))(ApiError("invalid_snapshot", "旧存档地图不存在。"))
+      position = if Set("rain", "dock", "icehall").contains(snapshot.mapId) then Position(current.spawn.head, current.spawn(1)) else snapshot.position
+      progress = snapshot.exploration.copy(flags = snapshot.exploration.flags.filterNot(_ == "bridge"))
+    yield snapshot.copy(contentVersion = manifest.contentVersion, position = position, exploration = progress)
+    else if snapshot.contentVersion != "1.1.0" then IO.pure(snapshot)
     else for
       manifest <- resource[ContentManifest]("/content/manifest.json")
       catalog <- maps
@@ -30,7 +37,7 @@ object Content:
       visited = order.take(index + 1)
       flags = visited.map(_ + ":arrival") ++
         (if index >= 2 then List("qwen") else Nil) ++
-        (if index >= 3 then List("sluice", "bridge") else Nil)
+        (if index >= 3 then List("sluice") else Nil)
       destination = if snapshot.mapId == "harbor" then "warehouse" else snapshot.mapId
       current <- IO.fromOption(catalog.find(_.id == destination))(ApiError("invalid_snapshot", "旧存档地图不存在。"))
       position = if destination != snapshot.mapId then Position(current.spawn.headOption.getOrElse(96.0), current.spawn.drop(1).headOption.getOrElse(96.0)) else snapshot.position

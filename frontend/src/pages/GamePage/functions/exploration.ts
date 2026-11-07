@@ -102,10 +102,8 @@ export function explorationObjective(s: GameSnapshot): string {
       : '打听怪盗下落，沿北侧通路探索船坞与旧仓库';
   if (s.mapId === 'dock')
     return !flags.includes('sluice')
-      ? '先调查水闸绞盘，放下通往仓库的浮桥'
-      : !flags.includes('bridge')
-        ? '水位已降，调查木箱浮桥前往东侧仓库'
-        : '仓库在东侧；横梁梯子藏在两个旧木桶之后';
+      ? '调查东侧水闸绞盘，开放通往仓库的道路'
+      : '东侧道路与仓库已开放；横梁宝箱只能通过梯子上下';
   if (s.mapId === 'rift')
     return cleared('3-A')
       ? '已有北境星图，北行登山；南侧河床还有古老石刻'

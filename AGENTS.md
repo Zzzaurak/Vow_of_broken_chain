@@ -31,7 +31,7 @@ React 页面组件、hooks、纯计算就近组织，共享设置、存档和音
 - 安全快照与逐帧状态分开。五手动槽、三自动历史；回档忠实恢复资源和 CD，检查点重试恢复满资源。
 - Save／Load 携带 operationId 和 expectedRevision。后端锁玩家并在同事务修改；载入提升版本，旧请求不能覆盖新分支。响应丢失重试同一请求。
 - 请求成功前保留现场，覆盖与离开需要确认。原生确认可能异步退出全屏，要等 fullscreenchange 完成再恢复载入后的游戏。
-- 当前内容版本 2.0.0；探索字段记录 visited、flags、collected。旧 1.1.0 记录经 Content.upgrade 在载入时转换，旧记录不原地覆盖，不赠送探索宝物。港镇旧战斗点迁到 warehouse。
+- 当前内容版本 2.1.0；探索字段记录 visited、flags、collected。旧 1.1.0 记录经 Content.upgrade 在载入时转换，旧记录不原地覆盖，不赠送探索宝物。港镇旧战斗点迁到 warehouse。2.0.0 档升级时移除旧 bridge 标记，rain/dock/icehall 的位置回到安全出生点，保留资源与奖励，避免落入新增障碍。
 - content/manifest.json 管理版本。修改快照协议或碰撞时核对旧档与 Content.validate，不要因纯绘制改动无条件提升版本。解锁、stage 和 completed 需前后端一致。
 - 注册沿用游客 playerId，保留其存档；登录签发新会话，退出撤销当前会话。打开中的游戏保留本标签令牌，避免其他标签登录改变存档归属。
 

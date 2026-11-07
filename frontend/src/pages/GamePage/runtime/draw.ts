@@ -400,6 +400,15 @@ export function drawGame(
       drawNorthern(ctx, images, 0, x + w / 2, y + h, w);
       continue;
     }
+    if (map.id === 'dock' && x < 544 && y <= 224) {
+      tile(6, x, y, w, h);
+      tile(10, x, y, w, h);
+      continue;
+    }
+    if (map.id === 'icehall' && w === 32) {
+      tile(4, x, y, w, h);
+      continue;
+    }
     if (map.id === 'library') {
       drawProp(ctx, images, 8, x + w / 2, y + h, w);
       continue;

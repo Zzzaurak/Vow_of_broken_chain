@@ -760,9 +760,9 @@
         "scene": null,
         "warp": null,
         "blocker": [
-          160,
+          128,
           304,
-          96,
+          192,
           32
         ]
       },
@@ -986,8 +986,7 @@
           480
         ],
         "requires": [
-          "sluice",
-          "bridge"
+          "sluice"
         ],
         "travel": null
       }
@@ -998,10 +997,10 @@
         "kind": "switch",
         "name": "水闸绞盘",
         "position": [
-          352,
-          448
+          800,
+          480
         ],
-        "text": "转动水闸，积水退去，浮桥上的木箱露出了水面。",
+        "text": "转动绞盘，水闸降下木板通路，右侧仓库已经开放。",
         "requires": [],
         "reward": null,
         "scene": null,
@@ -1012,26 +1011,6 @@
           160,
           896
         ]
-      },
-      {
-        "id": "bridge",
-        "kind": "bridge",
-        "name": "木箱浮桥",
-        "position": [
-          800,
-          480
-        ],
-        "text": "沿浮桥轻巧跳到另一端。",
-        "requires": [
-          "sluice"
-        ],
-        "reward": null,
-        "scene": null,
-        "warp": [
-          1088,
-          480
-        ],
-        "blocker": null
       },
       {
         "id": "barrel-one",
@@ -1069,7 +1048,7 @@
         "name": "隐蔽梯子",
         "position": [
           208,
-          288
+          320
         ],
         "text": "攀上旧船坞的横梁。",
         "requires": [
@@ -1127,7 +1106,7 @@
           560,
           590
         ],
-        "text": "东：旧货仓库；先放下水闸，再越过浮桥。西北横梁有旧梯子的痕迹。",
+        "text": "东：旧货仓库；转动东侧水闸绞盘即可通行。西北高台只能通过梯子上下。",
         "requires": [],
         "reward": null,
         "scene": null,
@@ -1162,8 +1141,7 @@
       "0-A",
       "qwen",
       "1-A",
-      "sluice",
-      "bridge"
+      "sluice"
     ],
     "exits": [
       {
@@ -1389,7 +1367,7 @@
         "name": "万年玄冰",
         "position": [
           1040,
-          224
+          240
         ],
         "text": "用摆尾或水球打破宝箱上的冰封。",
         "requires": [
@@ -1399,9 +1377,9 @@
         "scene": null,
         "warp": null,
         "blocker": [
-          992,
-          208,
-          96,
+          960,
+          224,
+          192,
           32
         ]
       },

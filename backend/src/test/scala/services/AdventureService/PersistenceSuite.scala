@@ -330,7 +330,7 @@ class PersistenceSuite extends CatsEffectSuite:
       loaded <- tx(c => LoadAdventureMessage(p,savedId,operation,first.revision).plan(c))
       original <- tx(c => services.AdventureService.tables.GameSave.GameSaveTable.find(c,savedId,p))
     yield
-      assertEquals(loaded.save.snapshot.contentVersion,"2.0.0")
+      assertEquals(loaded.save.snapshot.contentVersion,"2.1.0")
       assertEquals(loaded.save.snapshot.exploration.collected,Nil)
       assertEquals(original.map(_.snapshot.contentVersion),Some("1.1.0"))
   }
@@ -349,4 +349,20 @@ class PersistenceSuite extends CatsEffectSuite:
       assertEquals(granted,Json.True)
       assertEquals(forged,Json.False)
       assert(missing.isLeft)
+  }
+
+  test("2.0 obstacle changes relocate affected saves without changing rewards or resources") {
+    List("rain", "dock", "icehall").traverse_ { id =>
+      for
+        original <- regionSnapshot(id)
+        old = original.copy(contentVersion="2.0.0",position=Position(864,224),hp=51,mp=34)
+        upgraded <- Content.upgrade(old)
+        _ <- Content.validate(upgraded)
+      yield
+        assertEquals(upgraded.contentVersion,"2.1.0")
+        assertEquals(upgraded.hp,51.0)
+        assertEquals(upgraded.mp,34.0)
+        assertEquals(upgraded.exploration,original.exploration)
+        assertNotEquals(upgraded.position,old.position)
+    }
   }

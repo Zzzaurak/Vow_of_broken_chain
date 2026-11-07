@@ -113,14 +113,13 @@ describe('authored RPG exploration', () => {
   });
   it('sluice collision, bridge and two barrels enforce their prerequisites', () => {
     let s = game('dock');
-    const original = s.snapshot.position;
-    s = use(s, 'bridge');
-    expect(exploration(s.snapshot).flags).not.toContain('bridge');
+    expect(regionById('dock').points.some((p) => p.id === 'bridge')).toBe(false);
     expect(collisionMap(s.snapshot).obstacles.some((o) => o[0] === 864)).toBe(true);
     s = use(s, 'sluice');
     expect(collisionMap(s.snapshot).obstacles.some((o) => o[0] === 864)).toBe(false);
-    s = use(s, 'bridge');
-    expect(s.snapshot.position).toEqual({ x: 1088, y: 480 });
+    expect(regionById('dock').exits.find((e) => e.to === 'warehouse')!.requires).toEqual([
+      'sluice',
+    ]);
     s = use(s, 'dock-core');
     expect(exploration(s.snapshot).collected).toEqual([]);
     s = use(s, 'barrel-one');
