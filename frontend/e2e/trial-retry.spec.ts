@@ -41,7 +41,7 @@ test('a failed dragon trial can retry its own checkpoint and a lost load can ret
             'pass',
             'lair',
           ],
-          flags: ['qwen', 'sluice', 'bridge'],
+          flags: ['qwen', 'sluice'],
           collected: [],
         },
       },
