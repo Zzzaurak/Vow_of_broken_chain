@@ -1,0 +1,100 @@
+{
+  "source": "Tencent Cloud TokenHub",
+  "model": "minimax-speech-2.8-hd",
+  "voice_id": "audiobook_female_1",
+  "speed": 1.05,
+  "language": "普通话",
+  "gender": "女",
+  "docs": "https://cloud.tencent.com/document/product/1823/135796",
+  "voice_catalog": "https://github.com/MiniMax-AI/skills/blob/main/skills/frontend-dev/references/minimax-voice-catalog.md",
+  "chapters": [
+    {
+      "id": "intro",
+      "duration": 12.109219,
+      "sha256": "b07ef8e46038e0493bfd083c3291ece1b9470bd3a89b6b42bd307392741a3b51",
+      "usage": {
+        "chars": 119,
+        "total_tokens": 4165,
+        "use_count": 0
+      },
+      "trace_id": "th_1301413966_r00c00_minimax-tts_8a62c61c438178d7cbbc4cf27826eeb8"
+    },
+    {
+      "id": "settings",
+      "duration": 15.197469,
+      "sha256": "9ef6e40f5c32ff9dc88dcb91b59d6a1e15cc56ea75ce3c04084f52d501a4b156",
+      "usage": {
+        "chars": 129,
+        "total_tokens": 4515,
+        "use_count": 0
+      },
+      "trace_id": "th_1301413966_r00c00_minimax-tts_8998e83e6a7b7ce604970df94f57fefb"
+    },
+    {
+      "id": "story",
+      "duration": 13.734625,
+      "sha256": "c5258da8b4e306fe7d6b70ab03730862c7ffc9d964aa82921105dd32a01f7206",
+      "usage": {
+        "chars": 120,
+        "total_tokens": 4200,
+        "use_count": 0
+      },
+      "trace_id": "th_1301413966_r00c00_minimax-tts_25c16d378bb9472886e40fe4ee6175f5"
+    },
+    {
+      "id": "combat",
+      "duration": 14.384781,
+      "sha256": "ef38f5579cd3755d71c6419e5a564c87c918e303b5c2fe96b31b8f0c31e82cfa",
+      "usage": {
+        "chars": 125,
+        "total_tokens": 4375,
+        "use_count": 0
+      },
+      "trace_id": "th_1301413966_r00c00_minimax-tts_b5e0ad8a7a22e25a7babc06a86e868ae"
+    },
+    {
+      "id": "exploration",
+      "duration": 13.978438,
+      "sha256": "403e7ea86a337d24c7e303f809cf003fae017e8ee349823733a1d79c86dd893e",
+      "usage": {
+        "chars": 125,
+        "total_tokens": 4375,
+        "use_count": 0
+      },
+      "trace_id": "th_1301413966_r00c00_minimax-tts_e06bfc9515941f07ab3cd62a6dd4a7c0"
+    },
+    {
+      "id": "saves",
+      "duration": 16.458469,
+      "sha256": "3826e0036bff330db188833f00efb62a89d94ad5aed4565ce819661d0dba3765",
+      "usage": {
+        "chars": 149,
+        "total_tokens": 5215,
+        "use_count": 0
+      },
+      "trace_id": "th_1301413966_r00c00_minimax-tts_23b3448757551afa00ced78dd6e1d2df"
+    },
+    {
+      "id": "resume",
+      "duration": 14.466063,
+      "sha256": "d769adee801a71037d964173a8ad2ab0d701028e5a789f8bab392092d9a67b09",
+      "usage": {
+        "chars": 128,
+        "total_tokens": 4480,
+        "use_count": 0
+      },
+      "trace_id": "th_1301413966_r00c00_minimax-tts_535c035bf1fccd06c98b4dc6e0772b1d"
+    },
+    {
+      "id": "outro",
+      "duration": 12.306594,
+      "sha256": "bece218aaec678e8b38c6a97acdefc50dbcad5066476e4a9c8db9e8989e7a4ab",
+      "usage": {
+        "chars": 107,
+        "total_tokens": 3745,
+        "use_count": 0
+      },
+      "trace_id": "th_1301413966_r00c00_minimax-tts_43908cc0290ebaa05defe0085b762f8e"
+    }
+  ]
+}
