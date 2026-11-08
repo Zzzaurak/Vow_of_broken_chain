@@ -4,23 +4,27 @@
 
 需要 Node.js／npm、JDK、sbt、Python 3、PostgreSQL 命令行工具（initdb、pg_ctl、pg_isready、psql、createdb）。Scala 与前端依赖版本分别由 build.sbt、package-lock.json 固定。首次联网安装依赖后，可在本地运行；游戏不调用云模型 API。
 
-从项目根运行 `python3 scripts/run.py`（Windows 上用 `py scripts/run.py`，同一份脚本，按平台选择文件锁与进程组终止方式）。脚本检查 5179／8093 端口，初始化本项目独立数据库（仅在未指定 DATABASE_URL 时），按需 npm ci，校验内容并启动前后端。打开 http://127.0.0.1:5179 。Ctrl-C 仅结束本次脚本启动的进程组，不查找或杀掉其他项目服务；数据库保留运行及数据。后端日志写入 `.local/api.log`。
+## 启动与停止
 
-当前启动器支持 `status`、`stop`、`restart`。从另一个终端在项目根运行 `python3 scripts/run.py stop` 即可结束本实例，或用 `python3 scripts/run.py restart` 重新启动；直接再次运行只显示访问地址。手动启动的旧实例可在原终端按 Ctrl-C。原终端已经关闭时，先用 `lsof -nP -iTCP:5179 -iTCP:8093 -sTCP:LISTEN` 查看 PID，再用 `lsof -a -p PID -d cwd` 核对项目路径，确认归属后用 `kill -TERM PID` 结束对应服务。Windows 上的对应做法是 `Get-NetTCPConnection -LocalPort 5179,8093 -State Listen` 取 PID，用 `Get-CimInstance Win32_Process -Filter "ProcessId=<pid>"` 核对命令行，再用 `taskkill /PID <pid> /T /F` 结束。可继续使用原来的三个终端命令：
+在项目根目录运行。下文的 `python3` 在 Windows 上替换为 `py`。
 
-```bash
-./scripts/db.sh
-# 第二个终端
-cd backend && sbt run
-# 第三个终端
-cd frontend && npm ci && npm run dev
-```
+| 操作 | macOS / Linux | Windows |
+| --- | --- | --- |
+| 启动开发版 | `python3 scripts/run.py` | `py scripts/run.py` |
+| 启动构建版 | `python3 scripts/run.py --built` | `py scripts/run.py --built` |
+| 仅启动数据库 | `python3 scripts/db.py` | `py scripts/db.py` |
 
-PostgreSQL 默认监听 127.0.0.1:55439，项目数据库为 oath 与 oath_test，数据目录为 `.local/postgres`。可通过 OATH_PGPORT 设置本项目端口；脚本不接管其他数据库。Windows 上不注册系统服务，`scripts/db.py` 以脱离当前控制台的方式启动该集群，避免父终端退出时连带结束数据库。需要外部数据库时设置 DATABASE_URL（JDBC URL），按现有 Database 配置提供凭据。勿将配置、令牌或数据库放进提交。
+启动器检查 5179／8093 端口，准备独立数据库（未指定 DATABASE_URL 时）、按需执行 npm ci、校验内容并启动前后端。打开 http://127.0.0.1:5179 。后端日志在 `.local/api.log`。
+
+在另一个终端运行 `python3 scripts/run.py status` 查看实例、`stop` 关闭、`restart` 重启；重启为构建版使用 `restart --built`。重复启动只显示已有实例地址。Ctrl-C 和 `stop` 关闭本次启动的前后端，保留数据库与存档。手动启动的服务在各自原终端关闭。
+
+PostgreSQL 默认监听 127.0.0.1:55439，开发库为 oath，测试库为 oath_test，数据目录为 `.local/postgres`。`python3 scripts/db.py status` 查看数据库、`stop` 单独关闭数据库；macOS / Linux 也可用 `scripts/db.sh`。OATH_PGPORT 可调整端口。外部数据库使用 DATABASE_URL（JDBC URL）及 PGUSER、PGPASSWORD 配置。
+
+启动器与 npm 构建会启用 Python UTF-8 模式。Windows 手动执行其他 Python 脚本时使用 `py -X utf8 scripts/脚本名.py`。
 
 ## 构建版演示
 
-`python3 scripts/run.py --built` 先构建前端，再使用 Python 标准库静态服务器与同源 API 代理展示 dist。Scala 仍执行全部身份和存档业务，Python 仅处理静态文件与 HTTP 转发。开发和构建版均只监听本机。
+`--built` 先构建前端，再使用 Python 标准库静态服务器与同源 API 代理展示 dist。Scala 仍执行全部身份和存档业务，Python 仅处理静态文件与 HTTP 转发。开发和构建版均只监听本机。
 
 已有 Scala 后端时，可以单独运行：
 
@@ -29,19 +33,37 @@ npm --prefix frontend run build
 python3 scripts/serve.py --port 5180 --api-port 8093
 ```
 
-`/game` 支持 SPA 页面入口；直接刷新游戏页需要返回标题后读取服务端存档。构建版不依赖 Vite 开发服务器，也不会把源码模块作为游戏资源提供。
+`/account`、`/game` 支持 SPA 页面入口；直接刷新游戏页需要返回标题后读取服务端存档。
 
 ## 验证
 
-先准备本地数据库，再执行：
+macOS / Linux 先启动本地数据库，再执行：
 
 ```bash
-./scripts/check.sh
+bash scripts/check.sh
 # 前后端已运行时增加浏览器验证
-./scripts/check.sh --browser
+bash scripts/check.sh --browser
 ```
 
 check 校验内容引用／可达性、前端格式／单元测试／生产构建、后端真实 PostgreSQL 集成测试及 diff 空白错误。后端测试默认只连接 oath_test；可单独设置 OATH_TEST_DATABASE_URL，不能指向需要保留业务数据的库。浏览器测试需要 Playwright Chromium：首次使用可在 frontend 目录运行 `npx playwright install chromium`。
+
+Windows 在单独的 PowerShell 测试终端执行以下步骤；先停止游戏，避免同目录的 `sbt run` 与 `sbt test` 争用启动锁：
+
+```powershell
+py scripts/run.py stop
+py scripts/db.py
+py -X utf8 scripts/build-content.py
+npm --prefix frontend run format:check
+npm --prefix frontend test
+npm --prefix frontend run build
+$env:DATABASE_URL = 'jdbc:postgresql://127.0.0.1:55439/oath_test'
+Push-Location backend
+sbt test
+Pop-Location
+git diff --check
+```
+
+使用自定义数据库端口时同步调整测试 URL。完成后关闭测试终端，在其他终端正常启动游戏，再运行 `npm --prefix frontend run test:e2e`。
 
 完整实战的探索性自动操作脚本（增加 `--keyboard` 使用纯键盘预设，以真实方向键操作菜单、J／K 攻击和 Tab 锁定；输出文件额外带 keyboard 后缀）：在 frontend 目录运行 `node playthrough/run.mjs easy` 或 `node playthrough/run.mjs hard`。已有该测试的本地身份时，可加 `--resume` 从服务器继续记录恢复，适用于定位后半段问题；这不算一次从头通关。脚本从新冒险开始，只读取游戏状态作观察，所有推进、移动、攻击与援助都使用浏览器键鼠；不清敌、不加血、不改写状态。它使用预设策略，失败需要区分玩法问题与操作策略问题，不能把脚本失败等同于人类无法通过。
 
@@ -49,6 +71,6 @@ check 校验内容引用／可达性、前端格式／单元测试／生产构�
 
 ## 源码打包
 
-先提交需要交付的源文件，再运行 `./scripts/package.sh`。脚本仅从明确的 Git HEAD 导出 `.local/oath-source-<commit>.tar.gz`；工作区有未提交修改时拒绝打包，防止源码与提交记录不一致。
+先提交需要交付的源文件，再运行 `bash scripts/package.sh`（Windows 可使用 Git Bash）。脚本仅从明确的 Git HEAD 导出 `.local/oath-source-<commit>.tar.gz`；工作区有未提交修改时拒绝打包，防止源码与提交记录不一致。
 
 压缩包包含已跟踪代码、配置、剧本与素材，不含 node_modules、构建输出、本地数据库或令牌。course-skills 位于相邻独立仓库，按课程需要另外提供，不暗中复制或修改其内容。解压后按本文安装依赖、启动即可重建运行资源。

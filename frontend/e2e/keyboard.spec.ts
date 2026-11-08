@@ -28,6 +28,8 @@ test('pure keyboard opens settings, changes preset, starts, moves, aims and open
       const m = await import('/src/pages/GamePage/runtime/store.ts');
       return m.getGameSnap();
     });
+  // Mount the game first: an absent loading overlay before mount does not mean assets are ready.
+  await expect(page.locator('canvas')).toBeVisible();
   await expect(page.getByText('正在准备旅途画面…', { exact: true })).toHaveCount(0);
   // The opening cinematic can finish after assets load; do not send movement before dialogue.
   await expect.poll(async () => (await state()).mode.kind).toBe('dialogue');

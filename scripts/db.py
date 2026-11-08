@@ -46,10 +46,11 @@ def _run(command, env, log=None):
 def configure():
     """Pin the listen address and port, so no -o value has to survive shell quoting."""
     conf = DATA / 'postgresql.conf'
+    managed_settings = 'port|listen_addresses' if WINDOWS else 'port|listen_addresses|unix_socket_directories'
     kept = [
         line
         for line in conf.read_text(encoding='utf-8').splitlines()
-        if not re.match(r'^#?\s*(port|listen_addresses)\s*=', line) and not line.startswith(MARKER)
+        if not re.match(rf'^#?\s*({managed_settings})\s*=', line) and not line.startswith(MARKER)
     ]
     kept += [MARKER, "listen_addresses = '127.0.0.1'", f'port = {PORT}']
     if not WINDOWS:
@@ -101,7 +102,7 @@ def ensure():
     if not (DATA / 'PG_VERSION').is_file():
         command = [initdb, '-D', str(DATA), '-U', USER, '--auth-host=trust', '--encoding=UTF8', '--locale=C']
         if not WINDOWS:
-            command.insert(4, '--auth-local=trust')
+            command.append('--auth-local=trust')
         _run(command, env, log=LOCAL / 'initdb.log')
     configure()
     if not running(pg_ctl, env):

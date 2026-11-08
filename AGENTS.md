@@ -11,7 +11,7 @@ React 页面组件、hooks、纯计算就近组织，共享设置、存档和音
 ## 运行与数据
 
 - PlayerService 管理游客、账号、会话和玩家版本，AdventureService 管理冒险、快照、轮换及幂等。两服务统一部署，角色、地图、敌人定义在 content。
-- 前端 5179、Scala 8093、项目 PostgreSQL 默认 55439。python3 scripts/run.py 启动，status／stop／restart 管理同一启动器文件锁所代表的实例。旧手动实例需核对 cwd 和 PID。README 列出 Windows 手动路径；原生 Windows 尚未验收。
+- 前端 5179、Scala 8093、项目 PostgreSQL 默认 55439。python3 scripts/run.py 启动，status／stop／restart 管理同一启动器文件锁所代表的实例。Windows 使用 py scripts/run.py，两个平台共用 scripts/db.py。手动实例在原终端关闭；运行和验证命令见 docs/running.md。
 - oath 为开发库，oath_test 为测试库。不要把持久化测试指向玩家数据，也不要接管其他数据库。
 - .local 可能含数据库、令牌、Playwright storageState 和日志。禁止输出或提交凭据。scripts/package.sh 只归档已跟踪文件。
 - 新页面要核对 scripts/serve.py 的 SPA 入口，确保生产版刷新可访问。

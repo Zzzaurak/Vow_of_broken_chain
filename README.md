@@ -1,24 +1,17 @@
 # 断链之誓
 
-一款以 AI 娘为角色的单人奇幻冒险。玩家扮演大肥鱼，从东方长阶出发救回 Claude，沿途结识伙伴，在十二张像素地图中探索、战斗和读对白。进度通过 Scala 服务保存到 PostgreSQL，支持刷新继续、手动选档与回到检查点。
+一款以 AI 娘为角色的单人奇幻冒险。玩家扮演大肥鱼，从东方长阶出发救回 Claude，沿途结识伙伴，在 25 张像素地图中探索、战斗和读对白。进度通过 Scala 服务保存到 PostgreSQL，支持刷新继续、手动选档与回到检查点。
 
-从项目根目录执行：
+在项目根目录启动：
 
-```bash
-python3 scripts/run.py
-```
+| 平台 | 命令 |
+| --- | --- |
+| macOS / Linux | `python3 scripts/run.py` |
+| Windows | `py scripts/run.py` |
 
-启动终端按 **Ctrl-C** 可关闭游戏前后端，数据库保留存档。也可以从项目根目录另开终端执行：
+打开 [本地游戏](http://127.0.0.1:5179/)。启动终端按 **Ctrl-C** 关闭前后端，数据库与存档保留。命令末尾加 `status`、`stop` 或 `restart` 可管理当前实例，加 `--built` 可运行构建版。重复启动会显示已有实例的地址。
 
-```bash
-python3 scripts/run.py status
-python3 scripts/run.py stop
-python3 scripts/run.py restart
-```
-
-重复启动会提示当前实例的地址。restart 在当前终端重新运行；演示构建版用 `python3 scripts/run.py restart --built`。旧版脚本或手动启动的服务需先在各自原终端按 Ctrl-C。
-
-打开 [本地游戏](http://127.0.0.1:5179/)。运行环境与构建版启动方式见[运行与交付](docs/running.md)。
+依赖安装、数据库管理、验证与打包见[运行与交付](docs/running.md)。
 
 ## 账号与游戏操作
 
@@ -32,7 +25,6 @@ python3 scripts/run.py restart
 - [开发 Plan](docs/development-plan.md)：首版业务边界与阶段验收；当前探索改造见下方区域说明。
 - [运行与交付](docs/running.md)：一键启动、构建版演示、检查脚本与源码打包。
 - [素材来源](docs/assets.md)：运行清单、生成记录、原创音频与许可说明。
-
 - [简版企划书 v0.5](material/AI娘冒险游戏_简版企划书.md)：按完整版剧本对齐流程、战斗与检查点，明确基础 HP／MP 100、探索成长和两种难度。
 - [完整剧情剧本](material/script.md)：当前剧情与对白依据，包含场景、演出和战斗节点；玩法数值按企划执行。
 - [角色设定](material/Character/setting.md)：本游戏的人物性格、剧情职责与技能；按角色目录区分立绘和像素素材。
@@ -77,24 +69,22 @@ backend/src/main/scala/services/
 
 ## Git 管理
 
-仓库根为 `hw/hw_m`，默认分支为 `main`，统一管理素材、文档和后续代码。初始提交保留整理前的材料，后续修改另行提交，便于查看差异和回退。
+仓库根为 `hw/hw_m`，默认分支为 `main`，统一管理代码、素材与文档。使用 `git status` 查看工作区、`git log --oneline` 查看历史；提交前检查 `git diff --cached --check`。
 
-在本目录使用 `git status` 查看工作区，使用 `git log --oneline` 查看历史。提交前检查文件范围与 `git diff --cached --check`，按一次明确的内容修改或功能变更创建提交。
-
-`.gitignore` 排除系统文件、依赖、构建产物、本地数据库和常见凭据文件；`.gitattributes` 将图片、PDF 作为二进制素材管理。新命名的真实凭据文件应补充忽略规则。当前仅建立本地仓库，尚未配置远程。
+`.gitignore` 排除依赖、构建产物、本地数据库及凭据；源码打包仅导出已跟踪文件，详见[运行与交付](docs/running.md)。
 
 ## 环境与技术细节
 
-下表记录当前开发机环境，依赖以锁文件为准。macOS 与原生 Windows 均已实机验收，两个平台共用同一份启动器；Windows 的环境与改造结论见 [Windows 运行](docs/windows-port-plan.md)。
+macOS 与 Windows 共用启动器和数据库脚本。下表为已使用的环境，项目依赖以锁文件和构建配置为准；验证范围见[验收记录](docs/acceptance.md)。
 
 | 部分 | 当前环境／固定配置 |
 | --- | --- |
-| 系统 | macOS（zsh）与原生 Windows 11；启动器按平台选择文件锁与进程组终止方式 |
-| Node.js | 24.19.0；npm 使用 frontend/package-lock.json |
+| 系统 | macOS、Windows 11 |
+| Node.js | macOS 24.19.0、Windows 24.14.1；npm 依赖由 frontend/package-lock.json 固定 |
 | 前端 | React 19.3.1、TypeScript 5.7.3、Vite 6.4.5、Tailwind 4.3.3、Zustand 5.0.16 |
 | JVM | macOS 本机 OpenJDK 27，Windows 验收用 Temurin 21；Scala 3.3.5、sbt 1.10.7 由 backend 配置固定 |
 | 后端 | Cats Effect 3.6.3、http4s 0.23.30、Circe 0.14.10、PostgreSQL JDBC 42.7.5 |
-| Python | 本机 3.13.15；运行和内容构建脚本使用标准库 |
+| Python | macOS 3.13.15、Windows 3.13.0；运行和内容构建脚本使用标准库 |
 | 数据库 | 本机 PostgreSQL 18.6；开发库 oath，测试库 oath_test |
 | 浏览器检查 | Playwright Chromium；在 frontend 执行 npx playwright install chromium 安装测试浏览器 |
 
@@ -108,41 +98,9 @@ backend/src/main/scala/services/
 
 GPT 援助按大肥鱼当前朝向，在前方 90°、440 像素范围内选择最近存活敌人，在选定位置造成范围伤害。无目标时提示并保留 CD。沿蓝色箭头走入围墙缺口切换区域；各区域支持多方向连接与回访，灰色箭头表示需要剧情线索或机关。
 
-## Windows 移植入口
-
-原生 Windows 与 macOS 共用同一份启动器：`scripts/run.py` 按平台选择文件锁（flock／msvcrt）和进程组终止方式（killpg／taskkill），数据库管理在 `scripts/db.py`，`db.sh` 只是它的 POSIX 入口。装好 JDK、sbt 与 PostgreSQL 命令行工具（initdb、pg_ctl、pg_isready、psql、createdb）并加入 PATH 后，在项目根执行：
-
-    py scripts/run.py
-
-首次运行会初始化项目独立的 .local/postgres（127.0.0.1:55439，用户 oath，库 oath / oath_test），并在缺少依赖时执行 npm ci。`status`、`stop`、`restart` 与 `--built` 的用法和 macOS 相同。Windows 上的 `python3` 是应用商店占位符，所以 npm 的 predev／prebuild 经 `scripts/py.mjs` 解析可用解释器，不再写死命令名。
-
-中文区域 Windows 的默认编码是 GBK，启动器与 npm 脚本会为子进程设置 PYTHONUTF8=1；手工直接运行 scripts 下的 Python 脚本时，建议先设置该变量。
-
-需要分开终端时，可分别运行 `py scripts/db.py`、在 backend 执行 `sbt run`、在 frontend 执行 `npm run dev`。改用系统 PostgreSQL 服务而非项目集群时，设置 DATABASE_URL、PGUSER、PGPASSWORD 指向自己的实例，并自行创建 oath 与 oath_test。各终端用 Ctrl-C 结束。
-
-校验与打包的 Bash 脚本尚未适配 Windows：`scripts/check.sh` 与 `scripts/package.sh` 需按本文「修改后的验证」逐条执行对应命令。
-
-生产构建可在素材生成后分别执行以下命令，Scala 后端应保持运行。
-
-    cd frontend
-    npx tsc --noEmit
-    npx vite build
-    cd ..
-    py scripts/serve.py --port 5179 --api-port 8093
-
-迁移存档使用 PostgreSQL 的 pg_dump／pg_restore，保留玩家与账号数据。每个测试终端明确连接独立 oath_test。密码使用随机盐与 PBKDF2 校验值，数据库中的会话令牌保存摘要。浏览器保存当前会话令牌；.local、数据库目录和含凭据配置均应留在 Git 之外。
-
 ## 修改后的验证
 
-    python3 scripts/build-content.py
-    npm --prefix frontend run format:check
-    npm --prefix frontend test
-    npm --prefix frontend run build
-    # 已启动本项目前后端与数据库时
-    ./scripts/check.sh --browser
-
-Windows 可分别执行相应 npm 命令，在后端测试终端将 DATABASE_URL 设置为 oath_test 的 JDBC URL 后执行 sbt test。完整试玩脚本在 frontend 内运行 node playthrough/run.mjs easy --keyboard 或 node playthrough/run.mjs hard，结果保存到忽略的 .local/playthrough。Agent 接手说明见 [AGENTS.md](AGENTS.md)。
-
+macOS / Linux 执行 `bash scripts/check.sh`；前后端已启动时可加 `--browser`。Windows 的分步命令与完整试玩方式见[运行与交付](docs/running.md#验证)。Agent 接手说明见 [AGENTS.md](AGENTS.md)。
 
 ## 非线性区域探索（内容版本 2.1.0）
 
