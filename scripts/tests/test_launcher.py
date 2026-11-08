@@ -10,6 +10,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from unittest.mock import patch
 
@@ -67,8 +68,7 @@ class DatabaseOwnershipTests(unittest.TestCase):
         self.configure.assert_not_called()
 
 
-@unittest.skipUnless(os.name == 'nt', 'Windows Job Objects')
-class WindowsProcessTests(unittest.TestCase):
+class ProcessTreeTests(unittest.TestCase):
     def setUp(self):
         temporary = self.enterContext(tempfile.TemporaryDirectory(prefix='oath process test '))
         self.root = Path(temporary)
@@ -95,9 +95,25 @@ class WindowsProcessTests(unittest.TestCase):
         with socket.create_connection(('127.0.0.1', int(port)), timeout=2):
             pass
         run.stop_group(process)
-        self.assertIsNone(process.oath_job.handle)
+        if os.name == 'nt':
+            self.assertIsNone(process.oath_job.handle)
+        else:
+            # POSIX signals are asynchronous, and the orphan is no longer our child to wait on.
+            deadline = time.monotonic() + 5
+            while time.monotonic() < deadline:
+                with socket.socket() as probe:
+                    if probe.connect_ex(('127.0.0.1', int(port))) != 0:
+                        break
+                time.sleep(.02)
         with socket.socket() as probe:
             self.assertNotEqual(probe.connect_ex(('127.0.0.1', int(port))), 0)
+
+
+@unittest.skipUnless(os.name == 'nt', 'Windows Job Objects')
+class WindowsProcessTests(unittest.TestCase):
+    def setUp(self):
+        temporary = self.enterContext(tempfile.TemporaryDirectory(prefix='oath process test '))
+        self.root = Path(temporary)
 
     def test_immediately_exiting_batch_wrapper_is_assigned_before_it_runs(self):
         command = self.root / 'quick child.cmd'

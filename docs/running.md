@@ -39,7 +39,7 @@ python3 scripts/serve.py --port 5180 --api-port 8093
 
 ## 验证
 
-启动脚本的回归测试：`python3 -m unittest discover -s scripts/tests -v`。Windows 自动检查真实进程树的异常退出与清理；设置环境变量 `OATH_SCRIPT_DB_TESTS=1` 后，还会在临时目录创建、启动并清理两个独立 PostgreSQL 集群，验证改端口时不会误操作另一实例，需 PostgreSQL 工具在 PATH 中。此测试不连接项目玩家数据库。
+启动脚本的回归测试：`python3 -m unittest discover -s scripts/tests -v`。进程树回归覆盖 macOS／Linux 进程组和 Windows Job Object，验证父包装进程退出后仍能关闭后代并释放端口；设置环境变量 `OATH_SCRIPT_DB_TESTS=1` 后，还会在临时目录创建、启动并清理两个独立 PostgreSQL 集群，验证改端口时不会误操作另一实例，需 PostgreSQL 工具在 PATH 中。此测试不连接项目玩家数据库。
 
 macOS / Linux 先启动本地数据库，再执行：
 
