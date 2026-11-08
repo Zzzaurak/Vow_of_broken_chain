@@ -20,6 +20,8 @@
 
 PostgreSQL 默认监听 127.0.0.1:55439，开发库为 oath，测试库为 oath_test，数据目录为 `.local/postgres`。`python3 scripts/db.py status` 查看数据库、`stop` 单独关闭数据库；macOS / Linux 也可用 `scripts/db.sh`。OATH_PGPORT 可调整端口。外部数据库使用 DATABASE_URL（JDBC URL）及 PGUSER、PGPASSWORD 配置。
 
+修改 OATH_PGPORT 前，先停止游戏并执行 `python3 scripts/db.py stop`，再设置新端口并启动。启动脚本会核对实际运行端口与数据目录；旧实例仍在运行或目标端口属于其他 PostgreSQL 时拒绝建库。Windows 使用 Job Object 管理本次启动的进程树，父进程异常退出后仍会清理其子进程。
+
 启动器与 npm 构建会启用 Python UTF-8 模式。Windows 手动执行其他 Python 脚本时使用 `py -X utf8 scripts/脚本名.py`。
 
 ## 构建版演示
@@ -36,6 +38,8 @@ python3 scripts/serve.py --port 5180 --api-port 8093
 `/account`、`/game` 支持 SPA 页面入口；直接刷新游戏页需要返回标题后读取服务端存档。
 
 ## 验证
+
+启动脚本的回归测试：`python3 -m unittest discover -s scripts/tests -v`。Windows 自动检查真实进程树的异常退出与清理；设置环境变量 `OATH_SCRIPT_DB_TESTS=1` 后，还会在临时目录创建、启动并清理两个独立 PostgreSQL 集群，验证改端口时不会误操作另一实例，需 PostgreSQL 工具在 PATH 中。此测试不连接项目玩家数据库。
 
 macOS / Linux 先启动本地数据库，再执行：
 

@@ -80,21 +80,42 @@ def install_signal_handlers():
 
 def spawn(command, cwd, env=None, log=None):
     """Start one child in its own process group, so this run can stop exactly what it started."""
-    options = {'creationflags': subprocess.CREATE_NEW_PROCESS_GROUP} if WINDOWS else {'start_new_session': True}
-    return subprocess.Popen(
-        command,
-        cwd=cwd,
-        env=env,
-        stdout=log if log is not None else None,
-        stderr=subprocess.STDOUT if log is not None else None,
-        **options,
-    )
+    job = None
+    process = None
+    if WINDOWS:
+        from windows_job import CREATE_SUSPENDED, WindowsJob
+
+        job = WindowsJob()
+        options = {'creationflags': subprocess.CREATE_NEW_PROCESS_GROUP | CREATE_SUSPENDED}
+    else:
+        options = {'start_new_session': True}
+    try:
+        process = subprocess.Popen(
+            command,
+            cwd=cwd,
+            env=env,
+            stdout=log if log is not None else None,
+            stderr=subprocess.STDOUT if log is not None else None,
+            **options,
+        )
+        if job is not None:
+            process.oath_job = job
+            job.assign_and_resume(process)
+        return process
+    except BaseException:
+        # A failed assignment/resume must never leave a suspended child behind.
+        if process is not None:
+            process.kill()
+            process.wait()
+        if job is not None:
+            job.close()
+        raise
 
 
 def stop_group(process, force=False):
     """Stop the process group of a child started here; never search by port or process name."""
     if WINDOWS:
-        subprocess.run(['taskkill', '/PID', str(process.pid), '/T', '/F'], capture_output=True)
+        process.oath_job.stop()
         return
     try:
         os.killpg(process.pid, signal.SIGKILL if force else signal.SIGTERM)

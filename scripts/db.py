@@ -23,7 +23,8 @@ MARKER = '# Managed by the project launcher (oath / oath_test).'
 
 
 def _environ():
-    return dict(os.environ, PGHOST='127.0.0.1', PGPORT=PORT, PGUSER=USER)
+    return dict(os.environ, PGHOST='127.0.0.1', PGHOSTADDR='127.0.0.1', PGPORT=PORT,
+                PGUSER=USER, PGCLIENTENCODING='UTF8')
 
 
 def _tool(name):
@@ -77,9 +78,10 @@ def _start(pg_ctl, pg_isready, env):
     command = [pg_ctl, '-D', str(DATA), '-l', str(LOG), 'start']
     if WINDOWS:
         # Start outside this console: postgres must outlive the launcher's Ctrl-C.
-        subprocess.Popen(
+        subprocess.run(
             command,
             env=env,
+            check=True,
             creationflags=subprocess.CREATE_NO_WINDOW,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
@@ -93,6 +95,28 @@ def _start(pg_ctl, pg_isready, env):
     raise SystemExit(f'PostgreSQL did not start; inspect {LOG}')
 
 
+def _query(psql, query, env):
+    # Ignore user psql startup files and never prompt for a password in the launcher.
+    return subprocess.run(
+        [psql, '-X', '-w', '-d', 'postgres', '-Atc', query], env=env,
+        capture_output=True, text=True, encoding='utf-8', check=True,
+    ).stdout.strip()
+
+
+def _verify_running_port():
+    # postmaster.pid records the live port; postgresql.conf may describe a future restart.
+    try:
+        actual = (DATA / 'postmaster.pid').read_text(encoding='utf-8').splitlines()[3]
+        matches = int(actual) == int(PORT)
+    except (OSError, IndexError, ValueError) as error:
+        raise SystemExit('Cannot verify the project PostgreSQL port; refusing to connect.') from error
+    if not matches:
+        raise SystemExit(
+            f'Project PostgreSQL is still running on port {actual}, not {PORT}. '
+            'Stop it with scripts/db.py stop before changing OATH_PGPORT.'
+        )
+
+
 def ensure():
     """Create the project cluster if needed, start it, and make sure both databases exist."""
     env = _environ()
@@ -104,16 +128,18 @@ def ensure():
         if not WINDOWS:
             command.append('--auth-local=trust')
         _run(command, env, log=LOCAL / 'initdb.log')
-    configure()
-    if not running(pg_ctl, env):
+    if running(pg_ctl, env):
+        _verify_running_port()
+    else:
         if ready(pg_isready, env):
             raise SystemExit(f'Port {PORT} belongs to another PostgreSQL instance; refusing to reuse it.')
+        configure()
         _start(pg_ctl, pg_isready, env)
+    actual_data = _query(psql, 'SHOW data_directory', env)
+    if Path(actual_data).resolve() != DATA.resolve():
+        raise SystemExit(f'Port {PORT} belongs to another PostgreSQL data directory; refusing to reuse it.')
     for database in DATABASES:
-        count = subprocess.run(
-            [psql, '-d', 'postgres', '-Atc', f"SELECT count(*) FROM pg_database WHERE datname='{database}'"],
-            env=env, capture_output=True, text=True, check=True,
-        ).stdout.strip()
+        count = _query(psql, f"SELECT count(*) FROM pg_database WHERE datname='{database}'", env)
         if count == '0':
             _run([createdb, database], env)
     print(f'Project PostgreSQL ready on 127.0.0.1:{PORT} ({DATABASES[0]} / {DATABASES[1]})')
