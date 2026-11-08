@@ -36,3 +36,5 @@ playwright-report/
 test-results/
 # Reproducible runtime copies of material/ assets
 frontend/public/assets/
+
+*.zip
